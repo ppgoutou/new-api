@@ -30,6 +30,7 @@ import { useSystemConfigStore } from '@/stores/system-config-store'
 import { DEFAULT_TOKEN_UNIT } from '../constants'
 import { useBillingTime } from '../hooks/use-billing-time'
 import {
+  formatTaskUsageUnitPrice,
   getCardExamplePrice,
   getDynamicDisplayGroupRatio,
   getDynamicPriceUnitLabelKey,
@@ -39,7 +40,12 @@ import {
 import { parseTags } from '../lib/filters'
 import { isTokenBasedModel } from '../lib/model-helpers'
 import { formatPrice, formatRequestPrice } from '../lib/price'
-import { taskPriceLabel, taskUsageUnitLabel } from '../lib/task-price-display'
+import {
+  getPerSecondOptionPricing,
+  taskEnumLabel,
+  taskPriceLabel,
+  taskUsageUnitLabel,
+} from '../lib/task-price-display'
 import type { PricingModel, PriceType, TokenUnit } from '../types'
 import { ModelBillingModeBadge } from './model-billing-mode-badge'
 import { ModelPerfBadge, type ModelPerfBadgeData } from './model-perf-badge'
@@ -106,8 +112,32 @@ export const ModelCard = memo(function ModelCard(props: ModelCardProps) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
     [props.model, dynamicPriceOptions, currency]
   )
+  const perSecondPricing = useMemo(
+    () => getPerSecondOptionPricing(props.model),
+    [props.model]
+  )
   let priceSummary: ReactNode
-  if (dynamicSummary) {
+  if (perSecondPricing) {
+    const optionDefinition =
+      props.model.billing_usage_schema?.[perSecondPricing.field]
+    priceSummary = (
+      <dl
+        aria-label={t('Video billing (per second)')}
+        className='col-span-full grid grid-cols-2 gap-x-3 gap-y-1'
+      >
+        {perSecondPricing.options.map((option) => (
+          <div key={option.value} className='flex min-w-0 items-baseline gap-1.5'>
+            <dt className='text-muted-foreground shrink-0 text-xs'>
+              {taskEnumLabel(optionDefinition, option.value, i18n.language)}
+            </dt>
+            <dd className='truncate font-mono text-sm font-semibold tabular-nums'>
+              {formatTaskUsageUnitPrice(option.unitPrice, dynamicPriceOptions)}
+            </dd>
+          </div>
+        ))}
+      </dl>
+    )
+  } else if (dynamicSummary) {
     const cacheReadEntries = dynamicSummary.secondaryEntries.filter(
       (entry) => entry.field === 'cacheReadPrice' && entry.unit === 'token'
     )

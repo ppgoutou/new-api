@@ -6073,6 +6073,7 @@
     "The Classic frontend has been removed. The theme can only be set to default": "Интерфейс Classic удалён. Тему можно установить только в default",
     "Task": "Задача",
     "Task billing": "Тарификация задач",
+    "Video billing (per second)": "Тарификация видео (за секунду)",
     "The current sign-in method does not support security verification": "Текущий способ входа не поддерживает проверку безопасности",
     "Task Details": "Сведения о задаче",
     "Task failed": "Задача не выполнена",

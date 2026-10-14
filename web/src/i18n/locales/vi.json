@@ -6073,6 +6073,7 @@
     "The Classic frontend has been removed. The theme can only be set to default": "Giao diện Classic đã bị gỡ bỏ. Chủ đề chỉ có thể đặt là default",
     "Task": "Nhiệm vụ",
     "Task billing": "Tính phí tác vụ",
+    "Video billing (per second)": "Tính phí video (theo giây)",
     "The current sign-in method does not support security verification": "Phương thức đăng nhập hiện tại không hỗ trợ xác minh bảo mật",
     "Task Details": "Chi tiết tác vụ",
     "Task failed": "Tác vụ thất bại",

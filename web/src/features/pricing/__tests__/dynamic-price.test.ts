@@ -416,6 +416,29 @@ describe('task dynamic pricing', () => {
     assert.equal(
       getBillingModeLabelKey(
         pricingModel({
+          billing_usage_schema: {
+            seconds: { type: 'number', unit: 'second' },
+            resolution: { enum: ['480p', '720p'] },
+          },
+        })
+      ),
+      'Video billing (per second)'
+    )
+    assert.equal(
+      getBillingModeLabelKey(
+        pricingModel({
+          billing_usage_schema: {
+            seconds: { type: 'number', unit: 'second' },
+            resolution: { enum: ['480p', '720p'] },
+            mode: { enum: ['std', 'pro'] },
+          },
+        })
+      ),
+      'Task billing'
+    )
+    assert.equal(
+      getBillingModeLabelKey(
+        pricingModel({
           billing_mode: 'tiered_expr',
           billing_expr: 'tier("base", u("seconds") * 0.4)',
           billing_usage_schema: {

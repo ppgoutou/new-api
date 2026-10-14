@@ -6073,6 +6073,7 @@
     "The Classic frontend has been removed. The theme can only be set to default": "Classic 前端已移除，主题只能设置为 default",
     "Task": "任务",
     "Task billing": "任务计费",
+    "Video billing (per second)": "视频计费（秒）",
     "The current sign-in method does not support security verification": "当前认证方式不支持安全验证",
     "Task Details": "任务详情",
     "Task failed": "任务失败",

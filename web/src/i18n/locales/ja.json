@@ -6073,6 +6073,7 @@
     "The Classic frontend has been removed. The theme can only be set to default": "Classic フロントエンドは削除されました。テーマは default にのみ設定できます",
     "Task": "タスク",
     "Task billing": "タスク課金",
+    "Video billing (per second)": "動画課金（秒）",
     "The current sign-in method does not support security verification": "現在のログイン方法はセキュリティ認証に対応していません",
     "Task Details": "タスク詳細",
     "Task failed": "タスク失敗",

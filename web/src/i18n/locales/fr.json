@@ -6073,6 +6073,7 @@
     "The Classic frontend has been removed. The theme can only be set to default": "L'interface Classic a été supprimée. Le thème ne peut être défini que sur default",
     "Task": "Tâche",
     "Task billing": "Facturation de tâche",
+    "Video billing (per second)": "Facturation vidéo (par seconde)",
     "The current sign-in method does not support security verification": "La méthode de connexion actuelle ne prend pas en charge la vérification de sécurité",
     "Task Details": "Détails de la tâche",
     "Task failed": "Échec de la tâche",

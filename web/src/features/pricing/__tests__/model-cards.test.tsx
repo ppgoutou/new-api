@@ -475,13 +475,40 @@ describe('model cards', () => {
     )
   })
 
-  it('keeps task price ranges in their actual usage unit instead of the selected token unit', () => {
+  it('lists each option price per second in schema order instead of a range for a single-enum video model', () => {
     render(
       <ModelCard
         model={pricingModel({
           billing_mode: 'tiered_expr',
           billing_expr:
-            'u("mode") == "pro" ? tier("pro", u("seconds") * 0.8) : tier("std", u("seconds") * 0.4)',
+            'u("resolution") == "480p" ? tier("480p", u("seconds") * 0.4) : u("resolution") == "1080p" ? tier("1080p", u("seconds") * 1.2) : tier("4k", u("seconds") * 2.5)',
+          billing_usage_schema: {
+            seconds: { type: 'number', unit: 'second' },
+            resolution: { enum: ['480p', '1080p', '4k'] },
+          },
+        })}
+        onClick={vi.fn()}
+        tokenUnit='K'
+      />
+    )
+    const prices = screen.getByLabelText('Video billing (per second)')
+    const rows = within(prices).getAllByRole('term')
+    expect(rows.map((row) => row.textContent)).toEqual(['480p', '1080p', '4k'])
+    expect(
+      rows.map((row) => row.nextElementSibling?.textContent)
+    ).toEqual(['$0.4', '$1.2', '$2.5'])
+    expect(screen.getByText('Video billing (per second)')).toBeVisible()
+    expect(screen.queryByText(/ – /)).not.toBeInTheDocument()
+    expect(screen.queryByText(/1K|1M/)).not.toBeInTheDocument()
+  })
+
+  it('keeps the task price range when an option adds a per-request charge', () => {
+    render(
+      <ModelCard
+        model={pricingModel({
+          billing_mode: 'tiered_expr',
+          billing_expr:
+            'u("mode") == "pro" ? tier("pro", u("seconds") * 0.8 + 0.1) : tier("std", u("seconds") * 0.4)',
           billing_usage_schema: {
             seconds: { type: 'number', unit: 'second' },
             mode: { enum: ['std', 'pro'] },
@@ -493,7 +520,10 @@ describe('model cards', () => {
     )
     expect(screen.getByText(/0.4.*0.8/)).toHaveTextContent(/0.4 – \$0.8/)
     expect(screen.getByText(/^\/\s*s$/)).toBeVisible()
-    expect(screen.queryByText(/1K|1M/)).not.toBeInTheDocument()
+    expect(
+      screen.queryByLabelText('Video billing (per second)')
+    ).not.toBeInTheDocument()
+    expect(screen.getByText('Video billing (per second)')).toBeVisible()
   })
 
   it('shows the unconfigured usage message without inventing a token price', () => {
@@ -534,6 +564,7 @@ describe('model cards', () => {
       '$42 – $70 / 1M token'
     )
     expect(screen.getByText(/480p · 5s ≈/)).toBeVisible()
+    expect(screen.getByText('Task billing')).toBeVisible()
   })
 
   it('keeps an unrecognized expression visible with the special billing message', () => {
