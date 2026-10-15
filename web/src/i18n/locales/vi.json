@@ -7282,6 +7282,11 @@
     "Disputed": "Đang tranh chấp",
     "Stripe payment refunded, top-up quota deducted: {{quota}}": "Thanh toán Stripe đã hoàn tiền, đã trừ số tiền nạp: {{quota}}",
     "Stripe payment disputed, top-up quota deducted: {{quota}}": "Thanh toán Stripe bị tranh chấp, đã trừ số tiền nạp: {{quota}}",
-    "Stripe dispute closed in your favor, top-up quota restored: {{quota}}": "Tranh chấp Stripe đã kết thúc có lợi cho bạn, đã khôi phục số tiền nạp: {{quota}}"
+    "Stripe dispute closed in your favor, top-up quota restored: {{quota}}": "Tranh chấp Stripe đã kết thúc có lợi cho bạn, đã khôi phục số tiền nạp: {{quota}}",
+    "Custom amount (USD)": "Số tiền tùy chỉnh (USD)",
+    "{{amount}} USD credit": "{{amount}} USD tín dụng",
+    "Credit received:": "Tín dụng nhận được:",
+    "The payable amount and currency are shown after you choose a payment method.": "Số tiền cần thanh toán và loại tiền tệ sẽ hiển thị sau khi bạn chọn phương thức thanh toán.",
+    "The final charge is shown on the Stripe payment page and may be displayed in your local currency.": "Số tiền thực tế được hiển thị trên trang thanh toán Stripe và có thể được hiển thị bằng đơn vị tiền tệ địa phương của bạn."
   }
 }

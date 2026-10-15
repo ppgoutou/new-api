@@ -111,6 +111,29 @@ export function isWaffoPancakePayment(paymentType: string): boolean {
   return paymentType === PAYMENT_TYPES.WAFFO_PANCAKE
 }
 
+export type PaymentCurrency = 'USD' | 'CNY'
+
+/**
+ * Currency the gateway actually charges in, so payable amounts can carry a
+ * unit. Stripe charges the configured USD price; Epay methods (Alipay, WeChat
+ * and custom Epay channels) charge CNY. Gateways that price per product or
+ * per channel return undefined and keep showing a bare number.
+ */
+export function getPaymentCurrency(
+  paymentType: string | undefined
+): PaymentCurrency | undefined {
+  if (!paymentType) return undefined
+  if (isStripePayment(paymentType)) return 'USD'
+  if (
+    isWaffoPayment(paymentType) ||
+    isWaffoPancakePayment(paymentType) ||
+    paymentType === PAYMENT_TYPES.CREEM
+  ) {
+    return undefined
+  }
+  return 'CNY'
+}
+
 export interface PaymentProcessors {
   regular: (topupAmount: number, paymentType: string) => Promise<boolean>
   waffo: (topupAmount: number, payMethodIndex: number) => Promise<boolean>

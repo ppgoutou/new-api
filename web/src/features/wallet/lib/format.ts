@@ -19,6 +19,7 @@ For commercial licensing, please contact support@quantumnous.com
 import type { TFunction } from 'i18next'
 
 import { DEFAULT_DISCOUNT_RATE } from '../constants'
+import type { PaymentCurrency } from './payment'
 
 // ============================================================================
 // Wallet-specific Formatting Functions
@@ -64,6 +65,25 @@ export function formatCurrency(amount: number | string): string {
 }
 
 /**
+ * Format a payable amount with the gateway's currency when it is known
+ * (e.g. "US$10.00", "¥68.00"); falls back to a bare number otherwise.
+ */
+export function formatPaymentAmount(
+  amount: number,
+  currency: PaymentCurrency | undefined
+): string {
+  if (!currency) return formatCurrency(amount)
+  if (!Number.isFinite(amount)) return '-'
+
+  return new Intl.NumberFormat(undefined, {
+    style: 'currency',
+    currency,
+    minimumFractionDigits: 2,
+    maximumFractionDigits: Math.abs(amount) >= 1 ? 2 : 4,
+  }).format(amount)
+}
+
+/**
  * Get discount label for display (e.g., "20% OFF")
  */
 export function getDiscountLabel(discount: number, t: TFunction): string {
@@ -72,28 +92,4 @@ export function getDiscountLabel(discount: number, t: TFunction): string {
   }
   const off = Math.round((1 - discount) * 100)
   return t('{{percent}}% OFF', { percent: off })
-}
-
-/**
- * Calculate pricing details for a preset amount
- */
-export function calculatePresetPricing(
-  presetValue: number,
-  priceRatio: number,
-  discount: number,
-  usdExchangeRate: number = 1
-) {
-  const originalPrice = presetValue * priceRatio
-  const actualPrice = originalPrice * discount
-  const savedAmount = originalPrice - actualPrice
-  const hasDiscount = discount < 1.0
-  const displayValue = presetValue * usdExchangeRate
-
-  return {
-    displayValue,
-    originalPrice,
-    actualPrice,
-    savedAmount,
-    hasDiscount,
-  }
 }

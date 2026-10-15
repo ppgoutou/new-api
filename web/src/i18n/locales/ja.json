@@ -7282,6 +7282,11 @@
     "Disputed": "異議申し立て中",
     "Stripe payment refunded, top-up quota deducted: {{quota}}": "Stripe の支払いが返金されたため、チャージ額を差し引きました：{{quota}}",
     "Stripe payment disputed, top-up quota deducted: {{quota}}": "Stripe の支払いに異議が申し立てられたため、チャージ額を差し引きました：{{quota}}",
-    "Stripe dispute closed in your favor, top-up quota restored: {{quota}}": "Stripe の異議はあなたに有利な形で終了し、チャージ額を戻しました：{{quota}}"
+    "Stripe dispute closed in your favor, top-up quota restored: {{quota}}": "Stripe の異議はあなたに有利な形で終了し、チャージ額を戻しました：{{quota}}",
+    "Custom amount (USD)": "カスタム金額（米ドル）",
+    "{{amount}} USD credit": "{{amount}} 米ドル分のクレジット",
+    "Credit received:": "付与されるクレジット：",
+    "The payable amount and currency are shown after you choose a payment method.": "支払方法を選ぶと、支払金額と通貨が表示されます。",
+    "The final charge is shown on the Stripe payment page and may be displayed in your local currency.": "最終的な請求額は Stripe の支払いページに表示され、お住まいの地域の通貨で表示される場合があります。"
   }
 }

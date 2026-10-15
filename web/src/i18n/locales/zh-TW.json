@@ -7282,6 +7282,11 @@
     "Disputed": "爭議中",
     "Stripe payment refunded, top-up quota deducted: {{quota}}": "Stripe 付款已退款，扣回儲值額度：{{quota}}",
     "Stripe payment disputed, top-up quota deducted: {{quota}}": "Stripe 付款遭提出爭議，扣回儲值額度：{{quota}}",
-    "Stripe dispute closed in your favor, top-up quota restored: {{quota}}": "Stripe 爭議已撤銷或勝訴，恢復儲值額度：{{quota}}"
+    "Stripe dispute closed in your favor, top-up quota restored: {{quota}}": "Stripe 爭議已撤銷或勝訴，恢復儲值額度：{{quota}}",
+    "Custom amount (USD)": "自訂金額（美元）",
+    "{{amount}} USD credit": "{{amount}} 美元額度",
+    "Credit received:": "到帳額度：",
+    "The payable amount and currency are shown after you choose a payment method.": "選擇付款方式後顯示應付金額和幣別。",
+    "The final charge is shown on the Stripe payment page and may be displayed in your local currency.": "實際扣款以 Stripe 付款頁面為準，可能以你所在地的貨幣顯示。"
   }
 }
