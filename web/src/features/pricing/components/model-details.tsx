@@ -94,6 +94,7 @@ import {
   taskTierConditions,
   pricingDisplayFallbackKey,
 } from '../lib/task-price-display'
+import { getVideoPricing } from '../lib/video-pricing'
 import type {
   ModelCapability,
   PriceType,
@@ -101,6 +102,7 @@ import type {
   TokenUnit,
 } from '../types'
 import { DynamicPricingBreakdown } from './dynamic-pricing-breakdown'
+import { VideoPricingTables } from './video-pricing-tables'
 import { ModelBillingModeBadge } from './model-billing-mode-badge'
 import { ModelDetailsApi } from './model-details-api'
 import { ModelDetailsPerformance } from './model-details-performance'
@@ -1485,6 +1487,7 @@ export function ModelDetailsContent(props: ModelDetailsContentProps) {
     !props.model.billing_usage_schema ||
     simpleTaskPricing ||
     taskTiers.length === 0
+  const videoPricing = getVideoPricing(props.model)
 
   return (
     <div className='@container/details space-y-4'>
@@ -1512,7 +1515,18 @@ export function ModelDetailsContent(props: ModelDetailsContentProps) {
 
           <section className='bg-card/60 space-y-5 rounded-xl border p-4 shadow-sm'>
             <SectionTitle>{t('Pricing')}</SectionTitle>
-            {showBasePrices && (
+            {videoPricing && (
+              <VideoPricingTables
+                model={props.model}
+                pricing={videoPricing}
+                groups={getAvailableGroups(props.model, props.usableGroup)}
+                groupRatio={props.groupRatio}
+                priceRate={props.priceRate}
+                usdExchangeRate={props.usdExchangeRate}
+                showRechargePrice={showRechargePrice}
+              />
+            )}
+            {!videoPricing && showBasePrices && (
               <PriceSection
                 model={props.model}
                 priceRate={props.priceRate}
@@ -1521,7 +1535,7 @@ export function ModelDetailsContent(props: ModelDetailsContentProps) {
                 showRechargePrice={showRechargePrice}
               />
             )}
-            {isDynamic && !simpleTaskPricing && (
+            {!videoPricing && isDynamic && !simpleTaskPricing && (
               <DynamicPricingBreakdown
                 billingExpr={props.model.billing_expr}
                 usageSchema={props.model.billing_usage_schema}
@@ -1532,16 +1546,18 @@ export function ModelDetailsContent(props: ModelDetailsContentProps) {
                 }}
               />
             )}
-            <GroupPricingSection
-              model={props.model}
-              groupRatio={props.groupRatio}
-              usableGroup={props.usableGroup}
-              autoGroups={props.autoGroups}
-              priceRate={props.priceRate}
-              usdExchangeRate={props.usdExchangeRate}
-              tokenUnit={props.tokenUnit}
-              showRechargePrice={showRechargePrice}
-            />
+            {!videoPricing && (
+              <GroupPricingSection
+                model={props.model}
+                groupRatio={props.groupRatio}
+                usableGroup={props.usableGroup}
+                autoGroups={props.autoGroups}
+                priceRate={props.priceRate}
+                usdExchangeRate={props.usdExchangeRate}
+                tokenUnit={props.tokenUnit}
+                showRechargePrice={showRechargePrice}
+              />
+            )}
           </section>
 
           <ModelBackendDetailsSection model={props.model} />

@@ -500,6 +500,37 @@ describe('model cards', () => {
     expect(screen.getByText('Video billing (per second)')).toBeVisible()
     expect(screen.queryByText(/ – /)).not.toBeInTheDocument()
     expect(screen.queryByText(/1K|1M/)).not.toBeInTheDocument()
+    expect(
+      screen.queryByText('Orders with reference videos are priced separately')
+    ).not.toBeInTheDocument()
+  })
+
+  it('notes separately priced reference orders under the per-second prices when the model prices them', () => {
+    render(
+      <ModelCard
+        model={pricingModel({
+          billing_mode: 'tiered_expr',
+          billing_expr:
+            'u("resolution") == "480p" ? tier("480p", u("reference_video_tokens") * 28 / 1000000 + u("seconds") * 0.56) : tier("720p", u("reference_video_tokens") * 28 / 1000000 + u("seconds") * 1)',
+          billing_usage_schema: {
+            seconds: { type: 'number', unit: 'second' },
+            reference_video_tokens: { type: 'number', unit: 'token' },
+            resolution: { enum: ['480p', '720p'] },
+          },
+        })}
+        onClick={vi.fn()}
+      />
+    )
+    const prices = screen.getByLabelText('Video billing (per second)')
+    expect(
+      within(prices)
+        .getAllByRole('definition')
+        .map((cell) => cell.textContent)
+    ).toEqual(['$0.56', '$1'])
+    expect(
+      screen.getByText('Orders with reference videos are priced separately')
+    ).toBeVisible()
+    expect(screen.queryByText(/1M/)).not.toBeInTheDocument()
   })
 
   it('keeps the task price range when an option adds a per-request charge', () => {

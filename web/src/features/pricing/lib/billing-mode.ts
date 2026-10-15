@@ -19,7 +19,7 @@ For commercial licensing, please contact support@quantumnous.com
 import type { PricingModel } from '../types'
 import { hasTaskUsageSchema, isDynamicPricingModel } from './dynamic-price'
 import { isTokenBasedModel } from './model-helpers'
-import { isPerSecondVideoSchema } from './task-price-display'
+import { isVideoPricingSchema } from './video-pricing'
 
 export type BillingModeLabelKey =
   | 'Per Request'
@@ -34,7 +34,7 @@ export function getBillingModeLabelKey(
   // Task-usage models badge as one business category; the metering unit
   // ($/1M token, $/credit, $/second) is already carried by the price line.
   if (hasTaskUsageSchema(model)) {
-    return isPerSecondVideoSchema(model.billing_usage_schema)
+    return isVideoPricingSchema(model.billing_usage_schema)
       ? 'Video billing (per second)'
       : 'Task billing'
   }

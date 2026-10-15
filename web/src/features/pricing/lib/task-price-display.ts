@@ -34,7 +34,6 @@ import {
 import { formatBillingCondition } from './billing-expression/condition-display'
 import { compileBillingExpression } from './billing-expression/parser'
 import { visitExpression } from './billing-expression/types'
-import { getTaskEnumFields, getTaskNumberFields } from './task-expr'
 import { getTaskPricingDisplayTiers } from './task-matrix-display'
 
 export function taskPriceLabel(
@@ -139,74 +138,4 @@ export function pricingDisplayFallbackKey(
   return missingUsageMetadata
     ? 'Task usage metadata is unavailable. Pricing details cannot be displayed.'
     : 'This expression cannot be expanded into a price table. View the original expression below.'
-}
-
-export type PerSecondOptionPrice = {
-  value: string
-  /** USD per output second before group and recharge adjustments. */
-  unitPrice: number
-}
-
-export type PerSecondOptionPricing = {
-  field: string
-  options: PerSecondOptionPrice[]
-}
-
-/**
- * A video schema meters exactly one number field in seconds and selects the
- * price by exactly one enum field (for example the output resolution).
- */
-export function isPerSecondVideoSchema(
-  schema: BillingUsageSchema | null | undefined
-): boolean {
-  const numberFields = getTaskNumberFields(schema)
-  return (
-    numberFields.length === 1 &&
-    numberFields[0][1].unit === 'second' &&
-    getTaskEnumFields(schema).length === 1
-  )
-}
-
-/**
- * Per-option prices for a per-second video model, in schema enum order.
- * Returns null unless every option has its own plain per-second price, so
- * extra per-request charges, request rules and partial matrices keep the
- * generic summary.
- */
-export function getPerSecondOptionPricing(
-  model: PricingModel
-): PerSecondOptionPricing | null {
-  const schema = model.billing_usage_schema
-  if (
-    !schema ||
-    !isPerSecondVideoSchema(schema) ||
-    model.billing_mode !== 'tiered_expr' ||
-    !model.billing_expr
-  ) {
-    return null
-  }
-  const split = splitBillingExprAndRequestRules(model.billing_expr)
-  if (split.requestRuleExpr?.trim()) return null
-  const secondsField = getTaskNumberFields(schema)[0][0]
-  const [enumField, enumDefinition] = getTaskEnumFields(schema)[0]
-  const prices = new Map<string, number>()
-  for (const tier of getTaskPricingDisplayTiers(split.billingExpr, schema)) {
-    const condition = tier.conditions[0]
-    const priceFields = Object.keys(tier.unitPrices)
-    if (
-      tier.conditions.length !== 1 ||
-      condition.field !== enumField ||
-      tier.constant !== 0 ||
-      priceFields.some((field) => field !== secondsField) ||
-      prices.has(condition.value)
-    ) {
-      return null
-    }
-    prices.set(condition.value, tier.unitPrices[secondsField] ?? 0)
-  }
-  const options = (enumDefinition.enum ?? [])
-    .filter((value) => prices.has(value))
-    .map((value) => ({ value, unitPrice: prices.get(value) ?? 0 }))
-  if (options.length === 0 || options.length !== prices.size) return null
-  return { field: enumField, options }
 }

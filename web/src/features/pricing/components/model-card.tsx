@@ -41,11 +41,11 @@ import { parseTags } from '../lib/filters'
 import { isTokenBasedModel } from '../lib/model-helpers'
 import { formatPrice, formatRequestPrice } from '../lib/price'
 import {
-  getPerSecondOptionPricing,
   taskEnumLabel,
   taskPriceLabel,
   taskUsageUnitLabel,
 } from '../lib/task-price-display'
+import { getVideoPricing } from '../lib/video-pricing'
 import type { PricingModel, PriceType, TokenUnit } from '../types'
 import { ModelBillingModeBadge } from './model-billing-mode-badge'
 import { ModelPerfBadge, type ModelPerfBadgeData } from './model-perf-badge'
@@ -112,30 +112,37 @@ export const ModelCard = memo(function ModelCard(props: ModelCardProps) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
     [props.model, dynamicPriceOptions, currency]
   )
-  const perSecondPricing = useMemo(
-    () => getPerSecondOptionPricing(props.model),
+  const videoPricing = useMemo(
+    () => getVideoPricing(props.model),
     [props.model]
   )
   let priceSummary: ReactNode
-  if (perSecondPricing) {
+  if (videoPricing) {
     const optionDefinition =
-      props.model.billing_usage_schema?.[perSecondPricing.field]
+      props.model.billing_usage_schema?.[videoPricing.optionField]
     priceSummary = (
-      <dl
-        aria-label={t('Video billing (per second)')}
-        className='col-span-full grid grid-cols-2 gap-x-3 gap-y-1'
-      >
-        {perSecondPricing.options.map((option) => (
-          <div key={option.value} className='flex min-w-0 items-baseline gap-1.5'>
-            <dt className='text-muted-foreground shrink-0 text-xs'>
-              {taskEnumLabel(optionDefinition, option.value, i18n.language)}
-            </dt>
-            <dd className='truncate font-mono text-sm font-semibold tabular-nums'>
-              {formatTaskUsageUnitPrice(option.unitPrice, dynamicPriceOptions)}
-            </dd>
-          </div>
-        ))}
-      </dl>
+      <>
+        <dl
+          aria-label={t('Video billing (per second)')}
+          className='col-span-full grid grid-cols-2 gap-x-3 gap-y-1'
+        >
+          {videoPricing.rows.map((row) => (
+            <div key={row.option} className='flex min-w-0 items-baseline gap-1.5'>
+              <dt className='text-muted-foreground shrink-0 text-xs'>
+                {taskEnumLabel(optionDefinition, row.option, i18n.language)}
+              </dt>
+              <dd className='truncate font-mono text-sm font-semibold tabular-nums'>
+                {formatTaskUsageUnitPrice(row.secondPrice, dynamicPriceOptions)}
+              </dd>
+            </div>
+          ))}
+        </dl>
+        {videoPricing.hasReferencePricing && (
+          <span className='text-muted-foreground col-span-full text-xs'>
+            {t('Orders with reference videos are priced separately')}
+          </span>
+        )}
+      </>
     )
   } else if (dynamicSummary) {
     const cacheReadEntries = dynamicSummary.secondaryEntries.filter(
