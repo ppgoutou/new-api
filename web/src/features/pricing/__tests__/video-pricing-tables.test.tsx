@@ -103,7 +103,7 @@ describe('video pricing tables', () => {
       [
         'default',
         '480p',
-        '$0.364',
+        '$0.36',
         '$18.2 / 1M tokens10,044 tokens per second',
         '4～15',
       ],
@@ -121,7 +121,7 @@ describe('video pricing tables', () => {
     renderTables(['default'])
 
     expect(screen.getByText(/^Example \(default\)/)).toHaveTextContent(
-      'Example (default): 5s reference video, 15s 720p output. Reference seconds = max(5, ⌈15 × 2/3⌉) = 10s; tokens = (15 + 10) × 21,600 = 540,000; cost = 540,000 × $18.2 / 1M tokens = $9.828'
+      'Example (default): 5s reference video, 15s 720p output. Reference seconds = max(5, ⌈15 × 2/3⌉) = 10s; tokens = (15 + 10) × 21,600 = 540,000; cost = 540,000 × $18.2 / 1M tokens = $9.83'
     )
   })
 

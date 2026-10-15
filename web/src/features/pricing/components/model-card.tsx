@@ -45,7 +45,10 @@ import {
   taskPriceLabel,
   taskUsageUnitLabel,
 } from '../lib/task-price-display'
-import { getVideoPricing } from '../lib/video-pricing'
+import {
+  getVideoPricing,
+  VIDEO_PRICE_FRACTION_DIGITS,
+} from '../lib/video-pricing'
 import type { PricingModel, PriceType, TokenUnit } from '../types'
 import { ModelBillingModeBadge } from './model-billing-mode-badge'
 import { ModelPerfBadge, type ModelPerfBadgeData } from './model-perf-badge'
@@ -135,7 +138,10 @@ export const ModelCard = memo(function ModelCard(props: ModelCardProps) {
                 {taskEnumLabel(optionDefinition, row.option, i18n.language)}
               </dt>
               <dd className='truncate font-mono text-sm font-semibold tabular-nums'>
-                {formatTaskUsageUnitPrice(row.secondPrice, dynamicPriceOptions)}
+                {formatTaskUsageUnitPrice(row.secondPrice, {
+                  ...dynamicPriceOptions,
+                  fractionDigits: VIDEO_PRICE_FRACTION_DIGITS,
+                })}
               </dd>
             </div>
           ))}

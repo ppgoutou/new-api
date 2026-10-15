@@ -535,6 +535,29 @@ describe('model cards', () => {
     expect(screen.queryByText(/1M/)).not.toBeInTheDocument()
   })
 
+  it('rounds per-second video prices to two decimal places', () => {
+    render(
+      <ModelCard
+        model={pricingModel({
+          billing_mode: 'tiered_expr',
+          billing_expr:
+            'u("resolution") == "480p" ? tier("480p", u("seconds") * 0.437141) : tier("720p", u("seconds") * 0.9828)',
+          billing_usage_schema: {
+            seconds: { type: 'number', unit: 'second' },
+            resolution: { enum: ['480p', '720p'] },
+          },
+        })}
+        onClick={vi.fn()}
+      />
+    )
+    const prices = screen.getByLabelText('Video billing (per second)')
+    expect(
+      within(prices)
+        .getAllByRole('definition')
+        .map((cell) => cell.textContent)
+    ).toEqual(['$0.44', '$0.98'])
+  })
+
   it('keeps the task price range when an option adds a per-request charge', () => {
     render(
       <ModelCard

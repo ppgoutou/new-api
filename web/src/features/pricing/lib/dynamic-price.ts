@@ -54,6 +54,8 @@ export type DynamicPriceOptions = {
   groupRatioMultiplier?: number
   usageSchema?: BillingUsageSchema
   now?: Date
+  /** Fixed fraction digits for unit prices; defaults to 4 (>= 1) and 6 (< 1). */
+  fractionDigits?: number
 }
 
 export type DynamicPriceLabelKind = 'i18n' | 'schema'
@@ -216,8 +218,8 @@ export function formatDynamicUnitPrice(
 
   return formatBillingCurrencyFromUSD(displayPrice, {
     showSymbol: options.showCurrencySymbol ?? true,
-    digitsLarge: 4,
-    digitsSmall: 6,
+    digitsLarge: options.fractionDigits ?? 4,
+    digitsSmall: options.fractionDigits ?? 6,
     abbreviate: false,
   })
 }
@@ -239,8 +241,8 @@ export function formatTaskUsageUnitPrice(
 
   return formatBillingCurrencyFromUSD(displayPrice, {
     showSymbol: options.showCurrencySymbol ?? true,
-    digitsLarge: 4,
-    digitsSmall: 6,
+    digitsLarge: options.fractionDigits ?? 4,
+    digitsSmall: options.fractionDigits ?? 6,
     abbreviate: false,
   })
 }

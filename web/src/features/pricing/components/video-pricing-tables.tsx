@@ -36,6 +36,7 @@ import { getConfiguredGroupRatio } from '../lib/model-helpers'
 import { taskEnumLabel } from '../lib/task-price-display'
 import {
   getReferenceOrderExample,
+  VIDEO_PRICE_FRACTION_DIGITS,
   type VideoPricing,
   type VideoPricingRow,
 } from '../lib/video-pricing'
@@ -72,6 +73,7 @@ export function VideoPricingTables(props: VideoPricingTablesProps) {
     priceRate: props.priceRate,
     usdExchangeRate: props.usdExchangeRate,
     groupRatioMultiplier: ratio,
+    fractionDigits: VIDEO_PRICE_FRACTION_DIGITS,
   })
 
   function columns<TRow extends VideoPricingRow>(

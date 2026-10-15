@@ -32,6 +32,9 @@ export const VIDEO_TOKENS_PER_SECOND: Readonly<Record<string, number>> = {
   '4k': 194400,
 }
 
+/** Video prices are shown rounded to two decimal places. */
+export const VIDEO_PRICE_FRACTION_DIGITS = 2
+
 /** Output durations, in seconds, that each upstream video model accepts. */
 export const VIDEO_DURATION_RANGES: Readonly<
   Record<string, readonly [number, number]>
