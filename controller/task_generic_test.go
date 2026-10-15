@@ -2,6 +2,7 @@ package controller
 
 import (
 	"context"
+	"errors"
 	"io"
 	"net/http"
 	"net/http/httptest"
@@ -641,7 +642,7 @@ func TestWriteVideoDataURLRejectsOversizedPayloadBeforeDecode(t *testing.T) {
 	assert.Empty(t, recorder.Header().Get("Content-Type"))
 }
 
-func TestProxyTaskMediaAllowsOnlyCredentiallessCrossOriginRedirect(t *testing.T) {
+func TestProxyTaskMediaStripsCredentialsOnCrossOriginRedirect(t *testing.T) {
 	task := setupGenericTaskTest(t)
 	var destinationAuthorization, destinationRange string
 	destination := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -670,18 +671,43 @@ func TestProxyTaskMediaAllowsOnlyCredentiallessCrossOriginRedirect(t *testing.T)
 	assert.Empty(t, destinationAuthorization)
 	assert.Equal(t, "bytes=0-3", destinationRange)
 
-	destinationRange = ""
-	rejectedRecorder := httptest.NewRecorder()
-	rejectedContext, _ := gin.CreateTestContext(rejectedRecorder)
-	rejectedContext.Request = httptest.NewRequest(http.MethodGet, "/content", nil)
-	err = proxyTaskMedia(rejectedContext, task, &relaychannel.TaskContentRequest{
-		URL: source.URL, Method: http.MethodGet,
+	var sourceAuthorization string
+	credentialedSource := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		sourceAuthorization = r.Header.Get("Authorization")
+		http.Redirect(w, r, destination.URL+"/signed?sig=1", http.StatusFound)
+	}))
+	defer credentialedSource.Close()
+	destinationAuthorization, destinationRange = "", ""
+	credentialedRecorder := httptest.NewRecorder()
+	credentialedContext, _ := gin.CreateTestContext(credentialedRecorder)
+	credentialedContext.Request = httptest.NewRequest(http.MethodGet, "/content", nil)
+	credentialedContext.Request.Header.Set("Range", "bytes=0-3")
+	err = proxyTaskMedia(credentialedContext, task, &relaychannel.TaskContentRequest{
+		URL: credentialedSource.URL, Method: http.MethodGet,
 		Headers: map[string]string{"Authorization": "Bearer provider-secret"},
 	})
-	var proxyErr *taskMediaProxyError
-	require.ErrorAs(t, err, &proxyErr)
-	assert.Equal(t, "artifact_request_rejected", proxyErr.code)
-	assert.Empty(t, destinationRange)
+	require.NoError(t, err)
+	assert.Equal(t, http.StatusOK, credentialedRecorder.Code)
+	assert.Equal(t, "redirected", credentialedRecorder.Body.String())
+	assert.Equal(t, "Bearer provider-secret", sourceAuthorization)
+	assert.Empty(t, destinationAuthorization)
+	assert.Equal(t, "bytes=0-3", destinationRange)
+}
+
+func TestTaskMediaErrorForLogOmitsRequestURLs(t *testing.T) {
+	err := &taskMediaProxyError{
+		message: "Failed to fetch artifact content",
+		err: &url.Error{
+			Op:  "Get",
+			URL: "https://storage.example/video.mp4?X-Signature=secret",
+			Err: errors.New("connection refused"),
+		},
+	}
+
+	logged := taskMediaErrorForLog(err)
+
+	assert.Equal(t, "Failed to fetch artifact content: Get storage.example: connection refused", logged)
+	assert.NotContains(t, logged, "secret")
 }
 
 func TestTaskMediaRequestHeaderPolicy(t *testing.T) {

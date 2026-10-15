@@ -256,7 +256,7 @@ func proxyTaskMedia(c *gin.Context, task *model.Task, descriptor *relaychannel.T
 		req.Header.Set(name, value)
 	}
 
-	client = taskMediaRedirectClient(client, proxy, c, clientHeaders, descriptor.Credentialless)
+	client = taskMediaRedirectClient(client, proxy, c, clientHeaders)
 	clientWithoutBodyTimeout := *client
 	clientWithoutBodyTimeout.Timeout = 0
 	resp, err := doTaskMediaRequest(&clientWithoutBodyTimeout, req, taskMediaResponseHeaderTimeout)
@@ -399,7 +399,7 @@ func applyTaskMediaRequestHeaders(destination http.Header, headers map[string]st
 	return nil
 }
 
-func taskMediaRedirectClient(base *http.Client, proxy string, c *gin.Context, clientHeaders map[string]string, credentialless bool) *http.Client {
+func taskMediaRedirectClient(base *http.Client, proxy string, c *gin.Context, clientHeaders map[string]string) *http.Client {
 	cloned := *base
 	cloned.CheckRedirect = func(req *http.Request, via []*http.Request) error {
 		if len(via) >= 10 {
@@ -415,10 +415,9 @@ func taskMediaRedirectClient(base *http.Client, proxy string, c *gin.Context, cl
 		if isSelfTaskMediaURL(c, req.URL) {
 			return fmt.Errorf("%w: proxy loop", errTaskMediaRequestRejected)
 		}
+		// A cross-origin hop (typically to signed object storage) never carries
+		// the channel credentials, headers or body of the original request.
 		if len(via) > 0 && !sameTaskMediaOrigin(via[len(via)-1].URL, req.URL) {
-			if !credentialless {
-				return fmt.Errorf("%w: credentialed cross-origin redirect", errTaskMediaRequestRejected)
-			}
 			for name := range req.Header {
 				req.Header.Del(name)
 			}
@@ -560,8 +559,29 @@ func writeTaskMediaProxyError(c *gin.Context, err error) {
 			message: "Failed to fetch artifact content", err: err,
 		}
 	}
+	// Artifact-link responses hide the cause, so the log is the only place it shows.
+	logger.LogWarn(c.Request.Context(), fmt.Sprintf("Task media proxy failed (%s, status %d): %s",
+		proxyErr.code, proxyErr.status, taskMediaErrorForLog(proxyErr)))
 	c.Header("Cache-Control", "private, no-store")
 	writeTaskArtifactError(c, proxyErr.status, proxyErr.code, proxyErr.message)
+}
+
+// taskMediaErrorForLog describes a proxy error without request URLs, whose
+// query strings may hold signed storage credentials.
+func taskMediaErrorForLog(proxyErr *taskMediaProxyError) string {
+	if proxyErr.err == nil {
+		return proxyErr.message
+	}
+	cause := proxyErr.err
+	var urlErr *url.Error
+	if errors.As(cause, &urlErr) {
+		host := ""
+		if parsed, err := url.Parse(urlErr.URL); err == nil {
+			host = parsed.Host
+		}
+		cause = fmt.Errorf("%s %s: %w", urlErr.Op, host, urlErr.Err)
+	}
+	return proxyErr.message + ": " + cause.Error()
 }
 
 func writeVideoDataURL(c *gin.Context, dataURL string) error {
