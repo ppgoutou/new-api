@@ -7282,6 +7282,11 @@
     "Disputed": "Contesté",
     "Stripe payment refunded, top-up quota deducted: {{quota}}": "Paiement Stripe remboursé, montant de recharge déduit : {{quota}}",
     "Stripe payment disputed, top-up quota deducted: {{quota}}": "Paiement Stripe contesté, montant de recharge déduit : {{quota}}",
-    "Stripe dispute closed in your favor, top-up quota restored: {{quota}}": "Litige Stripe clos en votre faveur, montant de recharge rétabli : {{quota}}"
+    "Stripe dispute closed in your favor, top-up quota restored: {{quota}}": "Litige Stripe clos en votre faveur, montant de recharge rétabli : {{quota}}",
+    "Custom amount (USD)": "Montant personnalisé (USD)",
+    "{{amount}} USD credit": "{{amount}} USD de crédit",
+    "Credit received:": "Crédit reçu :",
+    "The payable amount and currency are shown after you choose a payment method.": "Le montant à payer et la devise s’affichent après le choix d’un moyen de paiement.",
+    "The final charge is shown on the Stripe payment page and may be displayed in your local currency.": "Le montant final est indiqué sur la page de paiement Stripe et peut être affiché dans votre devise locale."
   }
 }

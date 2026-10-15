@@ -22,6 +22,7 @@ import { I18nextProvider, initReactI18next } from 'react-i18next'
 import { beforeEach, expect, it, vi } from 'vitest'
 
 import { BillingHistoryDialog } from '@/features/wallet/components/dialogs/billing-history-dialog'
+import { PaymentConfirmDialog } from '@/features/wallet/components/dialogs/payment-confirm-dialog'
 import en from '@/i18n/locales/en.json'
 import zh from '@/i18n/locales/zh.json'
 import { api } from '@/lib/api'
@@ -73,55 +74,76 @@ it('translates billing history statuses and updates them when the language chang
   }
 })
 
+it('labels recharge presets and the custom amount as USD credit without a payable amount before a payment method is chosen', async () => {
+  render(
+    <I18nextProvider i18n={i18n}>
+      <RechargeFormCard
+        topupInfo={{
+          enable_online_topup: true,
+          enable_stripe_topup: false,
+          pay_methods: [],
+          min_topup: 1,
+          stripe_min_topup: 1,
+          amount_options: [100, 20],
+          discount: {},
+        }}
+        presetAmounts={[{ value: 100, discount: 0.8 }, { value: 20 }]}
+        selectedPreset={null}
+        topupAmount={1}
+        showUsdUnit
+        paymentLoading={null}
+        redemptionCode=''
+        redeeming={false}
+        onSelectPreset={vi.fn()}
+        onTopupAmountChange={vi.fn()}
+        onPaymentMethodSelect={vi.fn()}
+        onRedemptionCodeChange={vi.fn()}
+        onRedeem={vi.fn()}
+      />
+    </I18nextProvider>
+  )
+  expect(screen.getByText('100 美元额度')).toBeVisible()
+  expect(screen.getByText('优惠 20%')).toBeVisible()
+  expect(screen.getByLabelText('自定义金额（美元）')).toBeVisible()
+  expect(screen.getByText('到账额度：')).toBeVisible()
+  expect(screen.queryByText(/^支付 /)).not.toBeInTheDocument()
+  expect(screen.getByPlaceholderText('最低 1')).toBeVisible()
+  await act(() => i18n.changeLanguage('en'))
+  expect(screen.getByText('20 USD credit')).toBeVisible()
+  expect(screen.getByLabelText('Custom amount (USD)')).toBeVisible()
+  expect(
+    screen.getByText(
+      'The payable amount and currency are shown after you choose a payment method.'
+    )
+  ).toBeVisible()
+})
+
 it.each([
-  { priceRatio: 7.3, paid: '584', saved: '146', full: '146' },
-  { priceRatio: 0.000123, paid: '0.0098', saved: '0.0025', full: '0.0025' },
+  { type: 'stripe', name: 'Stripe', amount: 10, shown: /\$10\.00/, stripeNote: true },
+  { type: 'alipay', name: 'Alipay', amount: 68, shown: /¥68\.00/, stripeNote: false },
 ])(
-  'translates recharge presets and minimum amount without changing precision at price ratio $priceRatio',
-  async ({ priceRatio, paid, saved, full }) => {
+  'shows the $type payable amount with its charge currency',
+  ({ type, name, amount, shown, stripeNote }) => {
     render(
       <I18nextProvider i18n={i18n}>
-        <RechargeFormCard
-          topupInfo={{
-            enable_online_topup: true,
-            enable_stripe_topup: false,
-            pay_methods: [],
-            min_topup: 1,
-            stripe_min_topup: 1,
-            amount_options: [100, 20],
-            discount: {},
-          }}
-          presetAmounts={[{ value: 100, discount: 0.8 }, { value: 20 }]}
-          selectedPreset={null}
-          topupAmount={1}
-          paymentAmount={priceRatio}
-          priceRatio={priceRatio}
+        <PaymentConfirmDialog
+          open
+          onOpenChange={vi.fn()}
+          onConfirm={vi.fn()}
+          topupAmount={10}
+          paymentAmount={amount}
+          paymentMethod={{ type, name }}
           calculating={false}
-          paymentLoading={null}
-          redemptionCode=''
-          redeeming={false}
-          onSelectPreset={vi.fn()}
-          onTopupAmountChange={vi.fn()}
-          onPaymentMethodSelect={vi.fn()}
-          onRedemptionCodeChange={vi.fn()}
-          onRedeem={vi.fn()}
+          processing={false}
         />
       </I18nextProvider>
     )
-    expect(screen.getByRole('button', { name: /^100 / })).toHaveTextContent(
-      `优惠 20%支付 ${paid} • 节省 ${saved}`
-    )
-    expect(screen.getByRole('button', { name: /^20 / })).toHaveTextContent(
-      `支付 ${full}`
-    )
-    expect(screen.getByPlaceholderText('最低 1')).toBeVisible()
-    await act(() => i18n.changeLanguage('en'))
-    expect(screen.getByRole('button', { name: /^100 / })).toHaveTextContent(
-      `20% OFFPay ${paid} • Save ${saved}`
-    )
-    expect(screen.getByRole('button', { name: /^20 / })).toHaveTextContent(
-      `Pay ${full}`
-    )
-    expect(screen.getByPlaceholderText('Minimum 1')).toBeVisible()
+    expect(screen.getByText(shown)).toBeVisible()
+    const note = screen.queryByText(/Stripe 支付页面/)
+    if (stripeNote) {
+      expect(note).toBeVisible()
+    } else {
+      expect(note).not.toBeInTheDocument()
+    }
   }
 )

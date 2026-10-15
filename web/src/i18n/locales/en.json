@@ -7282,6 +7282,11 @@
     "Disputed": "Disputed",
     "Stripe payment refunded, top-up quota deducted: {{quota}}": "Stripe payment refunded, top-up quota deducted: {{quota}}",
     "Stripe payment disputed, top-up quota deducted: {{quota}}": "Stripe payment disputed, top-up quota deducted: {{quota}}",
-    "Stripe dispute closed in your favor, top-up quota restored: {{quota}}": "Stripe dispute closed in your favor, top-up quota restored: {{quota}}"
+    "Stripe dispute closed in your favor, top-up quota restored: {{quota}}": "Stripe dispute closed in your favor, top-up quota restored: {{quota}}",
+    "Custom amount (USD)": "Custom amount (USD)",
+    "{{amount}} USD credit": "{{amount}} USD credit",
+    "Credit received:": "Credit received:",
+    "The payable amount and currency are shown after you choose a payment method.": "The payable amount and currency are shown after you choose a payment method.",
+    "The final charge is shown on the Stripe payment page and may be displayed in your local currency.": "The final charge is shown on the Stripe payment page and may be displayed in your local currency."
   }
 }

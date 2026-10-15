@@ -20,7 +20,6 @@ import { useState, useEffect, useCallback, useMemo, useRef } from 'react'
 import { useTranslation } from 'react-i18next'
 
 import { SectionPageLayout } from '@/components/layout'
-import { useStatus } from '@/hooks/use-status'
 import { useSystemConfig } from '@/hooks/use-system-config'
 import { getSelf } from '@/lib/api'
 
@@ -42,11 +41,7 @@ import {
   useWaffoPayment,
   useWaffoPancakePayment,
 } from './hooks'
-import {
-  getDefaultPaymentType,
-  getMinTopupAmount,
-  dispatchSelectedPayment,
-} from './lib'
+import { getMinTopupAmount, dispatchSelectedPayment } from './lib'
 import type {
   UserWalletData,
   PaymentMethod,
@@ -80,7 +75,6 @@ export function Wallet(props: WalletProps) {
     useState<CreemProduct | null>(null)
   const [showSubscriptionPanel, setShowSubscriptionPanel] = useState(true)
 
-  const { status } = useStatus()
   const { currency } = useSystemConfig()
   const { topupInfo, presetAmounts, loading: topupLoading } = useTopupInfo()
 
@@ -143,30 +137,19 @@ export function Wallet(props: WalletProps) {
       topupAmountInitializedRef.current = true
       const minTopup = getMinTopupAmount(topupInfo)
       setTopupAmount(minTopup)
-
-      // Calculate initial payment amount with default payment type
-      const defaultPaymentType = getDefaultPaymentType(topupInfo)
-      calculatePaymentAmount(minTopup, defaultPaymentType)
     }
-  }, [topupInfo, calculatePaymentAmount])
-
-  // Get current payment type (selected or default)
-  const getCurrentPaymentType = useCallback(() => {
-    return selectedPaymentMethod?.type || getDefaultPaymentType(topupInfo)
-  }, [selectedPaymentMethod, topupInfo])
+  }, [topupInfo])
 
   // Handle preset selection
   const handleSelectPreset = (preset: PresetAmount) => {
     setTopupAmount(preset.value)
     setSelectedPreset(preset.value)
-    calculatePaymentAmount(preset.value, getCurrentPaymentType())
   }
 
   // Handle topup amount change
   const handleTopupAmountChange = (amount: number) => {
     setTopupAmount(amount)
     setSelectedPreset(null)
-    calculatePaymentAmount(amount, getCurrentPaymentType())
   }
 
   // Handle payment method selection
@@ -305,8 +288,6 @@ export function Wallet(props: WalletProps) {
                   onSelectPreset={handleSelectPreset}
                   topupAmount={topupAmount}
                   onTopupAmountChange={handleTopupAmountChange}
-                  paymentAmount={paymentAmount}
-                  calculating={calculating}
                   onPaymentMethodSelect={handlePaymentMethodSelect}
                   paymentLoading={paymentLoading}
                   redemptionCode={redemptionCode}
@@ -315,8 +296,8 @@ export function Wallet(props: WalletProps) {
                   redeeming={redeeming}
                   topupLink={topupInfo?.topup_link}
                   loading={topupLoading}
-                  priceRatio={(status?.price as number) || 1}
                   usdExchangeRate={effectiveUsdExchangeRate}
+                  showUsdUnit={currency?.quotaDisplayType !== 'TOKENS'}
                   onOpenBilling={() => setBillingDialogOpen(true)}
                   creemProducts={topupInfo?.creem_products}
                   enableCreemTopup={topupInfo?.enable_creem_topup}

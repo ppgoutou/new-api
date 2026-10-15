@@ -7282,6 +7282,11 @@
     "Disputed": "Оспорено",
     "Stripe payment refunded, top-up quota deducted: {{quota}}": "Платёж Stripe возвращён, списано пополнение: {{quota}}",
     "Stripe payment disputed, top-up quota deducted: {{quota}}": "Платёж Stripe оспорен, списано пополнение: {{quota}}",
-    "Stripe dispute closed in your favor, top-up quota restored: {{quota}}": "Спор Stripe закрыт в вашу пользу, пополнение восстановлено: {{quota}}"
+    "Stripe dispute closed in your favor, top-up quota restored: {{quota}}": "Спор Stripe закрыт в вашу пользу, пополнение восстановлено: {{quota}}",
+    "Custom amount (USD)": "Своя сумма (USD)",
+    "{{amount}} USD credit": "Кредит {{amount}} USD",
+    "Credit received:": "Будет зачислено:",
+    "The payable amount and currency are shown after you choose a payment method.": "Сумма к оплате и валюта появятся после выбора способа оплаты.",
+    "The final charge is shown on the Stripe payment page and may be displayed in your local currency.": "Итоговая сумма указана на странице оплаты Stripe и может отображаться в вашей местной валюте."
   }
 }
