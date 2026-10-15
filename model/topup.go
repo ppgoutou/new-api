@@ -289,6 +289,139 @@ func Recharge(referenceId string, customerId string, callerIp string) (err error
 	return nil
 }
 
+func stripeTopUpQuota(topUp *TopUp) (int, error) {
+	quota, err := common.WalletQuotaFromDecimalStrict(
+		decimal.NewFromFloat(topUp.Money).Mul(decimal.NewFromFloat(common.QuotaPerUnit)),
+	)
+	if err != nil || quota <= 0 {
+		return 0, ErrInvalidTopUpQuota
+	}
+	return quota, nil
+}
+
+// ReverseStripeTopUp takes back the quota credited by a completed Stripe
+// top-up after its payment was fully refunded or disputed. The deduction is
+// unconditional, so a user who already spent the credit ends up with a
+// negative balance and cannot make further requests until an administrator
+// settles it. The order row lock and status transition make the reversal
+// happen at most once, even when Stripe redelivers the event or a refund
+// follows a dispute. alreadyDone reports that the order was reversed before.
+func ReverseStripeTopUp(tradeNo string, targetStatus string, callerIp string) (alreadyDone bool, err error) {
+	if tradeNo == "" {
+		return false, errors.New("payment order number not provided")
+	}
+	var logKey string
+	switch targetStatus {
+	case common.TopUpStatusRefunded:
+		logKey = "Stripe payment refunded, top-up quota deducted: {{quota}}"
+	case common.TopUpStatusDisputed:
+		logKey = "Stripe payment disputed, top-up quota deducted: {{quota}}"
+	default:
+		return false, ErrTopUpStatusInvalid
+	}
+
+	refCol := "`trade_no`"
+	if common.UsingMainDatabase(common.DatabaseTypePostgreSQL) {
+		refCol = `"trade_no"`
+	}
+
+	var quota int
+	topUp := &TopUp{}
+	err = DB.Transaction(func(tx *gorm.DB) error {
+		if err := lockForUpdate(tx).Where(refCol+" = ?", tradeNo).First(topUp).Error; err != nil {
+			return ErrTopUpNotFound
+		}
+		if topUp.PaymentProvider != PaymentProviderStripe {
+			return ErrPaymentMethodMismatch
+		}
+		if topUp.Status == common.TopUpStatusRefunded || topUp.Status == common.TopUpStatusDisputed {
+			alreadyDone = true
+			return nil
+		}
+		if topUp.Status != common.TopUpStatusSuccess {
+			return ErrTopUpStatusInvalid
+		}
+		var quotaErr error
+		quota, quotaErr = stripeTopUpQuota(topUp)
+		if quotaErr != nil {
+			return quotaErr
+		}
+		topUp.Status = targetStatus
+		if err := tx.Save(topUp).Error; err != nil {
+			return err
+		}
+		result := tx.Model(&User{}).Where("id = ?", topUp.UserId).Update("quota", gorm.Expr("quota - ?", quota))
+		if result.Error != nil {
+			return result.Error
+		}
+		if result.RowsAffected != 1 {
+			return gorm.ErrRecordNotFound
+		}
+		return nil
+	})
+	if err != nil || alreadyDone {
+		return alreadyDone, err
+	}
+	if err := cacheDecrUserQuota(topUp.UserId, int64(quota)); err != nil {
+		common.SysLog(common.LogText("failed to sync %s debit to user quota cache: %s", common.LogText("stripe top-up reversal"), err.Error()))
+	}
+
+	common.SysLog(common.LogText("Stripe top-up reversed trade_no=%s user_id=%d status=%s quota_deducted=%d", topUp.TradeNo, topUp.UserId, targetStatus, quota))
+	RecordTopupLog(topUp.UserId, common.NewMessage(logKey, map[string]any{"quota": logger.FormatQuota(quota)}), callerIp, topUp.PaymentMethod, PaymentProviderStripe)
+	return false, nil
+}
+
+// RestoreDisputedStripeTopUp credits the quota of a disputed Stripe top-up
+// again after the dispute closed without the funds being lost (won, or an
+// inquiry closed without a chargeback). Only disputed orders are restored;
+// alreadyDone reports that the order is already back to success.
+func RestoreDisputedStripeTopUp(tradeNo string, callerIp string) (alreadyDone bool, err error) {
+	if tradeNo == "" {
+		return false, errors.New("payment order number not provided")
+	}
+
+	refCol := "`trade_no`"
+	if common.UsingMainDatabase(common.DatabaseTypePostgreSQL) {
+		refCol = `"trade_no"`
+	}
+
+	var quota int
+	topUp := &TopUp{}
+	err = DB.Transaction(func(tx *gorm.DB) error {
+		if err := lockForUpdate(tx).Where(refCol+" = ?", tradeNo).First(topUp).Error; err != nil {
+			return ErrTopUpNotFound
+		}
+		if topUp.PaymentProvider != PaymentProviderStripe {
+			return ErrPaymentMethodMismatch
+		}
+		if topUp.Status == common.TopUpStatusSuccess {
+			alreadyDone = true
+			return nil
+		}
+		if topUp.Status != common.TopUpStatusDisputed {
+			return ErrTopUpStatusInvalid
+		}
+		var quotaErr error
+		quota, quotaErr = stripeTopUpQuota(topUp)
+		if quotaErr != nil {
+			return quotaErr
+		}
+		topUp.Status = common.TopUpStatusSuccess
+		if err := tx.Save(topUp).Error; err != nil {
+			return err
+		}
+		return creditTopUpQuota(tx, topUp.UserId, quota, nil)
+	})
+	if err != nil || alreadyDone {
+		return alreadyDone, err
+	}
+	syncCreditUserQuotaCache(topUp.UserId, quota, common.LogText("stripe dispute restore"))
+
+	common.SysLog(common.LogText("Stripe disputed top-up restored trade_no=%s user_id=%d quota_restored=%d", topUp.TradeNo, topUp.UserId, quota))
+	RecordTopupLog(topUp.UserId, common.NewMessage("Stripe dispute closed in your favor, top-up quota restored: {{quota}}", map[string]any{"quota": logger.FormatQuota(quota)}), callerIp, topUp.PaymentMethod, PaymentProviderStripe)
+	return false, nil
+}
+
 // topUpQueryWindowSeconds 限制充值记录查询的时间窗口（秒）。
 const topUpQueryWindowSeconds int64 = 30 * 24 * 60 * 60
 

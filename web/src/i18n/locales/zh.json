@@ -7277,6 +7277,11 @@
     "Zhipu": "智谱",
     "Zhipu GLM": "智谱GLM",
     "Zhipu V4": "智谱 V4",
-    "Zoom": "缩放"
+    "Zoom": "缩放",
+    "Refunded": "已退款",
+    "Disputed": "争议中",
+    "Stripe payment refunded, top-up quota deducted: {{quota}}": "Stripe 付款已退款，扣回充值额度: {{quota}}",
+    "Stripe payment disputed, top-up quota deducted: {{quota}}": "Stripe 付款被发起争议，扣回充值额度: {{quota}}",
+    "Stripe dispute closed in your favor, top-up quota restored: {{quota}}": "Stripe 争议已撤销或胜诉，恢复充值额度: {{quota}}"
   }
 }

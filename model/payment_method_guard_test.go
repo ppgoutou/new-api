@@ -353,3 +353,140 @@ func TestRechargeEpayEnforcesFinalWalletQuotaLimit(t *testing.T) {
 		})
 	}
 }
+
+func TestReverseStripeTopUpDeductsCreditExactlyOnce(t *testing.T) {
+	oldQuotaPerUnit := common.QuotaPerUnit
+	common.QuotaPerUnit = 500000
+	t.Cleanup(func() { common.QuotaPerUnit = oldQuotaPerUnit })
+
+	testCases := []struct {
+		name         string
+		targetStatus string
+		currentQuota int
+		wantQuota    int
+	}{
+		{
+			name:         "full refund takes back unspent credit",
+			targetStatus: common.TopUpStatusRefunded,
+			currentQuota: 5_000_000,
+			wantQuota:    0,
+		},
+		{
+			name:         "dispute after the credit was spent leaves a negative balance",
+			targetStatus: common.TopUpStatusDisputed,
+			currentQuota: 1_000_000,
+			wantQuota:    -4_000_000,
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			truncateTables(t)
+			user := insertUserForPaymentGuardTest(t, 601, tc.currentQuota)
+			order := createEpayTestOrder(t, user.Id, "STRIPEREVERSE", PaymentProviderStripe, common.TopUpStatusSuccess)
+
+			alreadyDone, err := ReverseStripeTopUp(order.TradeNo, tc.targetStatus, "127.0.0.1")
+			require.NoError(t, err)
+			assert.False(t, alreadyDone)
+			assert.Equal(t, tc.wantQuota, getUserQuotaForPaymentGuardTest(t, user.Id))
+			assert.Equal(t, tc.targetStatus, getTopUpStatusForPaymentGuardTest(t, order.TradeNo))
+
+			// A redelivered event, or a refund that follows a dispute, must not deduct again.
+			for _, status := range []string{common.TopUpStatusRefunded, common.TopUpStatusDisputed} {
+				alreadyDone, err = ReverseStripeTopUp(order.TradeNo, status, "127.0.0.1")
+				require.NoError(t, err)
+				assert.True(t, alreadyDone)
+			}
+			assert.Equal(t, tc.wantQuota, getUserQuotaForPaymentGuardTest(t, user.Id))
+			assert.Equal(t, tc.targetStatus, getTopUpStatusForPaymentGuardTest(t, order.TradeNo))
+		})
+	}
+}
+
+func TestReverseStripeTopUpRejectsOrdersWithoutStripeCredit(t *testing.T) {
+	truncateTables(t)
+
+	oldQuotaPerUnit := common.QuotaPerUnit
+	common.QuotaPerUnit = 500000
+	t.Cleanup(func() { common.QuotaPerUnit = oldQuotaPerUnit })
+
+	user := insertUserForPaymentGuardTest(t, 602, 7)
+
+	testCases := []struct {
+		name         string
+		tradeNo      string
+		provider     string
+		status       string
+		targetStatus string
+		wantErr      error
+	}{
+		{"pending order was never credited", "STRIPEPENDING", PaymentProviderStripe, common.TopUpStatusPending, common.TopUpStatusRefunded, ErrTopUpStatusInvalid},
+		{"order from another payment provider", "EPAYSUCCESS", PaymentProviderEpay, common.TopUpStatusSuccess, common.TopUpStatusRefunded, ErrPaymentMethodMismatch},
+		{"status that is not a reversal", "STRIPEBADTARGET", PaymentProviderStripe, common.TopUpStatusSuccess, common.TopUpStatusExpired, ErrTopUpStatusInvalid},
+	}
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			createEpayTestOrder(t, user.Id, tc.tradeNo, tc.provider, tc.status)
+			_, err := ReverseStripeTopUp(tc.tradeNo, tc.targetStatus, "127.0.0.1")
+			require.ErrorIs(t, err, tc.wantErr)
+			assert.Equal(t, 7, getUserQuotaForPaymentGuardTest(t, user.Id))
+			assert.Equal(t, tc.status, getTopUpStatusForPaymentGuardTest(t, tc.tradeNo))
+		})
+	}
+
+	_, err := ReverseStripeTopUp("STRIPEMISSING", common.TopUpStatusRefunded, "127.0.0.1")
+	assert.ErrorIs(t, err, ErrTopUpNotFound)
+}
+
+func TestRestoreDisputedStripeTopUpCreditsOnlyDisputedOrders(t *testing.T) {
+	truncateTables(t)
+
+	oldQuotaPerUnit := common.QuotaPerUnit
+	common.QuotaPerUnit = 500000
+	t.Cleanup(func() { common.QuotaPerUnit = oldQuotaPerUnit })
+
+	user := insertUserForPaymentGuardTest(t, 603, 5_000_000)
+	order := createEpayTestOrder(t, user.Id, "STRIPEDISPUTE", PaymentProviderStripe, common.TopUpStatusSuccess)
+
+	_, err := ReverseStripeTopUp(order.TradeNo, common.TopUpStatusDisputed, "127.0.0.1")
+	require.NoError(t, err)
+	require.Equal(t, 0, getUserQuotaForPaymentGuardTest(t, user.Id))
+
+	alreadyDone, err := RestoreDisputedStripeTopUp(order.TradeNo, "127.0.0.1")
+	require.NoError(t, err)
+	assert.False(t, alreadyDone)
+	assert.Equal(t, 5_000_000, getUserQuotaForPaymentGuardTest(t, user.Id))
+	assert.Equal(t, common.TopUpStatusSuccess, getTopUpStatusForPaymentGuardTest(t, order.TradeNo))
+
+	alreadyDone, err = RestoreDisputedStripeTopUp(order.TradeNo, "127.0.0.1")
+	require.NoError(t, err)
+	assert.True(t, alreadyDone)
+	assert.Equal(t, 5_000_000, getUserQuotaForPaymentGuardTest(t, user.Id))
+
+	refunded := createEpayTestOrder(t, user.Id, "STRIPEREFUNDED", PaymentProviderStripe, common.TopUpStatusRefunded)
+	_, err = RestoreDisputedStripeTopUp(refunded.TradeNo, "127.0.0.1")
+	require.ErrorIs(t, err, ErrTopUpStatusInvalid)
+	assert.Equal(t, 5_000_000, getUserQuotaForPaymentGuardTest(t, user.Id))
+}
+
+// Relay pre-consume reads the cached balance, so a reversal that only changed
+// the database would let the user keep spending the refunded credit.
+func TestReverseStripeTopUpDeductsCachedBalance(t *testing.T) {
+	truncateTables(t)
+	useUserCacheMiniRedis(t)
+
+	oldQuotaPerUnit := common.QuotaPerUnit
+	common.QuotaPerUnit = 5
+	t.Cleanup(func() { common.QuotaPerUnit = oldQuotaPerUnit })
+
+	user := insertUserForPaymentGuardTest(t, 604, 60)
+	require.NoError(t, populateUserCache(*user))
+	order := createEpayTestOrder(t, user.Id, "STRIPEREVERSECACHE", PaymentProviderStripe, common.TopUpStatusSuccess)
+
+	_, err := ReverseStripeTopUp(order.TradeNo, common.TopUpStatusRefunded, "127.0.0.1")
+	require.NoError(t, err)
+	assert.Equal(t, 10, getUserQuotaForPaymentGuardTest(t, user.Id))
+	cached, err := cacheGetUserBase(user.Id)
+	require.NoError(t, err)
+	assert.Equal(t, 10, cached.Quota)
+}

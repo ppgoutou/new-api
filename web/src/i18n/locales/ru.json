@@ -7277,6 +7277,11 @@
     "Zhipu": "Zhipu",
     "Zhipu GLM": "Zhipu GLM",
     "Zhipu V4": "Zhipu V4",
-    "Zoom": "Zoom"
+    "Zoom": "Zoom",
+    "Refunded": "Возвращено",
+    "Disputed": "Оспорено",
+    "Stripe payment refunded, top-up quota deducted: {{quota}}": "Платёж Stripe возвращён, списано пополнение: {{quota}}",
+    "Stripe payment disputed, top-up quota deducted: {{quota}}": "Платёж Stripe оспорен, списано пополнение: {{quota}}",
+    "Stripe dispute closed in your favor, top-up quota restored: {{quota}}": "Спор Stripe закрыт в вашу пользу, пополнение восстановлено: {{quota}}"
   }
 }

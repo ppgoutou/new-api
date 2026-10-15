@@ -7277,6 +7277,11 @@
     "Zhipu": "Zhipu",
     "Zhipu GLM": "Zhipu GLM",
     "Zhipu V4": "Zhipu V 4",
-    "Zoom": "ズーム"
+    "Zoom": "ズーム",
+    "Refunded": "返金済み",
+    "Disputed": "異議申し立て中",
+    "Stripe payment refunded, top-up quota deducted: {{quota}}": "Stripe の支払いが返金されたため、チャージ額を差し引きました：{{quota}}",
+    "Stripe payment disputed, top-up quota deducted: {{quota}}": "Stripe の支払いに異議が申し立てられたため、チャージ額を差し引きました：{{quota}}",
+    "Stripe dispute closed in your favor, top-up quota restored: {{quota}}": "Stripe の異議はあなたに有利な形で終了し、チャージ額を戻しました：{{quota}}"
   }
 }
