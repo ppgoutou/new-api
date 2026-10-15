@@ -199,11 +199,92 @@ func StripeWebhook(c *gin.Context) {
 		sessionAsyncPaymentSucceeded(ctx, event, callerIp)
 	case stripe.EventTypeCheckoutSessionAsyncPaymentFailed:
 		sessionAsyncPaymentFailed(ctx, event, callerIp)
+	case stripe.EventTypeChargeRefunded, stripe.EventTypeChargeDisputeCreated, stripe.EventTypeChargeDisputeClosed:
+		// A failed reversal answers 500 so that Stripe redelivers the event.
+		if err := handleStripePaymentReversal(ctx, event, callerIp); err != nil {
+			c.Status(http.StatusInternalServerError)
+			return
+		}
 	default:
 		logger.LogInfo(ctx, common.LogText("Stripe webhook ignored event event_type=%s client_ip=%s", string(event.Type), callerIp))
 	}
 
 	c.Status(http.StatusOK)
+}
+
+// handleStripePaymentReversal keeps top-up credit in line with money that
+// left the Stripe balance: a full refund or a new dispute deducts the credited
+// quota, and a dispute that closes without losing the funds restores it.
+// Partial refunds are only logged; the administrator adjusts the balance.
+// It returns an error only for failures worth a Stripe retry.
+func handleStripePaymentReversal(ctx context.Context, event stripe.Event, callerIp string) error {
+	paymentIntentId := event.GetObjectValue("payment_intent")
+	objectId := event.GetObjectValue("id")
+	eventType := string(event.Type)
+
+	restore := false
+	targetStatus := common.TopUpStatusDisputed
+	switch event.Type {
+	case stripe.EventTypeChargeRefunded:
+		if event.GetObjectValue("refunded") != "true" {
+			logger.LogWarn(ctx, common.LogText("Stripe partial refund not reversed automatically, adjust the user quota manually charge=%s payment_intent=%s amount_refunded=%s", objectId, paymentIntentId, event.GetObjectValue("amount_refunded")))
+			return nil
+		}
+		targetStatus = common.TopUpStatusRefunded
+	case stripe.EventTypeChargeDisputeClosed:
+		disputeStatus := stripe.DisputeStatus(event.GetObjectValue("status"))
+		if disputeStatus != stripe.DisputeStatusWon && disputeStatus != stripe.DisputeStatusWarningClosed {
+			logger.LogInfo(ctx, common.LogText("Stripe dispute closed without restoring quota dispute=%s status=%s", objectId, string(disputeStatus)))
+			return nil
+		}
+		restore = true
+	}
+
+	if paymentIntentId == "" {
+		logger.LogWarn(ctx, common.LogText("Stripe %s event missing payment_intent object=%s client_ip=%s", eventType, objectId, callerIp))
+		return nil
+	}
+
+	// Top-up orders are keyed by the Checkout Session reference, so resolve
+	// the session that created this PaymentIntent.
+	stripe.Key = setting.StripeApiSecret
+	params := &stripe.CheckoutSessionListParams{PaymentIntent: stripe.String(paymentIntentId)}
+	params.Limit = stripe.Int64(1)
+	iter := session.List(params)
+	referenceId := ""
+	if iter.Next() {
+		referenceId = iter.CheckoutSession().ClientReferenceID
+	}
+	if err := iter.Err(); err != nil {
+		logger.LogError(ctx, common.LogText("Stripe failed to look up Checkout Session payment_intent=%s event_type=%s error=%q", paymentIntentId, eventType, err.Error()))
+		return err
+	}
+	if referenceId == "" {
+		logger.LogInfo(ctx, common.LogText("Stripe %s event has no top-up Checkout Session, ignored payment_intent=%s", eventType, paymentIntentId))
+		return nil
+	}
+
+	LockOrder(referenceId)
+	defer UnlockOrder(referenceId)
+
+	var alreadyDone bool
+	var err error
+	if restore {
+		alreadyDone, err = model.RestoreDisputedStripeTopUp(referenceId, callerIp)
+	} else {
+		alreadyDone, err = model.ReverseStripeTopUp(referenceId, targetStatus, callerIp)
+	}
+	switch {
+	case errors.Is(err, model.ErrTopUpNotFound), errors.Is(err, model.ErrPaymentMethodMismatch), errors.Is(err, model.ErrTopUpStatusInvalid):
+		logger.LogWarn(ctx, common.LogText("Stripe %s event not applied to top-up order trade_no=%s error=%q", eventType, referenceId, err.Error()))
+		return nil
+	case err != nil:
+		logger.LogError(ctx, common.LogText("Stripe %s event failed to update top-up order trade_no=%s error=%q", eventType, referenceId, err.Error()))
+		return err
+	case alreadyDone:
+		logger.LogInfo(ctx, common.LogText("Stripe %s event already applied trade_no=%s", eventType, referenceId))
+	}
+	return nil
 }
 
 func sessionCompleted(ctx context.Context, event stripe.Event, callerIp string) {
@@ -382,6 +463,17 @@ func genStripeLink(referenceId string, customerId string, email string, amount i
 		},
 		Mode:                stripe.String(string(stripe.CheckoutSessionModePayment)),
 		AllowPromotionCodes: stripe.Bool(setting.StripePromotionCodesEnabled),
+	}
+
+	// Post-payment invoices are a paid Stripe Invoicing feature, so they are
+	// opt-in. Stripe emails the paid invoice to the customer.
+	if common.GetEnvOrDefaultBool("STRIPE_INVOICE_CREATION_ENABLED", false) {
+		params.InvoiceCreation = &stripe.CheckoutSessionInvoiceCreationParams{
+			Enabled: stripe.Bool(true),
+			InvoiceData: &stripe.CheckoutSessionInvoiceCreationInvoiceDataParams{
+				Metadata: map[string]string{"trade_no": referenceId},
+			},
+		}
 	}
 
 	if "" == customerId {

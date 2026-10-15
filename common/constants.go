@@ -275,4 +275,8 @@ const (
 	TopUpStatusSuccess = "success"
 	TopUpStatusFailed  = "failed"
 	TopUpStatusExpired = "expired"
+	// Completed Stripe top-ups whose payment was later refunded in full or
+	// disputed; their credited quota has been deducted again.
+	TopUpStatusRefunded = "refunded"
+	TopUpStatusDisputed = "disputed"
 )

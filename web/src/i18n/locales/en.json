@@ -7277,6 +7277,11 @@
     "Zhipu": "Zhipu",
     "Zhipu GLM": "Zhipu GLM",
     "Zhipu V4": "Zhipu V4",
-    "Zoom": "Zoom"
+    "Zoom": "Zoom",
+    "Refunded": "Refunded",
+    "Disputed": "Disputed",
+    "Stripe payment refunded, top-up quota deducted: {{quota}}": "Stripe payment refunded, top-up quota deducted: {{quota}}",
+    "Stripe payment disputed, top-up quota deducted: {{quota}}": "Stripe payment disputed, top-up quota deducted: {{quota}}",
+    "Stripe dispute closed in your favor, top-up quota restored: {{quota}}": "Stripe dispute closed in your favor, top-up quota restored: {{quota}}"
   }
 }

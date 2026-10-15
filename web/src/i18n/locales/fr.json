@@ -7277,6 +7277,11 @@
     "Zhipu": "Zhipu",
     "Zhipu GLM": "Zhipu GLM",
     "Zhipu V4": "Zhipu V4",
-    "Zoom": "Zoom"
+    "Zoom": "Zoom",
+    "Refunded": "Remboursé",
+    "Disputed": "Contesté",
+    "Stripe payment refunded, top-up quota deducted: {{quota}}": "Paiement Stripe remboursé, montant de recharge déduit : {{quota}}",
+    "Stripe payment disputed, top-up quota deducted: {{quota}}": "Paiement Stripe contesté, montant de recharge déduit : {{quota}}",
+    "Stripe dispute closed in your favor, top-up quota restored: {{quota}}": "Litige Stripe clos en votre faveur, montant de recharge rétabli : {{quota}}"
   }
 }

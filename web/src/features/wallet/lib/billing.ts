@@ -46,6 +46,14 @@ export const STATUS_CONFIG: Record<TopupStatus, StatusConfig> = {
     variant: 'danger',
     label: 'Expired',
   },
+  refunded: {
+    variant: 'neutral',
+    label: 'Refunded',
+  },
+  disputed: {
+    variant: 'danger',
+    label: 'Disputed',
+  },
 }
 
 /**
