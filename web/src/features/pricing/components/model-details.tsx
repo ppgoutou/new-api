@@ -102,10 +102,10 @@ import type {
   TokenUnit,
 } from '../types'
 import { DynamicPricingBreakdown } from './dynamic-pricing-breakdown'
-import { VideoPricingTables } from './video-pricing-tables'
 import { ModelBillingModeBadge } from './model-billing-mode-badge'
 import { ModelDetailsApi } from './model-details-api'
 import { ModelDetailsPerformance } from './model-details-performance'
+import { VideoPricingTables } from './video-pricing-tables'
 
 // ----------------------------------------------------------------------------
 // Local UI helpers

@@ -41,6 +41,7 @@ function videoModel(
     quota_type: 0,
     model_ratio: 1,
     completion_ratio: 1,
+    enable_groups: ['default'],
     billing_mode: 'tiered_expr',
     billing_expr: billingExpr,
     billing_usage_schema: VIDEO_SCHEMA,

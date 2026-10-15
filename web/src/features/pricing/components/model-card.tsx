@@ -127,7 +127,10 @@ export const ModelCard = memo(function ModelCard(props: ModelCardProps) {
           className='col-span-full grid grid-cols-2 gap-x-3 gap-y-1'
         >
           {videoPricing.rows.map((row) => (
-            <div key={row.option} className='flex min-w-0 items-baseline gap-1.5'>
+            <div
+              key={row.option}
+              className='flex min-w-0 items-baseline gap-1.5'
+            >
               <dt className='text-muted-foreground shrink-0 text-xs'>
                 {taskEnumLabel(optionDefinition, row.option, i18n.language)}
               </dt>

@@ -494,9 +494,11 @@ describe('model cards', () => {
     const prices = screen.getByLabelText('Video billing (per second)')
     const rows = within(prices).getAllByRole('term')
     expect(rows.map((row) => row.textContent)).toEqual(['480p', '1080p', '4k'])
-    expect(
-      rows.map((row) => row.nextElementSibling?.textContent)
-    ).toEqual(['$0.4', '$1.2', '$2.5'])
+    expect(rows.map((row) => row.nextElementSibling?.textContent)).toEqual([
+      '$0.4',
+      '$1.2',
+      '$2.5',
+    ])
     expect(screen.getByText('Video billing (per second)')).toBeVisible()
     expect(screen.queryByText(/ – /)).not.toBeInTheDocument()
     expect(screen.queryByText(/1K|1M/)).not.toBeInTheDocument()

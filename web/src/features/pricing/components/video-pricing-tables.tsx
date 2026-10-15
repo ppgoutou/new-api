@@ -81,7 +81,8 @@ export function VideoPricingTables(props: VideoPricingTablesProps) {
       {
         id: 'option',
         header: t('Resolution'),
-        cell: (row) => taskEnumLabel(optionDefinition, row.option, i18n.language),
+        cell: (row) =>
+          taskEnumLabel(optionDefinition, row.option, i18n.language),
       },
       {
         id: 'second',
