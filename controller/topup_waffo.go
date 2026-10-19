@@ -112,6 +112,9 @@ type WaffoPayRequest struct {
 }
 
 func RequestWaffoAmount(c *gin.Context) {
+	if rejectCNYTopUp(c) {
+		return
+	}
 	var req WaffoPayRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
 		paymentError(c, common.NewMessage("Invalid parameters"))
@@ -147,6 +150,9 @@ func RequestWaffoAmount(c *gin.Context) {
 func RequestWaffoPay(c *gin.Context) {
 	if !setting.WaffoEnabled {
 		paymentError(c, common.NewMessage("Waffo payment is not enabled"))
+		return
+	}
+	if rejectCNYTopUp(c) {
 		return
 	}
 

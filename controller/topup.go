@@ -97,8 +97,18 @@ func GetTopUpInfo(c *gin.Context) {
 		}
 	}
 
+	enableEpay := isEpayTopUpEnabled()
+	if topUpAmountsInCNY() {
+		enableEpay = false
+		enableWaffo = false
+		enableWaffoPancake = false
+		payMethods = lo.Filter(payMethods, func(method map[string]string, _ int) bool {
+			return method["type"] == model.PaymentMethodStripe
+		})
+	}
+
 	data := gin.H{
-		"enable_online_topup":              isEpayTopUpEnabled(),
+		"enable_online_topup":              enableEpay,
 		"enable_stripe_topup":              isStripeTopUpEnabled(),
 		"enable_creem_topup":               isCreemTopUpEnabled(),
 		"enable_waffo_topup":               enableWaffo,
@@ -146,6 +156,23 @@ func GetEpayClient() *epay.Client {
 		return nil
 	}
 	return withUrl
+}
+
+// topUpAmountsInCNY reports whether wallet top-up amounts are whole yuan
+// instead of USD credit. Only Stripe converts them; Epay and Waffo store whole
+// USD credit per order, so they are switched off while this is on.
+func topUpAmountsInCNY() bool {
+	return operation_setting.GetQuotaDisplayType() == operation_setting.QuotaDisplayTypeCNY &&
+		operation_setting.USDExchangeRate > 0
+}
+
+// rejectCNYTopUp answers a gateway that cannot take yuan top-up amounts.
+func rejectCNYTopUp(c *gin.Context) bool {
+	if !topUpAmountsInCNY() {
+		return false
+	}
+	paymentError(c, common.NewMessage("Unsupported payment channel"))
+	return true
 }
 
 func getPayMoney(amount int64, group string) float64 {
@@ -281,6 +308,9 @@ func rejectInvalidTopUpQuota(c *gin.Context, userId int, amount int64) bool {
 }
 
 func RequestEpay(c *gin.Context) {
+	if rejectCNYTopUp(c) {
+		return
+	}
 	var req EpayRequest
 	err := c.ShouldBindJSON(&req)
 	if err != nil {
@@ -497,6 +527,9 @@ func EpayNotify(c *gin.Context) {
 }
 
 func RequestAmount(c *gin.Context) {
+	if rejectCNYTopUp(c) {
+		return
+	}
 	var req AmountRequest
 	err := c.ShouldBindJSON(&req)
 	if err != nil {

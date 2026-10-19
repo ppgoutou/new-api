@@ -7283,6 +7283,7 @@
     "Stripe payment refunded, top-up quota deducted: {{quota}}": "Stripe payment refunded, top-up quota deducted: {{quota}}",
     "Stripe payment disputed, top-up quota deducted: {{quota}}": "Stripe payment disputed, top-up quota deducted: {{quota}}",
     "Stripe dispute closed in your favor, top-up quota restored: {{quota}}": "Stripe dispute closed in your favor, top-up quota restored: {{quota}}",
+    "Custom amount (CNY)": "Custom amount (CNY)",
     "Custom amount (USD)": "Custom amount (USD)",
     "{{amount}} USD credit": "{{amount}} USD credit",
     "Credit received:": "Credit received:",

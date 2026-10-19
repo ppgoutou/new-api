@@ -62,7 +62,7 @@ func (*StripeAdaptor) RequestAmount(c *gin.Context, req *StripePayRequest) {
 		return
 	}
 	payMoney := getStripePayMoney(float64(req.Amount), group)
-	if payMoney <= 0.01 {
+	if payMoney <= 0.01 || (topUpAmountsInCNY() && payMoney < stripeMinChargeUSD) {
 		paymentError(c, common.NewMessage("Payment amount is too low"))
 		return
 	}
@@ -99,17 +99,41 @@ func (*StripeAdaptor) RequestPay(c *gin.Context, req *StripePayRequest) {
 		paymentError(c, common.NewMessage("User does not exist"))
 		return
 	}
-	chargedMoney := GetChargedAmount(float64(req.Amount), *user)
+	chargedMoney := GetChargedAmount(stripeCreditUSD(req.Amount).InexactFloat64(), *user)
 	if rejectInvalidCreditedQuota(c, id,
 		decimal.NewFromFloat(chargedMoney).Mul(decimal.NewFromFloat(common.QuotaPerUnit)),
 	) {
 		return
 	}
 
+	// The configured Price charges one USD per unit, so a yuan amount is
+	// charged as a one-off USD price for the converted total instead.
+	lineItem := &stripe.CheckoutSessionLineItemParams{
+		Price:    stripe.String(setting.StripePriceId),
+		Quantity: stripe.Int64(req.Amount),
+	}
+	if topUpAmountsInCNY() {
+		payMoney := getStripePayMoney(float64(req.Amount), user.Group)
+		if payMoney < stripeMinChargeUSD {
+			paymentError(c, common.NewMessage("Payment amount is too low"))
+			return
+		}
+		lineItem = &stripe.CheckoutSessionLineItemParams{
+			PriceData: &stripe.CheckoutSessionLineItemPriceDataParams{
+				Currency:   stripe.String(string(stripe.CurrencyUSD)),
+				UnitAmount: stripe.Int64(decimal.NewFromFloat(payMoney).Shift(2).Round(0).IntPart()),
+				ProductData: &stripe.CheckoutSessionLineItemPriceDataProductDataParams{
+					Name: stripe.String(fmt.Sprintf("API 额度 ¥%d", req.Amount)),
+				},
+			},
+			Quantity: stripe.Int64(1),
+		}
+	}
+
 	reference := fmt.Sprintf("new-api-ref-%d-%d-%s", user.Id, time.Now().UnixMilli(), randstr.String(4))
 	referenceId := "ref_" + common.Sha1([]byte(reference))
 
-	payLink, err := genStripeLink(referenceId, user.StripeCustomer, user.Email, req.Amount, req.SuccessURL, req.CancelURL)
+	payLink, err := genStripeLink(referenceId, user.StripeCustomer, user.Email, lineItem, req.SuccessURL, req.CancelURL)
 	if err != nil {
 		logger.LogError(c.Request.Context(), common.LogText("Stripe failed to create Checkout Session user_id=%d trade_no=%s amount=%d error=%q", id, referenceId, req.Amount, err.Error()))
 		paymentError(c, common.NewMessage("Failed to start payment"))
@@ -431,12 +455,12 @@ func sessionExpired(ctx context.Context, event stripe.Event) {
 //   - referenceId: unique reference identifier for the transaction
 //   - customerId: existing Stripe customer ID (empty string if new customer)
 //   - email: customer email address for new customer creation
-//   - amount: quantity of units to purchase
+//   - lineItem: the single line item to charge
 //   - successURL: custom URL to redirect after successful payment (empty for default)
 //   - cancelURL: custom URL to redirect when payment is canceled (empty for default)
 //
 // Returns the checkout session URL or an error if the session creation fails.
-func genStripeLink(referenceId string, customerId string, email string, amount int64, successURL string, cancelURL string) (string, error) {
+func genStripeLink(referenceId string, customerId string, email string, lineItem *stripe.CheckoutSessionLineItemParams, successURL string, cancelURL string) (string, error) {
 	if !strings.HasPrefix(setting.StripeApiSecret, "sk_") && !strings.HasPrefix(setting.StripeApiSecret, "rk_") {
 		return "", errors.New("invalid Stripe API key")
 	}
@@ -452,15 +476,10 @@ func genStripeLink(referenceId string, customerId string, email string, amount i
 	}
 
 	params := &stripe.CheckoutSessionParams{
-		ClientReferenceID: stripe.String(referenceId),
-		SuccessURL:        stripe.String(successURL),
-		CancelURL:         stripe.String(cancelURL),
-		LineItems: []*stripe.CheckoutSessionLineItemParams{
-			{
-				Price:    stripe.String(setting.StripePriceId),
-				Quantity: stripe.Int64(amount),
-			},
-		},
+		ClientReferenceID:   stripe.String(referenceId),
+		SuccessURL:          stripe.String(successURL),
+		CancelURL:           stripe.String(cancelURL),
+		LineItems:           []*stripe.CheckoutSessionLineItemParams{lineItem},
 		Mode:                stripe.String(string(stripe.CheckoutSessionModePayment)),
 		AllowPromotionCodes: stripe.Bool(setting.StripePromotionCodesEnabled),
 	}
@@ -503,12 +522,25 @@ func GetChargedAmount(count float64, user model.User) float64 {
 	return count * topUpGroupRatio
 }
 
+// stripeMinChargeUSD is the smallest USD charge Stripe accepts.
+const stripeMinChargeUSD = 0.5
+
+// stripeCreditUSD is the USD credit a Stripe top-up amount buys before the
+// top-up group ratio: the amount itself, or yuan converted at the site rate.
+func stripeCreditUSD(amount int64) decimal.Decimal {
+	credit := decimal.NewFromInt(amount)
+	if topUpAmountsInCNY() {
+		credit = credit.Div(decimal.NewFromFloat(operation_setting.USDExchangeRate))
+	}
+	return credit
+}
+
 func getStripeCreditedQuota(amount int64, group string) decimal.Decimal {
 	topUpGroupRatio := common.GetTopupGroupRatio(group)
 	if topUpGroupRatio == 0 {
 		topUpGroupRatio = 1
 	}
-	return decimal.NewFromInt(amount).
+	return stripeCreditUSD(amount).
 		Mul(decimal.NewFromFloat(topUpGroupRatio)).
 		Mul(decimal.NewFromFloat(common.QuotaPerUnit))
 }
@@ -517,6 +549,9 @@ func getStripePayMoney(amount float64, group string) float64 {
 	originalAmount := amount
 	if operation_setting.GetQuotaDisplayType() == operation_setting.QuotaDisplayTypeTokens {
 		amount = amount / common.QuotaPerUnit
+	}
+	if topUpAmountsInCNY() {
+		amount = amount / operation_setting.USDExchangeRate
 	}
 	// Using float64 for monetary calculations is acceptable here due to the small amounts involved
 	topupGroupRatio := common.GetTopupGroupRatio(group)

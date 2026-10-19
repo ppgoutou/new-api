@@ -84,6 +84,13 @@ export function Wallet(props: WalletProps) {
       ? 1
       : currency?.usdExchangeRate || 1
   }, [currency?.quotaDisplayType, currency?.usdExchangeRate])
+  // With quota shown in CNY, amounts are entered in yuan and only Stripe
+  // (which converts them to USD) is offered.
+  const amountsInCNY = currency?.quotaDisplayType === 'CNY'
+  const creditExchangeRate = amountsInCNY ? 1 : effectiveUsdExchangeRate
+  let amountUnit: 'USD' | 'CNY' | undefined = 'USD'
+  if (amountsInCNY) amountUnit = 'CNY'
+  if (currency?.quotaDisplayType === 'TOKENS') amountUnit = undefined
   const {
     amount: paymentAmount,
     calculating,
@@ -296,8 +303,8 @@ export function Wallet(props: WalletProps) {
                   redeeming={redeeming}
                   topupLink={topupInfo?.topup_link}
                   loading={topupLoading}
-                  usdExchangeRate={effectiveUsdExchangeRate}
-                  showUsdUnit={currency?.quotaDisplayType !== 'TOKENS'}
+                  usdExchangeRate={creditExchangeRate}
+                  amountUnit={amountUnit}
                   onOpenBilling={() => setBillingDialogOpen(true)}
                   creemProducts={topupInfo?.creem_products}
                   enableCreemTopup={topupInfo?.enable_creem_topup}
@@ -343,7 +350,7 @@ export function Wallet(props: WalletProps) {
         calculating={calculating}
         processing={processing || waffoProcessing || pancakeProcessing}
         discountRate={getDiscountRate()}
-        usdExchangeRate={effectiveUsdExchangeRate}
+        usdExchangeRate={creditExchangeRate}
       />
 
       <TransferDialog

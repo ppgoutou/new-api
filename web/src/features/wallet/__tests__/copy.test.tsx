@@ -90,7 +90,7 @@ it('labels recharge presets and the custom amount as USD credit without a payabl
         presetAmounts={[{ value: 100, discount: 0.8 }, { value: 20 }]}
         selectedPreset={null}
         topupAmount={1}
-        showUsdUnit
+        amountUnit='USD'
         paymentLoading={null}
         redemptionCode=''
         redeeming={false}
@@ -116,6 +116,68 @@ it('labels recharge presets and the custom amount as USD credit without a payabl
       'The payable amount and currency are shown after you choose a payment method.'
     )
   ).toBeVisible()
+})
+
+it('labels the custom amount in yuan without USD credit notes when amounts are entered in CNY', () => {
+  render(
+    <I18nextProvider i18n={i18n}>
+      <RechargeFormCard
+        topupInfo={{
+          enable_online_topup: false,
+          enable_stripe_topup: true,
+          pay_methods: [],
+          min_topup: 10,
+          stripe_min_topup: 10,
+          amount_options: [10],
+          discount: {},
+        }}
+        presetAmounts={[{ value: 10 }]}
+        selectedPreset={null}
+        topupAmount={10}
+        amountUnit='CNY'
+        paymentLoading={null}
+        redemptionCode=''
+        redeeming={false}
+        onSelectPreset={vi.fn()}
+        onTopupAmountChange={vi.fn()}
+        onPaymentMethodSelect={vi.fn()}
+        onRedemptionCodeChange={vi.fn()}
+        onRedeem={vi.fn()}
+      />
+    </I18nextProvider>
+  )
+  expect(screen.getByLabelText('自定义金额（人民币）')).toBeVisible()
+  expect(screen.queryByText(/美元额度/)).not.toBeInTheDocument()
+})
+
+it('shows a Stripe order credit from its USD money rather than its yuan amount', async () => {
+  vi.spyOn(api, 'get').mockResolvedValue({
+    data: {
+      success: true,
+      data: {
+        total: 1,
+        items: [
+          {
+            id: 1,
+            status: 'success',
+            amount: 68,
+            money: 10,
+            trade_no: 'order-cny',
+            payment_method: 'stripe',
+            create_time: 1,
+          },
+        ],
+      },
+    },
+  })
+  render(
+    <I18nextProvider i18n={i18n}>
+      <BillingHistoryDialog open onOpenChange={vi.fn()} />
+    </I18nextProvider>
+  )
+  await screen.findByText('order-cny')
+  expect(screen.getByText(/10\.00/)).toBeVisible()
+  expect(screen.queryByText(/68/)).not.toBeInTheDocument()
 })
 
 it.each([
