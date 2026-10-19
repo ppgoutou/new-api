@@ -63,9 +63,10 @@ interface RechargeFormCardProps {
   redeeming: boolean
   topupLink?: string
   loading?: boolean
+  /** Converts an entered amount to the displayed credit; 1 for yuan amounts. */
   usdExchangeRate?: number
-  /** Top-up amounts are USD credit unless quota is displayed as tokens. */
-  showUsdUnit?: boolean
+  /** Currency of entered amounts; undefined when quota is shown as tokens. */
+  amountUnit?: 'USD' | 'CNY'
   onOpenBilling?: () => void
   creemProducts?: CreemProduct[]
   enableCreemTopup?: boolean
@@ -93,7 +94,7 @@ export function RechargeFormCard({
   topupLink,
   loading,
   usdExchangeRate = 1,
-  showUsdUnit = false,
+  amountUnit,
   onOpenBilling,
   creemProducts,
   enableCreemTopup,
@@ -140,6 +141,9 @@ export function RechargeFormCard({
       abbreviate: false,
     })
   const redemptionEnabled = topupInfo?.enable_redemption !== false
+  let customAmountLabel = t('Custom Amount')
+  if (amountUnit === 'USD') customAmountLabel = t('Custom amount (USD)')
+  if (amountUnit === 'CNY') customAmountLabel = t('Custom amount (CNY)')
 
   if (loading) {
     return (
@@ -253,7 +257,7 @@ export function RechargeFormCard({
                               </div>
                             )}
                           </div>
-                          {showUsdUnit && (
+                          {amountUnit === 'USD' && (
                             <div className='text-muted-foreground mt-1.5 w-full text-xs sm:mt-2'>
                               {t('{{amount}} USD credit', {
                                 amount: formatNumber(preset.value),
@@ -272,7 +276,7 @@ export function RechargeFormCard({
                   htmlFor='topup-amount'
                   className='text-muted-foreground text-xs font-medium tracking-wider uppercase'
                 >
-                  {showUsdUnit ? t('Custom amount (USD)') : t('Custom Amount')}
+                  {customAmountLabel}
                 </Label>
                 <div className='grid grid-cols-[minmax(0,1fr)_minmax(110px,0.55fr)] gap-2 lg:grid-cols-[minmax(0,1fr)_auto] lg:items-center'>
                   <Input

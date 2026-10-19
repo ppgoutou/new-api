@@ -248,11 +248,17 @@ export function BillingHistoryDialog({
                             {t('Amount')}
                           </Label>
                           <div className='text-sm font-semibold'>
-                            {formatCurrencyFromUSD(record.amount, {
-                              digitsLarge: 2,
-                              digitsSmall: 2,
-                              abbreviate: false,
-                            })}
+                            {/* Stripe credits money (USD); its amount may be yuan */}
+                            {formatCurrencyFromUSD(
+                              record.payment_method === 'stripe'
+                                ? record.money
+                                : record.amount,
+                              {
+                                digitsLarge: 2,
+                                digitsSmall: 2,
+                                abbreviate: false,
+                              }
+                            )}
                           </div>
                         </div>
                         <div className='space-y-1'>

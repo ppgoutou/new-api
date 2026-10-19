@@ -7283,6 +7283,7 @@
     "Stripe payment refunded, top-up quota deducted: {{quota}}": "Stripe 付款已退款，扣回充值额度: {{quota}}",
     "Stripe payment disputed, top-up quota deducted: {{quota}}": "Stripe 付款被发起争议，扣回充值额度: {{quota}}",
     "Stripe dispute closed in your favor, top-up quota restored: {{quota}}": "Stripe 争议已撤销或胜诉，恢复充值额度: {{quota}}",
+    "Custom amount (CNY)": "自定义金额（人民币）",
     "Custom amount (USD)": "自定义金额（美元）",
     "{{amount}} USD credit": "{{amount}} 美元额度",
     "Credit received:": "到账额度：",

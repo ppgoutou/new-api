@@ -23,6 +23,9 @@ type WaffoPancakePayRequest struct {
 }
 
 func RequestWaffoPancakeAmount(c *gin.Context) {
+	if rejectCNYTopUp(c) {
+		return
+	}
 	var req WaffoPancakePayRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
 		paymentError(c, common.NewMessage("Invalid parameters"))
@@ -342,6 +345,9 @@ func getWaffoPancakeBuyerIdentity(user *model.User) string {
 func RequestWaffoPancakePay(c *gin.Context) {
 	if !isWaffoPancakeTopUpEnabled() {
 		paymentError(c, common.NewMessage("Waffo Pancake configuration is incomplete"))
+		return
+	}
+	if rejectCNYTopUp(c) {
 		return
 	}
 

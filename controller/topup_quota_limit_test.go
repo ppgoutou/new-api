@@ -9,6 +9,7 @@ import (
 
 	"github.com/QuantumNous/new-api/common"
 	"github.com/QuantumNous/new-api/model"
+	"github.com/QuantumNous/new-api/setting"
 	"github.com/QuantumNous/new-api/setting/operation_setting"
 	"github.com/gin-gonic/gin"
 	"github.com/glebarez/sqlite"
@@ -179,6 +180,58 @@ func TestValidateCreditedQuotaRejectsOverflow(t *testing.T) {
 		err,
 		"Top-up quota exceeds the range the system can represent",
 	)
+}
+
+func TestStripeConvertsYuanAmountsWhenQuotaIsShownInCNY(t *testing.T) {
+	oldQuotaPerUnit := common.QuotaPerUnit
+	oldDisplayType := operation_setting.GetGeneralSetting().QuotaDisplayType
+	oldRate := operation_setting.USDExchangeRate
+	oldUnitPrice := setting.StripeUnitPrice
+	common.QuotaPerUnit = 500000
+	operation_setting.USDExchangeRate = 6.8
+	setting.StripeUnitPrice = 1
+	t.Cleanup(func() {
+		common.QuotaPerUnit = oldQuotaPerUnit
+		operation_setting.GetGeneralSetting().QuotaDisplayType = oldDisplayType
+		operation_setting.USDExchangeRate = oldRate
+		setting.StripeUnitPrice = oldUnitPrice
+	})
+
+	testCases := []struct {
+		displayType string
+		amount      int64
+		wantQuota   string
+		wantPay     string
+	}{
+		{displayType: operation_setting.QuotaDisplayTypeCNY, amount: 10, wantQuota: "735294", wantPay: "1.47"},
+		{displayType: operation_setting.QuotaDisplayTypeCNY, amount: 68, wantQuota: "5000000", wantPay: "10.00"},
+		{displayType: operation_setting.QuotaDisplayTypeUSD, amount: 10, wantQuota: "5000000", wantPay: "10.00"},
+	}
+	for _, tc := range testCases {
+		t.Run(fmt.Sprintf("%s %d", tc.displayType, tc.amount), func(t *testing.T) {
+			operation_setting.GetGeneralSetting().QuotaDisplayType = tc.displayType
+			assert.Equal(t, tc.wantQuota, getStripeCreditedQuota(tc.amount, "default").Round(0).String())
+			assert.Equal(t, tc.wantPay, decimal.NewFromFloat(getStripePayMoney(float64(tc.amount), "default")).StringFixed(2))
+		})
+	}
+}
+
+func TestWholeDollarGatewaysRejectYuanAmounts(t *testing.T) {
+	oldDisplayType := operation_setting.GetGeneralSetting().QuotaDisplayType
+	operation_setting.GetGeneralSetting().QuotaDisplayType = operation_setting.QuotaDisplayTypeCNY
+	t.Cleanup(func() {
+		operation_setting.GetGeneralSetting().QuotaDisplayType = oldDisplayType
+	})
+
+	gin.SetMode(gin.TestMode)
+	recorder := httptest.NewRecorder()
+	ctx, _ := gin.CreateTestContext(recorder)
+	ctx.Request = httptest.NewRequest(http.MethodPost, "/api/user/amount", strings.NewReader(`{"amount":10}`))
+	ctx.Request.Header.Set("Content-Type", "application/json")
+
+	RequestAmount(ctx)
+
+	assert.JSONEq(t, `{"message":"error","data":"Unsupported payment channel","message_key":"Unsupported payment channel"}`, recorder.Body.String())
 }
 
 func TestStripeCreditedQuotaIncludesGroupRatio(t *testing.T) {
