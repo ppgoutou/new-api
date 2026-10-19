@@ -115,12 +115,12 @@ export function RechargeFormCard({
     )
   }, [topupAmount])
 
+  // Top-up amounts are whole units: keep the leading digits only, so a pasted
+  // "12.5" becomes 12 and signs or exponents never reach the amount.
   const handleAmountChange = (value: string) => {
-    setLocalAmount(value)
-    const numValue = Number.parseInt(value) || 0
-    if (numValue >= 0) {
-      onTopupAmountChange(numValue)
-    }
+    const digits = /^\d*/.exec(value)?.[0] ?? ''
+    setLocalAmount(digits)
+    onTopupAmountChange(Number.parseInt(digits, 10) || 0)
   }
 
   const hasConfigurableTopup =
@@ -134,6 +134,7 @@ export function RechargeFormCard({
   const hasWaffoPaymentMethods =
     Array.isArray(waffoPayMethods) && waffoPayMethods.length > 0
   const minTopup = getMinTopupAmount(topupInfo)
+  const belowMinTopup = localAmount !== '' && topupAmount < minTopup
   const formatCredit = (amount: number) =>
     formatLocalCurrencyAmount(amount * usdExchangeRate, {
       digitsLarge: 2,
@@ -284,7 +285,18 @@ export function RechargeFormCard({
                     type='number'
                     value={localAmount}
                     onChange={(e) => handleAmountChange(e.target.value)}
+                    onKeyDown={(e) => {
+                      if (['.', ',', 'e', 'E', '-', '+'].includes(e.key)) {
+                        e.preventDefault()
+                      }
+                    }}
                     min={minTopup}
+                    step={1}
+                    inputMode='numeric'
+                    aria-invalid={belowMinTopup}
+                    aria-describedby={
+                      belowMinTopup ? 'topup-amount-error' : undefined
+                    }
                     placeholder={t('Minimum {{amount}}', { amount: minTopup })}
                     className='h-9 text-base sm:h-10 sm:text-lg'
                   />
@@ -297,6 +309,17 @@ export function RechargeFormCard({
                     </span>
                   </div>
                 </div>
+                {belowMinTopup && (
+                  <p
+                    id='topup-amount-error'
+                    role='alert'
+                    className='text-destructive text-xs'
+                  >
+                    {t('Minimum topup amount: {{amount}}', {
+                      amount: minTopup,
+                    })}
+                  </p>
+                )}
                 <p className='text-muted-foreground text-xs'>
                   {t(
                     'The payable amount and currency are shown after you choose a payment method.'

@@ -1,0 +1,101 @@
+/*
+Copyright (C) 2023-2026 QuantumNous
+
+This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU Affero General Public License as
+published by the Free Software Foundation, either version 3 of the
+License, or (at your option) any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+GNU Affero General Public License for more details.
+
+You should have received a copy of the GNU Affero General Public License
+along with this program. If not, see <https://www.gnu.org/licenses/>.
+
+For commercial licensing, please contact support@quantumnous.com
+*/
+import { fireEvent, render, screen } from '@testing-library/react'
+import { createInstance } from 'i18next'
+import { I18nextProvider, initReactI18next } from 'react-i18next'
+import { beforeEach, expect, it, vi } from 'vitest'
+
+import zh from '@/i18n/locales/zh.json'
+
+import { RechargeFormCard } from '../components/recharge-form-card'
+
+const i18n = createInstance()
+
+beforeEach(async () => {
+  await i18n.use(initReactI18next).init({
+    lng: 'zh',
+    fallbackLng: false,
+    nsSeparator: false,
+    resources: { zh },
+    interpolation: { escapeValue: false },
+  })
+})
+
+function renderCard(topupAmount: number, onTopupAmountChange = vi.fn()) {
+  render(
+    <I18nextProvider i18n={i18n}>
+      <RechargeFormCard
+        topupInfo={{
+          enable_online_topup: false,
+          enable_stripe_topup: true,
+          pay_methods: [],
+          min_topup: 10,
+          stripe_min_topup: 10,
+          amount_options: [],
+          discount: {},
+        }}
+        presetAmounts={[]}
+        selectedPreset={null}
+        topupAmount={topupAmount}
+        amountUnit='CNY'
+        paymentLoading={null}
+        redemptionCode=''
+        redeeming={false}
+        onSelectPreset={vi.fn()}
+        onTopupAmountChange={onTopupAmountChange}
+        onPaymentMethodSelect={vi.fn()}
+        onRedemptionCodeChange={vi.fn()}
+        onRedeem={vi.fn()}
+      />
+    </I18nextProvider>
+  )
+  return screen.getByLabelText('自定义金额（人民币）')
+}
+
+it('keeps only the whole part when a decimal amount is entered', () => {
+  const onChange = vi.fn()
+  const input = renderCard(10, onChange)
+
+  fireEvent.change(input, { target: { value: '12.5' } })
+
+  expect(onChange).toHaveBeenLastCalledWith(12)
+  expect(input).toHaveValue(12)
+})
+
+it('blocks the decimal point key in the custom amount', () => {
+  const input = renderCard(10)
+
+  const allowed = fireEvent.keyDown(input, { key: '.' })
+
+  expect(allowed).toBe(false)
+})
+
+it('flags an amount below the minimum with an error message', () => {
+  const input = renderCard(5)
+
+  expect(input).toHaveAttribute('aria-invalid', 'true')
+  expect(screen.getByRole('alert')).toHaveTextContent('最低充值金额：10')
+})
+
+it('shows no minimum error at or above the minimum', () => {
+  const input = renderCard(10)
+
+  expect(input).toHaveAttribute('aria-invalid', 'false')
+  expect(screen.queryByRole('alert')).not.toBeInTheDocument()
+})
