@@ -323,7 +323,8 @@ func proxyTaskMedia(c *gin.Context, task *model.Task, descriptor *relaychannel.T
 }
 
 // taskMediaUpstreamStatus names the hop that answered, after any redirects,
-// and how many redirects led there, without the URL's path or query.
+// how many redirects led there and the start of its error body, without the
+// URL's path or query.
 func taskMediaUpstreamStatus(resp *http.Response) error {
 	host, redirects := "", 0
 	if resp.Request != nil && resp.Request.URL != nil {
@@ -332,7 +333,12 @@ func taskMediaUpstreamStatus(resp *http.Response) error {
 			redirects++
 		}
 	}
-	return fmt.Errorf("%s answered %d after %d redirect(s)", host, resp.StatusCode, redirects)
+	excerpt := ""
+	if resp.Body != nil {
+		head, _ := io.ReadAll(io.LimitReader(resp.Body, 300))
+		excerpt = strings.Join(strings.Fields(strings.ToValidUTF8(string(head), "?")), " ")
+	}
+	return fmt.Errorf("%s answered %d after %d redirect(s): %q", host, resp.StatusCode, redirects, excerpt)
 }
 
 type taskMediaHTTPResult struct {
