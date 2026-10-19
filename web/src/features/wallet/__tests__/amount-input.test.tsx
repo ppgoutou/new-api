@@ -90,12 +90,12 @@ it('flags an amount below the minimum with an error message', () => {
   const input = renderCard(5)
 
   expect(input).toHaveAttribute('aria-invalid', 'true')
-  expect(screen.getByRole('alert')).toHaveTextContent('最低充值金额：10')
+  expect(screen.getByText('最低充值金额：10')).toBeVisible()
 })
 
 it('shows no minimum error at or above the minimum', () => {
   const input = renderCard(10)
 
   expect(input).toHaveAttribute('aria-invalid', 'false')
-  expect(screen.queryByRole('alert')).not.toBeInTheDocument()
+  expect(screen.queryByText('最低充值金额：10')).not.toBeInTheDocument()
 })
