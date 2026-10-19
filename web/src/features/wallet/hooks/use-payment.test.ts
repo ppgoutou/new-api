@@ -46,4 +46,22 @@ describe('payment amount routing', () => {
     expect(amount).toBe(18.75)
     expect(calls).toEqual(['waffo:120'])
   })
+
+  test('rejects with the server response as cause when the amount is refused', async () => {
+    const refused = {
+      success: false,
+      message: 'error',
+      data: 'Payment amount is too low',
+    }
+    const ok = async () => ({ success: true, data: '1' })
+
+    await expect(
+      requestPaymentAmount(1, PAYMENT_TYPES.STRIPE, {
+        regular: ok,
+        stripe: async () => refused,
+        waffo: ok,
+        waffoPancake: ok,
+      })
+    ).rejects.toMatchObject({ cause: refused })
+  })
 })

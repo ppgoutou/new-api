@@ -21,6 +21,7 @@ import { useState, useCallback } from 'react'
 import { toast } from 'sonner'
 
 import { handleServerError } from '@/lib/handle-server-error'
+import { createServerError } from '@/lib/server-error-message'
 
 import {
   calculateAmount,
@@ -75,7 +76,8 @@ export async function requestPaymentAmount(
 
   const response = await calculator({ amount: topupAmount })
   if (!isApiSuccess(response) || !response.data) {
-    return 0
+    // Carries the server's reason (e.g. amount too low) to the caller.
+    throw createServerError(response)
   }
 
   return Number.parseFloat(response.data)
@@ -97,7 +99,8 @@ export function usePayment() {
         )
         setAmount(calculatedAmount)
         return calculatedAmount
-      } catch {
+      } catch (error) {
+        handleServerError(error, i18next.t('Payment request failed'))
         setAmount(0)
         return 0
       } finally {
