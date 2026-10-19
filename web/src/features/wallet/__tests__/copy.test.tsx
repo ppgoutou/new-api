@@ -26,6 +26,7 @@ import { PaymentConfirmDialog } from '@/features/wallet/components/dialogs/payme
 import en from '@/i18n/locales/en.json'
 import zh from '@/i18n/locales/zh.json'
 import { api } from '@/lib/api'
+import { formatCurrencyFromUSD } from '@/lib/currency'
 
 import { RechargeFormCard } from '../components/recharge-form-card'
 
@@ -176,8 +177,11 @@ it('shows a Stripe order credit from its USD money rather than its yuan amount',
     </I18nextProvider>
   )
   await screen.findByText('order-cny')
-  expect(screen.getByText(/10\.00/)).toBeVisible()
-  expect(screen.queryByText(/68/)).not.toBeInTheDocument()
+  const format = { digitsLarge: 2, digitsSmall: 2, abbreviate: false }
+  expect(screen.getByText(formatCurrencyFromUSD(10, format))).toBeVisible()
+  expect(
+    screen.queryByText(formatCurrencyFromUSD(68, format))
+  ).not.toBeInTheDocument()
 })
 
 it.each([
