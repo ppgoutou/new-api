@@ -297,12 +297,12 @@ func proxyTaskMedia(c *gin.Context, task *model.Task, descriptor *relaychannel.T
 	case http.StatusUnauthorized, http.StatusForbidden:
 		return &taskMediaProxyError{
 			status: http.StatusBadGateway, code: "artifact_upstream_auth_failed",
-			message: "Artifact upstream authentication failed",
+			message: "Artifact upstream authentication failed", err: taskMediaUpstreamStatus(resp),
 		}
 	case http.StatusNotFound, http.StatusGone:
 		return &taskMediaProxyError{
 			status: http.StatusGone, code: "artifact_gone",
-			message: "Artifact content is no longer available",
+			message: "Artifact content is no longer available", err: taskMediaUpstreamStatus(resp),
 		}
 	case http.StatusTooManyRequests:
 		if retryAfter := strings.TrimSpace(resp.Header.Get("Retry-After")); retryAfter != "" &&
@@ -317,8 +317,22 @@ func proxyTaskMedia(c *gin.Context, task *model.Task, descriptor *relaychannel.T
 		return &taskMediaProxyError{
 			status: http.StatusBadGateway, code: "artifact_upstream_error",
 			message: fmt.Sprintf("Artifact upstream returned status %d", resp.StatusCode),
+			err:     taskMediaUpstreamStatus(resp),
 		}
 	}
+}
+
+// taskMediaUpstreamStatus names the hop that answered, after any redirects,
+// and how many redirects led there, without the URL's path or query.
+func taskMediaUpstreamStatus(resp *http.Response) error {
+	host, redirects := "", 0
+	if resp.Request != nil && resp.Request.URL != nil {
+		host = resp.Request.URL.Host
+		for previous := resp.Request.Response; previous != nil && previous.Request != nil; previous = previous.Request.Response {
+			redirects++
+		}
+	}
+	return fmt.Errorf("%s answered %d after %d redirect(s)", host, resp.StatusCode, redirects)
 }
 
 type taskMediaHTTPResult struct {
