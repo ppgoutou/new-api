@@ -3,6 +3,7 @@ package controller
 import (
 	"bytes"
 	"crypto/rand"
+	"encoding/binary"
 	"encoding/hex"
 	"errors"
 	"io"
@@ -49,6 +50,34 @@ var homeMediaServedTypes = map[string]string{
 	".webp": "image/webp",
 }
 
+// mp4Brands are ISO base media brands of plain MP4 video. http.DetectContentType
+// only recognizes files listing an "mp4*" brand, while common encoder output
+// declares only isom/iso2-iso9/avc1.
+var mp4Brands = map[string]bool{
+	"isom": true, "iso2": true, "iso3": true, "iso4": true, "iso5": true,
+	"iso6": true, "iso7": true, "iso8": true, "iso9": true,
+	"mp41": true, "mp42": true, "avc1": true, "dash": true, "mmp4": true,
+	"msnv": true, "M4V ": true,
+}
+
+// sniffHomeMediaType returns the content type of an upload from its first
+// bytes, treating an ftyp box with an MP4 brand as video/mp4. Other ISO media
+// files (HEIC, AVIF, QuickTime) keep the standard sniffing result.
+func sniffHomeMediaType(head []byte) string {
+	if len(head) >= 16 && string(head[4:8]) == "ftyp" {
+		end := min(int(binary.BigEndian.Uint32(head[:4])), len(head))
+		for offset := 8; offset+4 <= end; offset += 4 {
+			if offset == 12 { // minor version, not a brand
+				continue
+			}
+			if mp4Brands[string(head[offset:offset+4])] {
+				return "video/mp4"
+			}
+		}
+	}
+	return http.DetectContentType(head)
+}
+
 var homeMediaNamePattern = regexp.MustCompile(`^[a-f0-9]{32}\.(mp4|webm|jpg|png|webp)$`)
 
 func homeMediaDir() string {
@@ -82,7 +111,7 @@ func UploadHomeMedia(c *gin.Context) {
 		common.ApiErrorT(c, "Upload failed")
 		return
 	}
-	contentType := http.DetectContentType(head[:n])
+	contentType := sniffHomeMediaType(head[:n])
 	ext, ok := homeMediaTypes[contentType]
 	if !ok {
 		common.ApiErrorT(c, "Unsupported file type. Upload an MP4 or WebM video, or a JPG, PNG or WebP image.")
