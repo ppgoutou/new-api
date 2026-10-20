@@ -181,7 +181,7 @@ export function RechargeFormCard({
       title={t('Online Top-up')}
       description={t('Pay online and the credit arrives right away')}
       icon={<WalletCards className='h-4 w-4' />}
-      iconTone='primary'
+      iconClassName='bg-primary text-primary-foreground rounded-full'
       disableHoverEffect
       className='h-full'
       action={
