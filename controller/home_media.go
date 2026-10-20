@@ -169,18 +169,18 @@ func DeleteHomeMedia(c *gin.Context) {
 func ServeHomeMedia(c *gin.Context) {
 	name := c.Param("name")
 	if !homeMediaNamePattern.MatchString(name) {
-		c.Status(http.StatusNotFound)
+		c.AbortWithStatus(http.StatusNotFound)
 		return
 	}
 	file, err := os.Open(filepath.Join(homeMediaDir(), name))
 	if err != nil {
-		c.Status(http.StatusNotFound)
+		c.AbortWithStatus(http.StatusNotFound)
 		return
 	}
 	defer file.Close()
 	info, err := file.Stat()
 	if err != nil || info.IsDir() {
-		c.Status(http.StatusNotFound)
+		c.AbortWithStatus(http.StatusNotFound)
 		return
 	}
 	// Names are random and never reused, so the content never changes.
