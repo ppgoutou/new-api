@@ -22,22 +22,21 @@ import { useTranslation } from 'react-i18next'
 
 import { cn } from '@/lib/utils'
 
-import { getHomeMediaUrl } from '../lib/video-home'
-
 interface ShowcaseVideoProps {
-  /** Media file name without extension. */
-  name: string
+  /** Video URL; empty renders the placeholder. */
+  src: string
+  poster?: string
   /** Accessible description of the clip. */
   label: string
-  /** Load eagerly (the hero clip); other clips load when scrolled into view. */
+  /** Load eagerly (the hero clip); others load lazily. */
   eager?: boolean
   className?: string
 }
 
 /**
  * Muted looping clip that plays only while on screen. With reduced motion it
- * stays paused and shows controls; without a media host it renders a
- * placeholder.
+ * stays paused and shows controls; without a source, or when it fails to
+ * load, it renders a placeholder.
  */
 export function ShowcaseVideo(props: ShowcaseVideoProps) {
   const { t } = useTranslation()
@@ -48,7 +47,7 @@ export function ShowcaseVideo(props: ShowcaseVideoProps) {
       typeof window.matchMedia === 'function' &&
       window.matchMedia('(prefers-reduced-motion: reduce)').matches
   )
-  const src = getHomeMediaUrl(`${props.name}.mp4`)
+  const src = props.src
 
   useEffect(() => {
     const video = videoRef.current
@@ -88,16 +87,20 @@ export function ShowcaseVideo(props: ShowcaseVideoProps) {
     )
   }
 
+  // Without a poster, loading metadata shows the first frame.
+  let preload: 'auto' | 'metadata' | 'none' = props.poster ? 'none' : 'metadata'
+  if (props.eager) preload = 'auto'
+
   return (
     <video
       ref={videoRef}
       src={src}
-      poster={getHomeMediaUrl(`${props.name}.jpg`)}
+      poster={props.poster || undefined}
       muted
       loop
       playsInline
       controls={reducedMotion}
-      preload={props.eager ? 'auto' : 'none'}
+      preload={preload}
       aria-label={props.label}
       onError={() => setFailed(true)}
       className={cn('size-full bg-slate-900 object-cover', props.className)}

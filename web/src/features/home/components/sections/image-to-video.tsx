@@ -21,6 +21,7 @@ import { useTranslation } from 'react-i18next'
 
 import { cn } from '@/lib/utils'
 
+import { useHomeShowcase } from '../../hooks/use-home-showcase'
 import {
   getHomeMediaUrl,
   IMAGE_TO_VIDEO_INPUT_IMAGE,
@@ -30,7 +31,16 @@ import { ShowcaseVideo } from '../showcase-video'
 
 export function ImageToVideo() {
   const { t } = useTranslation()
-  const inputImage = getHomeMediaUrl(IMAGE_TO_VIDEO_INPUT_IMAGE)
+  const configured = useHomeShowcase().imageToVideo
+  // An admin-uploaded output clip replaces the built-in pair as a whole.
+  const pair = configured.video
+    ? configured
+    : {
+        image: getHomeMediaUrl(IMAGE_TO_VIDEO_INPUT_IMAGE),
+        video: getHomeMediaUrl(`${IMAGE_TO_VIDEO_OUTPUT}.mp4`),
+        poster: getHomeMediaUrl(`${IMAGE_TO_VIDEO_OUTPUT}.jpg`),
+      }
+  const inputImage = pair.image
   const modes = [
     {
       title: t('Text to video'),
@@ -130,7 +140,9 @@ export function ImageToVideo() {
           <figure className='min-w-0 flex-[1.4_1_16rem]'>
             <div className='aspect-video overflow-hidden rounded-xl border border-blue-500/50 bg-slate-900'>
               <ShowcaseVideo
-                name={IMAGE_TO_VIDEO_OUTPUT}
+                key={pair.video}
+                src={pair.video}
+                poster={pair.poster}
                 label={t('Output: a video that starts from it')}
               />
             </div>

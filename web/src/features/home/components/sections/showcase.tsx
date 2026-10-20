@@ -24,14 +24,25 @@ import { CopyButton } from '@/components/copy-button'
 import { Badge } from '@/components/ui/badge'
 import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group'
 
+import { useHomeShowcase } from '../../hooks/use-home-showcase'
 import {
+  getHomeMediaUrl,
   SHOWCASE_CATEGORY_LABELS,
   SHOWCASE_VIDEOS,
-  type ShowcaseCategory,
 } from '../../lib/video-home'
 import { ShowcaseVideo } from '../showcase-video'
 
-type CategoryFilter = ShowcaseCategory | 'all'
+const ALL_CATEGORIES = 'all'
+
+type ShowcaseCard = {
+  key: string
+  title: string
+  category: string
+  prompt: string
+  spec: string
+  video: string
+  poster: string
+}
 
 interface ShowcaseProps {
   isAuthenticated?: boolean
@@ -39,16 +50,44 @@ interface ShowcaseProps {
 
 export function Showcase(props: ShowcaseProps) {
   const { t } = useTranslation()
-  const [category, setCategory] = useState<CategoryFilter>('all')
+  const [category, setCategory] = useState(ALL_CATEGORIES)
   const startTarget = props.isAuthenticated ? '/dashboard' : '/sign-up'
-  const filters: { value: CategoryFilter; label: string }[] = [
-    { value: 'all', label: t('All') },
-    ...(Object.keys(SHOWCASE_CATEGORY_LABELS) as ShowcaseCategory[]).map(
-      (value) => ({ value, label: t(SHOWCASE_CATEGORY_LABELS[value]) })
-    ),
+  const configured = useHomeShowcase().showcase.filter((item) => item.video)
+  // Admin clips replace the built-in examples as a whole.
+  const cards: ShowcaseCard[] =
+    configured.length > 0
+      ? configured.map((item, index) => ({
+          key: `${index}:${item.video}`,
+          title: item.title,
+          category: item.category,
+          prompt: item.prompt,
+          spec: item.spec,
+          video: item.video,
+          poster: item.poster,
+        }))
+      : SHOWCASE_VIDEOS.map((video) => ({
+          key: video.name,
+          title: t(video.title),
+          category: t(SHOWCASE_CATEGORY_LABELS[video.category]),
+          prompt: t(video.prompt),
+          spec: video.spec,
+          video: getHomeMediaUrl(`${video.name}.mp4`),
+          poster: getHomeMediaUrl(`${video.name}.jpg`),
+        }))
+  const categories = [
+    ...new Set(cards.map((card) => card.category).filter(Boolean)),
   ]
-  const videos = SHOWCASE_VIDEOS.filter(
-    (video) => category === 'all' || video.category === category
+  // A category that no longer exists (settings changed) falls back to all.
+  const activeCategory = categories.includes(category)
+    ? category
+    : ALL_CATEGORIES
+  const filters = [
+    { value: ALL_CATEGORIES, label: t('All') },
+    ...categories.map((value) => ({ value, label: value })),
+  ]
+  const visibleCards = cards.filter(
+    (card) =>
+      activeCategory === ALL_CATEGORIES || card.category === activeCategory
   )
 
   return (
@@ -72,10 +111,10 @@ export function Showcase(props: ShowcaseProps) {
             </p>
           </div>
           <ToggleGroup
-            value={[category]}
+            value={[activeCategory]}
             onValueChange={(value) => {
-              const next = value.find((item) => item !== category)
-              if (next) setCategory(next as CategoryFilter)
+              const next = value.find((item) => item !== activeCategory)
+              if (next) setCategory(next)
             }}
             aria-label={t('Filter by category')}
             variant='outline'
@@ -95,51 +134,58 @@ export function Showcase(props: ShowcaseProps) {
         </div>
 
         <ul className='mt-8 grid gap-5 sm:grid-cols-2 lg:grid-cols-3'>
-          {videos.map((video) => {
-            const prompt = t(video.prompt)
-            return (
-              <li
-                key={video.name}
-                className='bg-card border-border/60 flex flex-col overflow-hidden rounded-2xl border'
-              >
-                <div className='relative aspect-video'>
-                  <ShowcaseVideo name={video.name} label={t(video.title)} />
+          {visibleCards.map((card) => (
+            <li
+              key={card.key}
+              className='bg-card border-border/60 flex flex-col overflow-hidden rounded-2xl border'
+            >
+              <div className='relative aspect-video'>
+                <ShowcaseVideo
+                  src={card.video}
+                  poster={card.poster}
+                  label={card.title || t('Video preview')}
+                />
+                {card.spec && (
                   <span className='absolute right-2.5 bottom-2.5 rounded-md bg-slate-950/70 px-2 py-0.5 font-mono text-[11px] text-slate-100'>
-                    {video.spec}
+                    {card.spec}
                   </span>
+                )}
+              </div>
+              <div className='flex flex-1 flex-col gap-3 p-5'>
+                <div className='flex items-center justify-between gap-3'>
+                  <h3 className='font-semibold'>{card.title}</h3>
+                  {card.category && (
+                    <Badge variant='secondary'>{card.category}</Badge>
+                  )}
                 </div>
-                <div className='flex flex-1 flex-col gap-3 p-5'>
-                  <div className='flex items-center justify-between gap-3'>
-                    <h3 className='font-semibold'>{t(video.title)}</h3>
-                    <Badge variant='secondary'>
-                      {t(SHOWCASE_CATEGORY_LABELS[video.category])}
-                    </Badge>
-                  </div>
+                {card.prompt && (
                   <p className='text-muted-foreground line-clamp-3 text-sm leading-relaxed'>
-                    {prompt}
+                    {card.prompt}
                   </p>
-                  <div className='mt-auto flex flex-wrap items-center gap-2 pt-1'>
+                )}
+                <div className='mt-auto flex flex-wrap items-center gap-2 pt-1'>
+                  {card.prompt && (
                     <CopyButton
-                      value={prompt}
+                      value={card.prompt}
                       variant='outline'
                       size='sm'
                       aria-label={t('Copy prompt: {{title}}', {
-                        title: t(video.title),
+                        title: card.title,
                       })}
                     >
                       {t('Copy prompt')}
                     </CopyButton>
-                    <Link
-                      to={startTarget}
-                      className='px-2 text-sm font-semibold text-blue-600 hover:underline dark:text-blue-400'
-                    >
-                      {t('Generate with it')} →
-                    </Link>
-                  </div>
+                  )}
+                  <Link
+                    to={startTarget}
+                    className='px-2 text-sm font-semibold text-blue-600 hover:underline dark:text-blue-400'
+                  >
+                    {t('Generate with it')} →
+                  </Link>
                 </div>
-              </li>
-            )
-          })}
+              </div>
+            </li>
+          ))}
         </ul>
       </div>
     </section>

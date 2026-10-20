@@ -1,0 +1,140 @@
+package controller
+
+import (
+	"bytes"
+	"mime/multipart"
+	"net/http"
+	"net/http/httptest"
+	"os"
+	"strings"
+	"testing"
+
+	"github.com/QuantumNous/new-api/common"
+	"github.com/gin-gonic/gin"
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
+)
+
+// minimalMP4 starts with an ftyp box that http.DetectContentType reports as
+// video/mp4, followed by a few payload bytes.
+func minimalMP4() []byte {
+	data := []byte{0, 0, 0, 0x18, 'f', 't', 'y', 'p', 'i', 's', 'o', 'm', 0, 0, 2, 0, 'm', 'p', '4', '2', 'i', 's', 'o', 'm'}
+	return append(data, []byte("payload-bytes")...)
+}
+
+type homeMediaUploadResponse struct {
+	Success bool   `json:"success"`
+	Message string `json:"message"`
+	Data    struct {
+		URL         string `json:"url"`
+		ContentType string `json:"content_type"`
+	} `json:"data"`
+}
+
+func uploadHomeMedia(t *testing.T, fileName string, content []byte) homeMediaUploadResponse {
+	t.Helper()
+	body := &bytes.Buffer{}
+	writer := multipart.NewWriter(body)
+	part, err := writer.CreateFormFile("file", fileName)
+	require.NoError(t, err)
+	_, err = part.Write(content)
+	require.NoError(t, err)
+	require.NoError(t, writer.Close())
+
+	recorder := httptest.NewRecorder()
+	context, _ := gin.CreateTestContext(recorder)
+	context.Request = httptest.NewRequest(http.MethodPost, "/api/home_media", body)
+	context.Request.Header.Set("Content-Type", writer.FormDataContentType())
+	UploadHomeMedia(context)
+
+	require.Equal(t, http.StatusOK, recorder.Code)
+	var response homeMediaUploadResponse
+	require.NoError(t, common.Unmarshal(recorder.Body.Bytes(), &response))
+	return response
+}
+
+func serveHomeMedia(name string, rangeHeader string) *httptest.ResponseRecorder {
+	recorder := httptest.NewRecorder()
+	context, _ := gin.CreateTestContext(recorder)
+	context.Request = httptest.NewRequest(http.MethodGet, "/home-media/"+name, nil)
+	if rangeHeader != "" {
+		context.Request.Header.Set("Range", rangeHeader)
+	}
+	context.Params = gin.Params{{Key: "name", Value: name}}
+	ServeHomeMedia(context)
+	return recorder
+}
+
+func TestUploadHomeMediaStoresVideoUnderRandomNameAndServesRanges(t *testing.T) {
+	dir := t.TempDir()
+	t.Setenv("HOME_MEDIA_DIR", dir)
+	video := minimalMP4()
+
+	response := uploadHomeMedia(t, "clip.html", video)
+
+	require.True(t, response.Success, response.Message)
+	assert.Equal(t, "video/mp4", response.Data.ContentType)
+	name, ok := strings.CutPrefix(response.Data.URL, "/home-media/")
+	require.True(t, ok)
+	assert.Regexp(t, `^[a-f0-9]{32}\.mp4$`, name)
+	stored, err := os.ReadFile(dir + "/" + name)
+	require.NoError(t, err)
+	assert.Equal(t, video, stored)
+
+	served := serveHomeMedia(name, "bytes=0-3")
+	assert.Equal(t, http.StatusPartialContent, served.Code)
+	assert.Equal(t, video[:4], served.Body.Bytes())
+	assert.Equal(t, "video/mp4", served.Header().Get("Content-Type"))
+	assert.Equal(t, "nosniff", served.Header().Get("X-Content-Type-Options"))
+}
+
+func TestUploadHomeMediaRejectsContentThatIsNotVideoOrImage(t *testing.T) {
+	dir := t.TempDir()
+	t.Setenv("HOME_MEDIA_DIR", dir)
+
+	response := uploadHomeMedia(t, "clip.mp4", []byte("<html><script>alert(1)</script></html>"))
+
+	assert.False(t, response.Success)
+	entries, err := os.ReadDir(dir)
+	require.NoError(t, err)
+	assert.Empty(t, entries)
+}
+
+func TestServeHomeMediaOnlyServesUploadedFileNames(t *testing.T) {
+	dir := t.TempDir()
+	t.Setenv("HOME_MEDIA_DIR", dir)
+	require.NoError(t, os.WriteFile(dir+"/notes.txt", []byte("secret"), 0o644))
+
+	for _, name := range []string{"notes.txt", "../notes.txt", "0123456789abcdef0123456789abcdef.mp4"} {
+		assert.Equal(t, http.StatusNotFound, serveHomeMedia(name, "").Code, name)
+	}
+}
+
+func TestValidateHomeShowcase(t *testing.T) {
+	uploaded := "/home-media/0123456789abcdef0123456789abcdef.mp4"
+	manyItems := "[" + strings.TrimSuffix(strings.Repeat(`{"title":"x"},`, homeShowcaseMaxItems+1), ",") + "]"
+	cases := []struct {
+		name  string
+		value string
+		valid bool
+	}{
+		{"empty keeps built-in defaults", "", true},
+		{"uploaded video and https poster", `{"hero":{"title":"Hero","video":"` + uploaded + `","poster":"https://media.example.com/p.jpg"},"showcase":[{"title":"Clip","category":"Ads","prompt":"p","video":"` + uploaded + `"}]}`, true},
+		{"javascript url", `{"hero":{"video":"javascript:alert(1)"}}`, false},
+		{"plain http url", `{"showcase":[{"video":"http://example.com/a.mp4"}]}`, false},
+		{"traversal in uploaded path", `{"showcase":[{"video":"/home-media/../config.json"}]}`, false},
+		{"too many clips", `{"showcase":` + manyItems + `}`, false},
+		{"title too long", `{"showcase":[{"title":"` + strings.Repeat("长", 81) + `"}]}`, false},
+		{"not json", `{"showcase":`, false},
+	}
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			err := validateHomeShowcase(tc.value)
+			if tc.valid {
+				assert.NoError(t, err)
+			} else {
+				assert.Error(t, err)
+			}
+		})
+	}
+}

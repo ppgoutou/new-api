@@ -16,10 +16,13 @@ along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 For commercial licensing, please contact support@quantumnous.com
 */
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { render, screen, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import type { ReactNode } from 'react'
-import { describe, expect, it, vi } from 'vitest'
+import { beforeEach, describe, expect, it, vi } from 'vitest'
+
+import { api } from '@/lib/api'
 
 import { Showcase } from '../components/sections/showcase'
 import { SHOWCASE_VIDEOS } from '../lib/video-home'
@@ -32,6 +35,27 @@ vi.mock('@tanstack/react-router', () => ({
   ),
 }))
 
+function mockHomeShowcase(value: string) {
+  vi.spyOn(api, 'get').mockResolvedValue({
+    data: { success: true, data: value },
+  })
+}
+
+function renderShowcase() {
+  const client = new QueryClient({
+    defaultOptions: { queries: { retry: false } },
+  })
+  return render(
+    <QueryClientProvider client={client}>
+      <Showcase />
+    </QueryClientProvider>
+  )
+}
+
+beforeEach(() => {
+  mockHomeShowcase('')
+})
+
 function clipTitles(): string[] {
   return within(screen.getByRole('list'))
     .getAllByRole('heading', { level: 3 })
@@ -40,7 +64,7 @@ function clipTitles(): string[] {
 
 describe('home showcase', () => {
   it('lists every clip when no category is chosen', () => {
-    render(<Showcase />)
+    renderShowcase()
 
     expect(clipTitles()).toEqual(SHOWCASE_VIDEOS.map((video) => video.title))
     expect(screen.getByRole('button', { name: 'All' })).toHaveAttribute(
@@ -51,7 +75,7 @@ describe('home showcase', () => {
 
   it('keeps only the chosen category when a category filter is pressed', async () => {
     const user = userEvent.setup()
-    render(<Showcase />)
+    renderShowcase()
 
     await user.click(screen.getByRole('button', { name: 'Product ads' }))
 
@@ -64,7 +88,7 @@ describe('home showcase', () => {
 
   it('copies the full prompt of a clip when its copy button is pressed', async () => {
     const user = userEvent.setup()
-    render(<Showcase />)
+    renderShowcase()
 
     await user.click(
       screen.getByRole('button', { name: 'Copy prompt: Mechanical watch' })
@@ -75,11 +99,40 @@ describe('home showcase', () => {
   })
 
   it('shows a labelled placeholder instead of video while no media host is set', () => {
-    render(<Showcase />)
+    renderShowcase()
 
     expect(
       screen.getByRole('img', { name: 'Video preview: Crystal cave' })
     ).toBeInTheDocument()
     expect(document.querySelector('video')).toBeNull()
+  })
+
+  it('shows the admin clips with their own categories instead of the examples', async () => {
+    const user = userEvent.setup()
+    mockHomeShowcase(
+      JSON.stringify({
+        showcase: [
+          {
+            title: 'City chase',
+            category: 'Action',
+            prompt: 'A chase through a market',
+            video: '/home-media/0123456789abcdef0123456789abcdef.mp4',
+          },
+          {
+            title: 'Pastry ad',
+            category: 'Food',
+            prompt: 'A baker glazes a tart',
+            video: '/home-media/fedcba9876543210fedcba9876543210.mp4',
+          },
+          { title: 'Draft without video', category: 'Action' },
+        ],
+      })
+    )
+    renderShowcase()
+
+    await screen.findByRole('heading', { level: 3, name: 'City chase' })
+    expect(clipTitles()).toEqual(['City chase', 'Pastry ad'])
+    await user.click(screen.getByRole('button', { name: 'Food' }))
+    expect(clipTitles()).toEqual(['Pastry ad'])
   })
 })

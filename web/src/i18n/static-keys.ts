@@ -917,4 +917,10 @@ export const STATIC_I18N_KEYS = [
   'Tracking shot: a parkour runner sprints, vaults and leaps across city rooftops at dusk. The camera follows closely past railings and water tanks, then over the roof edge as the skyline opens up. Handheld energy.',
   'A traveler carrying a lantern walks into a vast glowing crystal cave. Blue-violet crystals reflect on a still underground lake as the camera drifts slowly forward and tiny specks of light float in the air. An epic fantasy scene.',
   'Close-up of a steaming bowl of ramen. Chopsticks slowly lift the noodles, broth drips, and steam rises. Warm lighting, slow motion, food commercial look.',
+  // Homepage video settings validation (system-settings/site/home-showcase/schema.ts).
+  'Use an uploaded file or an https link',
+  'At most 20 characters',
+  'At most 60 characters',
+  'At most 80 characters',
+  'At most 2000 characters',
 ] as const

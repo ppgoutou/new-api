@@ -22,8 +22,9 @@ import { useTranslation } from 'react-i18next'
 
 import { Button } from '@/components/ui/button'
 
+import { useHomeShowcase } from '../../hooks/use-home-showcase'
 import { useSeedancePricing } from '../../hooks/use-seedance-pricing'
-import { HERO_VIDEO } from '../../lib/video-home'
+import { getHomeMediaUrl, HERO_VIDEO } from '../../lib/video-home'
 import { ShowcaseVideo } from '../showcase-video'
 
 interface VideoHeroProps {
@@ -33,6 +34,17 @@ interface VideoHeroProps {
 export function VideoHero(props: VideoHeroProps) {
   const { t } = useTranslation()
   const { bestDiscount } = useSeedancePricing()
+  const configured = useHomeShowcase().hero
+  // An admin-uploaded hero replaces the built-in clip and its copy as a whole.
+  const hero = configured.video
+    ? configured
+    : {
+        title: t(HERO_VIDEO.title),
+        prompt: t(HERO_VIDEO.prompt),
+        spec: HERO_VIDEO.spec,
+        video: getHomeMediaUrl(`${HERO_VIDEO.name}.mp4`),
+        poster: getHomeMediaUrl(`${HERO_VIDEO.name}.jpg`),
+      }
   const startTarget = props.isAuthenticated ? '/dashboard' : '/sign-up'
 
   const facts = [
@@ -111,29 +123,35 @@ export function VideoHero(props: VideoHeroProps) {
       >
         <div className='relative aspect-video'>
           <ShowcaseVideo
-            name={HERO_VIDEO.name}
-            label={t(HERO_VIDEO.title)}
+            key={hero.video}
+            src={hero.video}
+            poster={hero.poster}
+            label={hero.title || t('Video preview')}
             eager
           />
-          <span className='absolute top-3 left-3 rounded-md bg-slate-950/70 px-2.5 py-1 font-mono text-xs text-slate-100'>
-            {HERO_VIDEO.spec}
-          </span>
+          {hero.spec && (
+            <span className='absolute top-3 left-3 rounded-md bg-slate-950/70 px-2.5 py-1 font-mono text-xs text-slate-100'>
+              {hero.spec}
+            </span>
+          )}
         </div>
         {/* Below the clip on phones; overlaid on its bottom edge from sm up. */}
-        <figcaption className='flex flex-wrap items-center gap-x-3 gap-y-2 px-4 py-3 text-left sm:absolute sm:inset-x-3 sm:bottom-3 sm:rounded-xl sm:bg-slate-950/80 sm:backdrop-blur-sm'>
-          <span className='rounded-md bg-blue-500/20 px-2 py-0.5 text-xs font-semibold text-blue-200'>
-            {t('Prompt used')}
-          </span>
-          <span className='min-w-0 flex-[1_1_18rem] truncate text-sm text-slate-100'>
-            {t(HERO_VIDEO.prompt)}
-          </span>
-          <Link
-            to={startTarget}
-            className='text-sm font-semibold text-white hover:text-blue-200'
-          >
-            {t('Try this prompt')} →
-          </Link>
-        </figcaption>
+        {hero.prompt && (
+          <figcaption className='flex flex-wrap items-center gap-x-3 gap-y-2 px-4 py-3 text-left sm:absolute sm:inset-x-3 sm:bottom-3 sm:rounded-xl sm:bg-slate-950/80 sm:backdrop-blur-sm'>
+            <span className='rounded-md bg-blue-500/20 px-2 py-0.5 text-xs font-semibold text-blue-200'>
+              {t('Prompt used')}
+            </span>
+            <span className='min-w-0 flex-[1_1_18rem] truncate text-sm text-slate-100'>
+              {hero.prompt}
+            </span>
+            <Link
+              to={startTarget}
+              className='text-sm font-semibold text-white hover:text-blue-200'
+            >
+              {t('Try this prompt')} →
+            </Link>
+          </figcaption>
+        )}
       </figure>
     </section>
   )
