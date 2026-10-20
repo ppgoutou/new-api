@@ -59,9 +59,12 @@ function renderCard(
 it('links the buy button to the configured shop in a new tab', () => {
   renderCard({ topupLink: 'https://shop.example/store' })
 
-  const link = screen.getByRole('link', { name: /购买兑换码/ })
-  expect(link).toHaveAttribute('href', 'https://shop.example/store')
-  expect(link).toHaveAttribute('target', '_blank')
+  const links = screen.getAllByRole('link', { name: /购买兑换码/ })
+  expect(links).toHaveLength(2)
+  for (const link of links) {
+    expect(link).toHaveAttribute('href', 'https://shop.example/store')
+    expect(link).toHaveAttribute('target', '_blank')
+  }
   expect(screen.getByText('去小店下单')).toBeVisible()
 })
 
@@ -71,13 +74,13 @@ it('hides the buy panel when no shop link is configured', () => {
   expect(
     screen.queryByRole('link', { name: /购买兑换码/ })
   ).not.toBeInTheDocument()
-  expect(screen.getByLabelText('有兑换码吗？')).toBeVisible()
+  expect(screen.getByLabelText('输入兑换码')).toBeVisible()
 })
 
 it('passes the typed code up and redeems on click', () => {
   const props = renderCard()
 
-  fireEvent.change(screen.getByLabelText('有兑换码吗？'), {
+  fireEvent.change(screen.getByLabelText('输入兑换码'), {
     target: { value: 'abc123' },
   })
   fireEvent.click(screen.getByRole('button', { name: '兑换额度' }))
@@ -89,7 +92,7 @@ it('passes the typed code up and redeems on click', () => {
 it('replaces the code input with a notice while redemption is disabled', () => {
   renderCard({ redemptionEnabled: false, topupLink: 'https://shop.example' })
 
-  expect(screen.queryByLabelText('有兑换码吗？')).not.toBeInTheDocument()
+  expect(screen.queryByLabelText('输入兑换码')).not.toBeInTheDocument()
   expect(
     screen.getByText(/兑换码/, { selector: '[data-slot="alert-description"]' })
   ).toBeVisible()
