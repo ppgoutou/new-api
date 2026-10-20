@@ -95,3 +95,35 @@ it('shows no minimum error at or above the minimum', () => {
   expect(input).toHaveAttribute('aria-invalid', 'false')
   expect(screen.queryByText('最低充值金额：10')).not.toBeInTheDocument()
 })
+
+it('shows at most five presets and keeps the custom tile empty while a preset is selected', () => {
+  render(
+    <I18nextProvider i18n={i18n}>
+      <RechargeFormCard
+        topupInfo={{
+          enable_online_topup: false,
+          enable_stripe_topup: true,
+          pay_methods: [],
+          min_topup: 10,
+          stripe_min_topup: 10,
+          amount_options: [10, 20, 50, 100, 200, 500],
+          discount: {},
+        }}
+        presetAmounts={[10, 20, 50, 100, 200, 500].map((value) => ({ value }))}
+        selectedPreset={10}
+        topupAmount={10}
+        amountUnit='CNY'
+        paymentLoading={null}
+        onSelectPreset={vi.fn()}
+        onTopupAmountChange={vi.fn()}
+        onPaymentMethodSelect={vi.fn()}
+      />
+    </I18nextProvider>
+  )
+
+  expect(screen.getAllByRole('button')).toHaveLength(5)
+  const custom = screen.getByLabelText('自定义金额（人民币）')
+  expect(custom).not.toHaveValue()
+  expect(custom).toHaveAttribute('placeholder', '自定义金额')
+})
+

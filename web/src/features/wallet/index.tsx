@@ -142,10 +142,16 @@ export function Wallet(props: WalletProps) {
   useEffect(() => {
     if (topupInfo && !topupAmountInitializedRef.current) {
       topupAmountInitializedRef.current = true
-      const minTopup = getMinTopupAmount(topupInfo)
-      setTopupAmount(minTopup)
+      // Start on the first preset; the custom tile stays empty until typed in.
+      const firstPreset = presetAmounts[0]?.value
+      if (firstPreset) {
+        setTopupAmount(firstPreset)
+        setSelectedPreset(firstPreset)
+        return
+      }
+      setTopupAmount(getMinTopupAmount(topupInfo))
     }
-  }, [topupInfo])
+  }, [topupInfo, presetAmounts])
 
   // Handle preset selection
   const handleSelectPreset = (preset: PresetAmount) => {
