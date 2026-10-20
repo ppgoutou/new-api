@@ -1,0 +1,96 @@
+/*
+Copyright (C) 2023-2026 QuantumNous
+
+This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU Affero General Public License as
+published by the Free Software Foundation, either version 3 of the
+License, or (at your option) any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+GNU Affero General Public License for more details.
+
+You should have received a copy of the GNU Affero General Public License
+along with this program. If not, see <https://www.gnu.org/licenses/>.
+
+For commercial licensing, please contact support@quantumnous.com
+*/
+import { fireEvent, render, screen } from '@testing-library/react'
+import { createInstance } from 'i18next'
+import { I18nextProvider, initReactI18next } from 'react-i18next'
+import { beforeEach, expect, it, vi } from 'vitest'
+
+import zh from '@/i18n/locales/zh.json'
+
+import { RedemptionCard } from '../components/redemption-card'
+
+const i18n = createInstance()
+
+beforeEach(async () => {
+  await i18n.use(initReactI18next).init({
+    lng: 'zh',
+    fallbackLng: false,
+    nsSeparator: false,
+    resources: { zh },
+    interpolation: { escapeValue: false },
+  })
+})
+
+function renderCard(
+  overrides: Partial<Parameters<typeof RedemptionCard>[0]> = {}
+) {
+  const props = {
+    redemptionEnabled: true,
+    redemptionCode: '',
+    onRedemptionCodeChange: vi.fn(),
+    onRedeem: vi.fn(),
+    redeeming: false,
+    ...overrides,
+  }
+  render(
+    <I18nextProvider i18n={i18n}>
+      <RedemptionCard {...props} />
+    </I18nextProvider>
+  )
+  return props
+}
+
+it('links the buy button to the configured shop in a new tab', () => {
+  renderCard({ topupLink: 'https://shop.example/store' })
+
+  const link = screen.getByRole('link', { name: /购买兑换码/ })
+  expect(link).toHaveAttribute('href', 'https://shop.example/store')
+  expect(link).toHaveAttribute('target', '_blank')
+  expect(screen.getByText('去小店下单')).toBeVisible()
+})
+
+it('hides the buy panel when no shop link is configured', () => {
+  renderCard()
+
+  expect(
+    screen.queryByRole('link', { name: /购买兑换码/ })
+  ).not.toBeInTheDocument()
+  expect(screen.getByLabelText('有兑换码吗？')).toBeVisible()
+})
+
+it('passes the typed code up and redeems on click', () => {
+  const props = renderCard()
+
+  fireEvent.change(screen.getByLabelText('有兑换码吗？'), {
+    target: { value: 'abc123' },
+  })
+  fireEvent.click(screen.getByRole('button', { name: '兑换额度' }))
+
+  expect(props.onRedemptionCodeChange).toHaveBeenCalledWith('abc123')
+  expect(props.onRedeem).toHaveBeenCalledOnce()
+})
+
+it('replaces the code input with a notice while redemption is disabled', () => {
+  renderCard({ redemptionEnabled: false, topupLink: 'https://shop.example' })
+
+  expect(screen.queryByLabelText('有兑换码吗？')).not.toBeInTheDocument()
+  expect(
+    screen.getByText(/兑换码/, { selector: '[data-slot="alert-description"]' })
+  ).toBeVisible()
+})
