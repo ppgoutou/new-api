@@ -55,13 +55,9 @@ function renderCard(topupAmount: number, onTopupAmountChange = vi.fn()) {
         topupAmount={topupAmount}
         amountUnit='CNY'
         paymentLoading={null}
-        redemptionCode=''
-        redeeming={false}
         onSelectPreset={vi.fn()}
         onTopupAmountChange={onTopupAmountChange}
         onPaymentMethodSelect={vi.fn()}
-        onRedemptionCodeChange={vi.fn()}
-        onRedeem={vi.fn()}
       />
     </I18nextProvider>
   )

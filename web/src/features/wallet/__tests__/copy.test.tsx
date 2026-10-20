@@ -93,13 +93,9 @@ it('labels recharge presets and the custom amount as USD credit without a payabl
         topupAmount={1}
         amountUnit='USD'
         paymentLoading={null}
-        redemptionCode=''
-        redeeming={false}
         onSelectPreset={vi.fn()}
         onTopupAmountChange={vi.fn()}
         onPaymentMethodSelect={vi.fn()}
-        onRedemptionCodeChange={vi.fn()}
-        onRedeem={vi.fn()}
       />
     </I18nextProvider>
   )
@@ -137,13 +133,9 @@ it('labels the custom amount in yuan without USD credit notes when amounts are e
         topupAmount={10}
         amountUnit='CNY'
         paymentLoading={null}
-        redemptionCode=''
-        redeeming={false}
         onSelectPreset={vi.fn()}
         onTopupAmountChange={vi.fn()}
         onPaymentMethodSelect={vi.fn()}
-        onRedemptionCodeChange={vi.fn()}
-        onRedeem={vi.fn()}
       />
     </I18nextProvider>
   )
