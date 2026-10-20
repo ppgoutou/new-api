@@ -208,6 +208,12 @@ func UpdateOption(c *gin.Context) {
 			return
 		}
 	}
+	if option.Key == homeShowcaseOptionKey {
+		if err := validateHomeShowcase(option.Value.(string)); err != nil {
+			common.ApiErrorT(c, "Invalid homepage video settings")
+			return
+		}
+	}
 	if option.Key == "TaskPublicAddress" && option.Value.(string) != "" {
 		if err := service.ValidateTaskArtifactBaseURL(option.Value.(string)); err != nil {
 			common.ApiError(c, err)

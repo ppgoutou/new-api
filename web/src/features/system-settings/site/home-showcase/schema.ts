@@ -1,0 +1,57 @@
+/*
+Copyright (C) 2023-2026 QuantumNous
+
+This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU Affero General Public License as
+published by the Free Software Foundation, either version 3 of the
+License, or (at your option) any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+GNU Affero General Public License for more details.
+
+You should have received a copy of the GNU Affero General Public License
+along with this program. If not, see <https://www.gnu.org/licenses/>.
+
+For commercial licensing, please contact support@quantumnous.com
+*/
+import * as z from 'zod'
+
+import {
+  HOME_MEDIA_URL_PREFIX,
+  HOME_SHOWCASE_MAX_ITEMS,
+} from '@/features/home/lib/home-showcase'
+
+/** Upload limits mirrored from the server (controller/home_media.go). */
+export const HOME_MEDIA_MAX_VIDEO_BYTES = 95 * 1024 * 1024
+export const HOME_MEDIA_MAX_IMAGE_BYTES = 10 * 1024 * 1024
+
+const mediaUrl = z
+  .string()
+  .trim()
+  .refine(
+    (value) =>
+      value === '' ||
+      value.startsWith(HOME_MEDIA_URL_PREFIX) ||
+      value.startsWith('https://'),
+    { message: 'Use an uploaded file or an https link' }
+  )
+
+const showcaseItemSchema = z.object({
+  title: z.string().trim().max(80, { message: 'At most 80 characters' }),
+  category: z.string().trim().max(20, { message: 'At most 20 characters' }),
+  prompt: z.string().trim().max(2000, { message: 'At most 2000 characters' }),
+  spec: z.string().trim().max(60, { message: 'At most 60 characters' }),
+  video: mediaUrl,
+  poster: mediaUrl,
+  image: mediaUrl,
+})
+
+export const homeShowcaseFormSchema = z.object({
+  hero: showcaseItemSchema,
+  imageToVideo: showcaseItemSchema,
+  showcase: z.array(showcaseItemSchema).max(HOME_SHOWCASE_MAX_ITEMS),
+})
+
+export type HomeShowcaseFormValues = z.infer<typeof homeShowcaseFormSchema>

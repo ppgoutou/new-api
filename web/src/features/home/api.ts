@@ -37,3 +37,14 @@ export async function getHomePageContent(): Promise<HomePageContentResponse> {
   })
   return res.data
 }
+
+/**
+ * Get the home page video settings (the `HomeShowcase` option as a JSON
+ * string; empty when the built-in page applies).
+ */
+export async function getHomeShowcase(): Promise<HomePageContentResponse> {
+  const res = await api.get('/api/home_showcase', {
+    headers: { 'Cache-Control': null },
+  })
+  return res.data
+}

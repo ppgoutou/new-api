@@ -125,3 +125,35 @@ export async function fetchUpstreamRatios(request: FetchUpstreamRatiosRequest) {
   )
   return res.data
 }
+
+export type HomeMediaUploadResponse = {
+  success: boolean
+  message?: string
+  data?: { url: string; content_type: string; size: number }
+}
+
+/** Uploads one home page video or image (root only). */
+export async function uploadHomeMedia(
+  file: File,
+  onProgress?: (percent: number) => void
+) {
+  const form = new FormData()
+  form.append('file', file)
+  const res = await api.post<HomeMediaUploadResponse>('/api/home_media', form, {
+    onUploadProgress: (event) => {
+      if (onProgress && event.total) {
+        onProgress(Math.round((event.loaded / event.total) * 100))
+      }
+    },
+  })
+  return res.data
+}
+
+/** Deletes an uploaded home page file by its `/home-media/<name>` URL. */
+export async function deleteHomeMedia(url: string) {
+  const name = url.split('/').pop() ?? ''
+  const res = await api.delete<{ success: boolean; message?: string }>(
+    `/api/home_media/${encodeURIComponent(name)}`
+  )
+  return res.data
+}
