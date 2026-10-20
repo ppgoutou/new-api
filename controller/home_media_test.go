@@ -100,6 +100,36 @@ func TestUploadHomeMediaRejectsContentThatIsNotVideoOrImage(t *testing.T) {
 	assert.Empty(t, entries)
 }
 
+func TestSniffHomeMediaType(t *testing.T) {
+	ftyp := func(brands string) []byte {
+		box := append([]byte{0, 0, 0, byte(8 + len(brands))}, []byte("ftyp"+brands)...)
+		return append(box, []byte("\x00\x00\x00\x08moov")...)
+	}
+	cases := []struct {
+		name string
+		head []byte
+		want string
+	}{
+		{"encoder output with isom and iso4 only", ftyp("isom\x00\x00\x00\x01isomiso4"), "video/mp4"},
+		{"mp42 brand", ftyp("mp42\x00\x00\x00\x00mp42isom"), "video/mp4"},
+		{"heic image", ftyp("heic\x00\x00\x00\x00mif1heic"), ""},
+		{"quicktime", ftyp("qt  \x00\x00\x02\x00qt  "), ""},
+		{"html", []byte("<html><body>x</body></html>"), ""},
+	}
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			got := sniffHomeMediaType(tc.head)
+			if tc.want != "" {
+				assert.Equal(t, tc.want, got)
+				return
+			}
+			// Whatever the standard sniffer says, these are not accepted uploads.
+			_, accepted := homeMediaTypes[got]
+			assert.False(t, accepted, got)
+		})
+	}
+}
+
 func TestServeHomeMediaOnlyServesUploadedFileNames(t *testing.T) {
 	dir := t.TempDir()
 	t.Setenv("HOME_MEDIA_DIR", dir)
