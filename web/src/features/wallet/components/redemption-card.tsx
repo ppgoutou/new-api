@@ -20,11 +20,12 @@ import { ExternalLink, Gift, Loader2 } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 
 import { Alert, AlertDescription } from '@/components/ui/alert'
-import { Button } from '@/components/ui/button'
+import { Button, buttonVariants } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Skeleton } from '@/components/ui/skeleton'
 import { TitledCard } from '@/components/ui/titled-card'
+import { cn } from '@/lib/utils'
 
 interface RedemptionCardProps {
   /** Where codes are sold (the admin's top-up link); hides the buy panel when empty. */
@@ -77,20 +78,16 @@ export function RedemptionCard(props: RedemptionCardProps) {
                   </li>
                 ))}
               </ol>
-              <Button
-                render={
-                  <a
-                    href={props.topupLink}
-                    target='_blank'
-                    rel='noopener noreferrer'
-                  />
-                }
-                className='h-10 gap-2 px-5'
+              <a
+                href={props.topupLink}
+                target='_blank'
+                rel='noopener noreferrer'
+                className={cn(buttonVariants(), 'h-10 gap-2 px-5')}
               >
                 <Gift className='h-4 w-4' aria-hidden='true' />
                 {t('Buy redemption code')}
                 <ExternalLink className='h-3.5 w-3.5' aria-hidden='true' />
-              </Button>
+              </a>
             </div>
           )}
 
