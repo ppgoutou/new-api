@@ -181,7 +181,7 @@ export function RechargeFormCard({
       title={t('Online Top-up')}
       description={t('Pay online and the credit arrives right away')}
       icon={<WalletCards className='h-4 w-4' />}
-      iconClassName='bg-primary text-primary-foreground rounded-full'
+      iconClassName='rounded-full bg-blue-600 text-white'
       disableHoverEffect
       className='h-full'
       action={
@@ -197,73 +197,62 @@ export function RechargeFormCard({
           </Button>
         ) : null
       }
-      contentClassName='space-y-4 sm:space-y-6'
+      contentClassName='flex flex-1 flex-col gap-4 sm:gap-6'
     >
       {/* Online Topup Section */}
       {hasAnyTopup ? (
-        <div className='space-y-4 sm:space-y-6'>
+        <div className='flex flex-1 flex-col gap-4 sm:gap-6'>
           {hasConfigurableTopup && (
             <>
-              {presetAmounts.length > 0 && (
-                <div className='space-y-2.5 sm:space-y-3'>
-                  <Label className='text-muted-foreground text-xs font-medium tracking-wider uppercase'>
-                    {t('Amount')}
-                  </Label>
-                  <div className='grid grid-cols-2 gap-1.5 sm:grid-cols-3 sm:gap-3'>
-                    {presetAmounts.map((preset) => {
-                      const discount =
-                        preset.discount ||
-                        topupInfo?.discount?.[preset.value] ||
-                        1.0
-                      const hasDiscount = discount < 1
-                      return (
-                        <Button
-                          key={preset.value}
-                          variant='outline'
-                          className={cn(
-                            'flex min-h-16 flex-col items-start rounded-lg px-3 py-2.5 text-left whitespace-normal sm:min-h-[72px] sm:p-4',
-                            selectedPreset === preset.value
-                              ? 'border-foreground bg-foreground/5 dark:border-foreground dark:bg-foreground/10'
-                              : 'border-muted'
-                          )}
-                          onClick={() => onSelectPreset(preset)}
-                        >
-                          <div className='flex w-full items-center justify-between'>
-                            <div className='text-base font-semibold sm:text-lg'>
-                              {formatCredit(preset.value)}
-                            </div>
-                            {hasDiscount && (
-                              <div className='text-xs font-medium text-green-600'>
-                                {getDiscountLabel(discount, t)}
-                              </div>
-                            )}
-                          </div>
-                          {amountUnit === 'USD' && (
-                            <div className='text-muted-foreground mt-1.5 w-full text-xs sm:mt-2'>
-                              {t('{{amount}} USD credit', {
-                                amount: formatNumber(preset.value),
-                              })}
-                            </div>
-                          )}
-                        </Button>
-                      )
-                    })}
-                  </div>
-                </div>
-              )}
-
-              <div className='space-y-2.5 sm:space-y-3'>
-                <Label
-                  htmlFor='topup-amount'
-                  className='text-muted-foreground text-xs font-medium tracking-wider uppercase'
-                >
-                  {customAmountLabel}
+              <div className='flex flex-1 flex-col gap-2.5 sm:gap-3'>
+                <Label className='text-muted-foreground text-xs font-medium tracking-wider uppercase'>
+                  {t('Amount')}
                 </Label>
-                <div className='grid grid-cols-[minmax(0,1fr)_minmax(110px,0.55fr)] gap-2 lg:grid-cols-[minmax(0,1fr)_auto] lg:items-center'>
+                <div className='grid flex-1 auto-rows-fr grid-cols-2 gap-1.5 sm:grid-cols-3 sm:gap-3'>
+                  {/* The sixth tile is the custom amount, so at most five presets show. */}
+                  {presetAmounts.slice(0, 5).map((preset) => {
+                    const discount =
+                      preset.discount ||
+                      topupInfo?.discount?.[preset.value] ||
+                      1.0
+                    const hasDiscount = discount < 1
+                    return (
+                      <Button
+                        key={preset.value}
+                        variant='outline'
+                        className={cn(
+                          'flex h-full min-h-16 flex-col items-start justify-center rounded-lg px-3 py-2.5 text-left whitespace-normal sm:min-h-[72px] sm:p-4',
+                          selectedPreset === preset.value
+                            ? 'border-foreground bg-foreground/5 dark:border-foreground dark:bg-foreground/10'
+                            : 'border-muted'
+                        )}
+                        onClick={() => onSelectPreset(preset)}
+                      >
+                        <div className='flex w-full items-center justify-between'>
+                          <div className='text-base font-semibold sm:text-lg'>
+                            {formatCredit(preset.value)}
+                          </div>
+                          {hasDiscount && (
+                            <div className='text-xs font-medium text-green-600'>
+                              {getDiscountLabel(discount, t)}
+                            </div>
+                          )}
+                        </div>
+                        {amountUnit === 'USD' && (
+                          <div className='text-muted-foreground mt-1.5 w-full text-xs sm:mt-2'>
+                            {t('{{amount}} USD credit', {
+                              amount: formatNumber(preset.value),
+                            })}
+                          </div>
+                        )}
+                      </Button>
+                    )
+                  })}
                   <Input
                     id='topup-amount'
                     type='number'
-                    value={localAmount}
+                    aria-label={customAmountLabel}
+                    value={selectedPreset === null ? localAmount : ''}
                     onChange={(e) => handleAmountChange(e.target.value)}
                     onKeyDown={(e) => {
                       if (['.', ',', 'e', 'E', '-', '+'].includes(e.key)) {
@@ -277,17 +266,14 @@ export function RechargeFormCard({
                     aria-describedby={
                       belowMinTopup ? 'topup-amount-error' : undefined
                     }
-                    placeholder={t('Minimum {{amount}}', { amount: minTopup })}
-                    className='h-9 text-base sm:h-10 sm:text-lg'
+                    placeholder={t('Custom Amount')}
+                    className={cn(
+                      'h-full min-h-16 rounded-lg px-3 text-base font-semibold sm:min-h-[72px] sm:px-4 sm:text-lg',
+                      selectedPreset === null && localAmount !== ''
+                        ? 'border-foreground bg-foreground/5 dark:border-foreground dark:bg-foreground/10'
+                        : 'border-muted'
+                    )}
                   />
-                  <div className='bg-muted/30 flex min-h-9 items-center justify-between gap-2 rounded-md border px-3 lg:min-w-52'>
-                    <span className='text-muted-foreground truncate text-xs'>
-                      {t('Credit received:')}
-                    </span>
-                    <span className='text-sm font-semibold'>
-                      {formatCredit(topupAmount)}
-                    </span>
-                  </div>
                 </div>
                 {belowMinTopup && (
                   <p
@@ -300,11 +286,6 @@ export function RechargeFormCard({
                     })}
                   </p>
                 )}
-                <p className='text-muted-foreground text-xs'>
-                  {t(
-                    'The payable amount and currency are shown after you choose a payment method.'
-                  )}
-                </p>
               </div>
 
               <div className='space-y-2.5 sm:space-y-3'>

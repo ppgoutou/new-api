@@ -16,7 +16,7 @@ along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 For commercial licensing, please contact support@quantumnous.com
 */
-import { ExternalLink, Gift, Loader2 } from 'lucide-react'
+import { ExternalLink, Gift, History, Loader2 } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 
 import { Alert, AlertDescription } from '@/components/ui/alert'
@@ -26,6 +26,8 @@ import { Label } from '@/components/ui/label'
 import { Skeleton } from '@/components/ui/skeleton'
 import { TitledCard } from '@/components/ui/titled-card'
 import { cn } from '@/lib/utils'
+
+import { REDEMPTION_ORDERS_URL } from '../constants'
 
 interface RedemptionCardProps {
   /** Where codes are sold (the admin's top-up link); hides the buy panel when empty. */
@@ -61,10 +63,24 @@ export function RedemptionCard(props: RedemptionCardProps) {
       title={t('Redemption Code Top-up')}
       description={t('Buy with WeChat Pay or Alipay, delivered automatically')}
       icon={<Gift className='h-4 w-4' />}
-      iconClassName='bg-primary text-primary-foreground rounded-full'
+      iconClassName='rounded-full bg-blue-600 text-white'
       disableHoverEffect
       className='h-full'
-      contentClassName='space-y-4'
+      action={
+        <a
+          href={REDEMPTION_ORDERS_URL}
+          target='_blank'
+          rel='noopener noreferrer'
+          className={cn(
+            buttonVariants({ variant: 'outline', size: 'sm' }),
+            'w-full gap-2 sm:w-auto'
+          )}
+        >
+          <History className='h-4 w-4' aria-hidden='true' />
+          {t('Redemption Records')}
+        </a>
+      }
+      contentClassName='flex flex-1 flex-col gap-4'
     >
       {props.loading ? (
         <div className='space-y-4'>
@@ -74,14 +90,14 @@ export function RedemptionCard(props: RedemptionCardProps) {
       ) : (
         <>
           {props.topupLink && (
-            <div className='bg-primary/5 border-primary/15 flex flex-col items-center gap-4 rounded-lg border px-4 py-6 text-center sm:px-6'>
+            <div className='flex flex-1 flex-col items-center justify-center gap-4 rounded-lg border border-blue-100 bg-blue-50 px-4 py-6 text-center sm:px-6 dark:border-blue-900/60 dark:bg-blue-950/30'>
               <ol className='grid w-full grid-cols-3 gap-2 sm:gap-4'>
                 {purchaseSteps.map((step, index) => (
                   <li
                     key={step.title}
                     className='flex flex-col items-center gap-1'
                   >
-                    <span className='border-primary/30 bg-background text-primary mb-1 flex size-7 items-center justify-center rounded-full border text-xs font-semibold'>
+                    <span className='bg-background mb-1 flex size-7 items-center justify-center rounded-full border border-blue-200 text-xs font-semibold text-blue-600 dark:border-blue-800 dark:text-blue-400'>
                       {index + 1}
                     </span>
                     <span className='text-xs leading-snug font-semibold sm:text-sm'>
@@ -97,7 +113,10 @@ export function RedemptionCard(props: RedemptionCardProps) {
                 href={props.topupLink}
                 target='_blank'
                 rel='noopener noreferrer'
-                className={cn(buttonVariants(), 'h-11 gap-2 px-6 text-base')}
+                className={cn(
+                  buttonVariants(),
+                  'h-11 gap-2 bg-blue-600 px-6 text-base text-white hover:bg-blue-700'
+                )}
               >
                 <Gift className='h-4 w-4' aria-hidden='true' />
                 {t('Buy redemption code')}
@@ -128,7 +147,7 @@ export function RedemptionCard(props: RedemptionCardProps) {
                 <Button
                   onClick={props.onRedeem}
                   disabled={props.redeeming}
-                  className='h-11 px-5'
+                  className='h-11 bg-blue-600 px-5 text-white hover:bg-blue-700'
                 >
                   {props.redeeming && (
                     <Loader2 className='mr-2 h-4 w-4 animate-spin' />
@@ -143,7 +162,7 @@ export function RedemptionCard(props: RedemptionCardProps) {
                     href={props.topupLink}
                     target='_blank'
                     rel='noopener noreferrer'
-                    className='text-primary underline underline-offset-4'
+                    className='text-blue-600 underline underline-offset-4 dark:text-blue-400'
                   >
                     {t('Buy redemption code')}
                   </a>

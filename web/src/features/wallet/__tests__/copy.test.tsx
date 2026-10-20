@@ -102,17 +102,11 @@ it('labels recharge presets and the custom amount as USD credit without a payabl
   expect(screen.getByText('100 美元额度')).toBeVisible()
   expect(screen.getByText('优惠 20%')).toBeVisible()
   expect(screen.getByLabelText('自定义金额（美元）')).toBeVisible()
-  expect(screen.getByText('到账额度：')).toBeVisible()
   expect(screen.queryByText(/^支付 /)).not.toBeInTheDocument()
-  expect(screen.getByPlaceholderText('最低 1')).toBeVisible()
+  expect(screen.getByPlaceholderText('自定义金额')).toBeVisible()
   await act(() => i18n.changeLanguage('en'))
   expect(screen.getByText('20 USD credit')).toBeVisible()
   expect(screen.getByLabelText('Custom amount (USD)')).toBeVisible()
-  expect(
-    screen.getByText(
-      'The payable amount and currency are shown after you choose a payment method.'
-    )
-  ).toBeVisible()
 })
 
 it('labels the custom amount in yuan without USD credit notes when amounts are entered in CNY', () => {

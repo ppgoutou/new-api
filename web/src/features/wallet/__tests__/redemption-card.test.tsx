@@ -97,3 +97,12 @@ it('replaces the code input with a notice while redemption is disabled', () => {
     screen.getByText(/兑换码/, { selector: '[data-slot="alert-description"]' })
   ).toBeVisible()
 })
+
+it('links redemption records to the shop order lookup in a new tab', () => {
+  renderCard()
+
+  const records = screen.getByRole('link', { name: /兑换记录/ })
+  expect(records).toHaveAttribute('href', 'https://wzyp.cn/order')
+  expect(records).toHaveAttribute('target', '_blank')
+})
+
