@@ -7416,6 +7416,10 @@
     "Uploaded file or https link": "Загруженный файл или ссылка https",
     "Use an uploaded file or an https link": "Используйте загруженный файл или ссылку https",
     "Video preview": "Превью видео",
-    "{{label}} URL": "URL: {{label}}"
+    "{{label}} URL": "URL: {{label}}",
+    "Play sound": "Включить звук",
+    "Mute": "Без звука",
+    "Play with sound": "Смотреть со звуком",
+    "Play {{title}} with sound": "Смотреть «{{title}}» со звуком"
   }
 }

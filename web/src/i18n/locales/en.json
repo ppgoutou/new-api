@@ -7416,6 +7416,10 @@
     "Uploaded file or https link": "Uploaded file or https link",
     "Use an uploaded file or an https link": "Use an uploaded file or an https link",
     "Video preview": "Video preview",
-    "{{label}} URL": "{{label}} URL"
+    "{{label}} URL": "{{label}} URL",
+    "Play sound": "Play sound",
+    "Mute": "Mute",
+    "Play with sound": "Play with sound",
+    "Play {{title}} with sound": "Play {{title}} with sound"
   }
 }

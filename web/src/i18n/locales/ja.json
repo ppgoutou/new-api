@@ -7416,6 +7416,10 @@
     "Uploaded file or https link": "アップロード済みファイルまたは https リンク",
     "Use an uploaded file or an https link": "アップロード済みファイルか https リンクを使用してください",
     "Video preview": "動画プレビュー",
-    "{{label}} URL": "{{label}} の URL"
+    "{{label}} URL": "{{label}} の URL",
+    "Play sound": "音声を再生",
+    "Mute": "ミュート",
+    "Play with sound": "音声付きで再生",
+    "Play {{title}} with sound": "「{{title}}」を音声付きで再生"
   }
 }

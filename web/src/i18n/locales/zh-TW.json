@@ -7416,6 +7416,10 @@
     "Uploaded file or https link": "已上傳的檔案或 https 連結",
     "Use an uploaded file or an https link": "請使用已上傳的檔案或 https 連結",
     "Video preview": "影片預覽",
-    "{{label}} URL": "{{label}} 網址"
+    "{{label}} URL": "{{label}} 網址",
+    "Play sound": "播放聲音",
+    "Mute": "靜音",
+    "Play with sound": "播放有聲版本",
+    "Play {{title}} with sound": "播放「{{title}}」有聲版本"
   }
 }

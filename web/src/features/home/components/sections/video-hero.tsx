@@ -128,6 +128,7 @@ export function VideoHero(props: VideoHeroProps) {
             poster={hero.poster}
             label={hero.title || t('Video preview')}
             eager
+            soundToggle
           />
           {hero.spec && (
             <span className='absolute top-3 left-3 rounded-md bg-slate-950/70 px-2.5 py-1 font-mono text-xs text-slate-100'>
