@@ -24,7 +24,8 @@ For commercial licensing, please contact support@quantumnous.com
  */
 export const HOME_MEDIA_BASE_URL: string = ''
 
-export const SUPPORT_EMAIL = 'support@api-finder.com'
+/** Official support account on Telegram. */
+export const SUPPORT_TELEGRAM = 'APIFinder_Support'
 
 /** Seedance models presented on the home page, in display order. */
 export const HOME_VIDEO_MODELS = [
