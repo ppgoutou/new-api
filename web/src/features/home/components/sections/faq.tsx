@@ -26,7 +26,7 @@ import {
 } from '@/components/ui/accordion'
 
 import { useSeedancePricing } from '../../hooks/use-seedance-pricing'
-import { SUPPORT_TELEGRAM } from '../../lib/video-home'
+import { SupportContacts } from '../support-contacts'
 
 export function Faq() {
   const { t } = useTranslation()
@@ -72,18 +72,7 @@ export function Faq() {
     {
       id: 'help',
       question: t('How do I get help?'),
-      answer: (
-        <p>
-          {t('Message our official support on Telegram:')}{' '}
-          <a
-            href={`https://t.me/${SUPPORT_TELEGRAM}`}
-            target='_blank'
-            rel='noopener noreferrer'
-          >
-            @{SUPPORT_TELEGRAM}
-          </a>
-        </p>
-      ),
+      answer: <SupportContacts />,
     },
   ]
 
