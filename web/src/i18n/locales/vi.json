@@ -7416,6 +7416,10 @@
     "Uploaded file or https link": "Tệp đã tải lên hoặc liên kết https",
     "Use an uploaded file or an https link": "Hãy dùng tệp đã tải lên hoặc liên kết https",
     "Video preview": "Xem trước video",
-    "{{label}} URL": "URL {{label}}"
+    "{{label}} URL": "URL {{label}}",
+    "Play sound": "Bật âm thanh",
+    "Mute": "Tắt tiếng",
+    "Play with sound": "Phát có âm thanh",
+    "Play {{title}} with sound": "Phát “{{title}}” có âm thanh"
   }
 }

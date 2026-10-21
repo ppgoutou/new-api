@@ -27,7 +27,7 @@ import {
   IMAGE_TO_VIDEO_INPUT_IMAGE,
   IMAGE_TO_VIDEO_OUTPUT,
 } from '../../lib/video-home'
-import { ShowcaseVideo } from '../showcase-video'
+import { PlayableClip } from '../playable-clip'
 
 export function ImageToVideo() {
   const { t } = useTranslation()
@@ -139,11 +139,11 @@ export function ImageToVideo() {
           />
           <figure className='min-w-0 flex-[1.4_1_16rem]'>
             <div className='aspect-video overflow-hidden rounded-xl border border-blue-500/50 bg-slate-900'>
-              <ShowcaseVideo
+              <PlayableClip
                 key={pair.video}
                 src={pair.video}
                 poster={pair.poster}
-                label={t('Output: a video that starts from it')}
+                title={t('Output: a video that starts from it')}
               />
             </div>
             <figcaption className='text-muted-foreground mt-2 text-center text-sm'>

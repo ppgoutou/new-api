@@ -16,11 +16,14 @@ along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 For commercial licensing, please contact support@quantumnous.com
 */
-import { PlayCircle } from 'lucide-react'
+import { PlayCircle, Volume2, VolumeX } from 'lucide-react'
 import { useEffect, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 
+import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
+
+import { useHomePlayback } from '../hooks/use-home-playback'
 
 interface ShowcaseVideoProps {
   /** Video URL; empty renders the placeholder. */
@@ -30,18 +33,29 @@ interface ShowcaseVideoProps {
   label: string
   /** Load eagerly (the hero clip); others load lazily. */
   eager?: boolean
+  /** Show a button that turns the clip's sound on and off. */
+  soundToggle?: boolean
+  /**
+   * Native controls for reduced-motion visitors. Off when the clip sits inside
+   * a button that opens the player dialog, which has its own controls.
+   */
+  allowControls?: boolean
   className?: string
 }
 
 /**
- * Muted looping clip that plays only while on screen. With reduced motion it
- * stays paused and shows controls; without a source, or when it fails to
- * load, it renders a placeholder.
+ * Muted looping clip that plays only while on screen and while no clip plays
+ * in the player dialog. With reduced motion it stays paused; without a
+ * source, or when it fails to load, it renders a placeholder.
  */
 export function ShowcaseVideo(props: ShowcaseVideoProps) {
   const { t } = useTranslation()
+  const playback = useHomePlayback()
   const videoRef = useRef<HTMLVideoElement>(null)
+  const visibleRef = useRef(false)
+  const suspendedRef = useRef(playback.suspended)
   const [failed, setFailed] = useState(false)
+  const [muted, setMuted] = useState(true)
   const [reducedMotion] = useState(
     () =>
       typeof window.matchMedia === 'function' &&
@@ -60,7 +74,8 @@ export function ShowcaseVideo(props: ShowcaseVideoProps) {
     }
     const observer = new IntersectionObserver(
       ([entry]) => {
-        if (entry.isIntersecting) {
+        visibleRef.current = entry.isIntersecting
+        if (entry.isIntersecting && !suspendedRef.current) {
           video.play().catch(() => undefined)
         } else {
           video.pause()
@@ -71,6 +86,18 @@ export function ShowcaseVideo(props: ShowcaseVideoProps) {
     observer.observe(video)
     return () => observer.disconnect()
   }, [src, reducedMotion])
+
+  // Pause while the player dialog plays a clip; resume if still on screen.
+  useEffect(() => {
+    suspendedRef.current = playback.suspended
+    const video = videoRef.current
+    if (!video) return
+    if (playback.suspended) {
+      video.pause()
+    } else if (visibleRef.current && !reducedMotion) {
+      video.play().catch(() => undefined)
+    }
+  }, [playback.suspended, reducedMotion])
 
   if (!src || failed) {
     return (
@@ -91,19 +118,47 @@ export function ShowcaseVideo(props: ShowcaseVideoProps) {
   let preload: 'auto' | 'metadata' | 'none' = props.poster ? 'none' : 'metadata'
   if (props.eager) preload = 'auto'
 
+  const toggleSound = () => {
+    const video = videoRef.current
+    if (!video) return
+    video.muted = !muted
+    setMuted(!muted)
+    // Turning sound on is a user gesture, so playback may start here even
+    // with reduced motion.
+    if (muted) video.play().catch(() => undefined)
+  }
+
   return (
-    <video
-      ref={videoRef}
-      src={src}
-      poster={props.poster || undefined}
-      muted
-      loop
-      playsInline
-      controls={reducedMotion}
-      preload={preload}
-      aria-label={props.label}
-      onError={() => setFailed(true)}
-      className={cn('size-full bg-slate-900 object-cover', props.className)}
-    />
+    <>
+      <video
+        ref={videoRef}
+        src={src}
+        poster={props.poster || undefined}
+        muted={muted}
+        loop
+        playsInline
+        controls={reducedMotion && (props.allowControls ?? true)}
+        preload={preload}
+        aria-label={props.label}
+        onError={() => setFailed(true)}
+        className={cn('size-full bg-slate-900 object-cover', props.className)}
+      />
+      {props.soundToggle && (
+        <Button
+          type='button'
+          size='sm'
+          variant='secondary'
+          onClick={toggleSound}
+          className='absolute top-3 right-3 gap-1.5 rounded-full bg-slate-950/70 text-slate-100 hover:bg-slate-950/90'
+        >
+          {muted ? (
+            <VolumeX data-icon='inline-start' aria-hidden />
+          ) : (
+            <Volume2 data-icon='inline-start' aria-hidden />
+          )}
+          {muted ? t('Play sound') : t('Mute')}
+        </Button>
+      )}
+    </>
   )
 }

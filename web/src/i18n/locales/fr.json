@@ -7416,6 +7416,10 @@
     "Uploaded file or https link": "Fichier importé ou lien https",
     "Use an uploaded file or an https link": "Utilisez un fichier importé ou un lien https",
     "Video preview": "Aperçu vidéo",
-    "{{label}} URL": "URL de {{label}}"
+    "{{label}} URL": "URL de {{label}}",
+    "Play sound": "Activer le son",
+    "Mute": "Couper le son",
+    "Play with sound": "Lire avec le son",
+    "Play {{title}} with sound": "Lire « {{title}} » avec le son"
   }
 }

@@ -30,7 +30,7 @@ import {
   SHOWCASE_CATEGORY_LABELS,
   SHOWCASE_VIDEOS,
 } from '../../lib/video-home'
-import { ShowcaseVideo } from '../showcase-video'
+import { PlayableClip } from '../playable-clip'
 
 const ALL_CATEGORIES = 'all'
 
@@ -140,13 +140,13 @@ export function Showcase(props: ShowcaseProps) {
               className='bg-card border-border/60 flex flex-col overflow-hidden rounded-2xl border'
             >
               <div className='relative aspect-video'>
-                <ShowcaseVideo
+                <PlayableClip
                   src={card.video}
                   poster={card.poster}
-                  label={card.title || t('Video preview')}
+                  title={card.title}
                 />
                 {card.spec && (
-                  <span className='absolute right-2.5 bottom-2.5 rounded-md bg-slate-950/70 px-2 py-0.5 font-mono text-[11px] text-slate-100'>
+                  <span className='pointer-events-none absolute right-2.5 bottom-2.5 rounded-md bg-slate-950/70 px-2 py-0.5 font-mono text-[11px] text-slate-100'>
                     {card.spec}
                   </span>
                 )}

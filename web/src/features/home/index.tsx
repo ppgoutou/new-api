@@ -35,6 +35,7 @@ import {
   VideoCta,
   VideoHero,
 } from './components'
+import { HomePlaybackProvider } from './components/home-playback'
 import { useHomePageContent } from './hooks'
 
 export function Home() {
@@ -130,9 +131,11 @@ export function Home() {
 
   return (
     <PublicLayout showMainContainer={false}>
-      <VideoHero isAuthenticated={isAuthenticated} />
-      <Showcase isAuthenticated={isAuthenticated} />
-      <ImageToVideo />
+      <HomePlaybackProvider>
+        <VideoHero isAuthenticated={isAuthenticated} />
+        <Showcase isAuthenticated={isAuthenticated} />
+        <ImageToVideo />
+      </HomePlaybackProvider>
       <ModelPricing />
       <ApiQuickstart />
       <Faq />
