@@ -24,7 +24,8 @@ For commercial licensing, please contact support@quantumnous.com
  */
 export const HOME_MEDIA_BASE_URL: string = ''
 
-/** Official support account on Telegram. */
+/** Official support: QQ for mainland China, Telegram for other regions. */
+export const SUPPORT_QQ = '3895235714'
 export const SUPPORT_TELEGRAM = 'APIFinder_Support'
 
 /** Seedance models presented on the home page, in display order. */
