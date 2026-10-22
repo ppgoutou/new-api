@@ -1,0 +1,66 @@
+/*
+Copyright (C) 2023-2026 QuantumNous
+
+This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU Affero General Public License as
+published by the Free Software Foundation, either version 3 of the
+License, or (at your option) any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+GNU Affero General Public License for more details.
+
+You should have received a copy of the GNU Affero General Public License
+along with this program. If not, see <https://www.gnu.org/licenses/>.
+
+For commercial licensing, please contact support@quantumnous.com
+*/
+import { usePricingData } from '@/features/pricing/hooks/use-pricing-data'
+import { formatTaskUsageUnitPrice } from '@/features/pricing/lib/dynamic-price'
+import { getDisplayGroupRatio } from '@/features/pricing/lib/model-helpers'
+import {
+  getVideoPricing,
+  VIDEO_PRICE_FRACTION_DIGITS,
+} from '@/features/pricing/lib/video-pricing'
+import { useSystemConfigStore } from '@/stores/system-config-store'
+
+import { estimateDraftCostUSD } from '../lib/draft'
+import type { StudioDraft } from '../types'
+
+/**
+ * Estimated charge of the draft in the site currency, after the viewer's group
+ * discount, or null while prices are loading or the model has no video price.
+ */
+export function useStudioPrice(draft: StudioDraft): string | null {
+  const pricing = usePricingData()
+  // Prices are formatted in the site currency; re-render when it changes.
+  useSystemConfigStore((state) => state.config.currency)
+
+  const model = pricing.models.find(
+    (candidate) => candidate.model_name === draft.model
+  )
+  const videoPricing = model ? getVideoPricing(model) : null
+  const row = videoPricing?.rows.find(
+    (candidate) => candidate.option === draft.resolution
+  )
+  if (!model || !row) return null
+
+  const hasReferenceVideo =
+    draft.mode === 'reference' &&
+    draft.references.some((asset) => asset.kind === 'video')
+  const costUSD = estimateDraftCostUSD(
+    row,
+    draft.seconds,
+    draft.count,
+    hasReferenceVideo
+  )
+  return formatTaskUsageUnitPrice(costUSD, {
+    tokenUnit: 'M',
+    showRechargePrice: false,
+    priceRate: pricing.priceRate,
+    usdExchangeRate: pricing.usdExchangeRate,
+    groupRatioMultiplier: getDisplayGroupRatio(model),
+    fractionDigits: VIDEO_PRICE_FRACTION_DIGITS,
+  })
+}
