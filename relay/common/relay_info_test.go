@@ -210,6 +210,22 @@ func TestGenRelayInfoKeepsOriginAndLeavesBillingUnset(t *testing.T) {
 	assert.Equal(t, model, info.GetBillingModelName())
 }
 
+func TestGenRelayInfoMarksRewrittenPlaygroundVideoRequests(t *testing.T) {
+	gin.SetMode(gin.TestMode)
+	for _, playground := range []bool{false, true} {
+		ctx, _ := gin.CreateTestContext(httptest.NewRecorder())
+		ctx.Request = httptest.NewRequest("POST", "/v1/videos", nil)
+		if playground {
+			common.SetContextKey(ctx, constant.ContextKeyPlayground, true)
+		}
+
+		info, err := GenRelayInfo(ctx, types.RelayFormatTask, nil, nil)
+		require.NoError(t, err)
+		assert.Equal(t, playground, info.IsPlayground)
+		assert.Equal(t, "/v1/videos", info.RequestURLPath)
+	}
+}
+
 func TestInitChannelMetaRestoresRequestReasoningEffortForRetry(t *testing.T) {
 	gin.SetMode(gin.TestMode)
 	ctx, _ := gin.CreateTestContext(httptest.NewRecorder())

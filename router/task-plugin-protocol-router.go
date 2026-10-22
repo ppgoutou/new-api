@@ -22,6 +22,14 @@ func SetTaskPluginProtocolRouter(router *gin.Engine) {
 			}
 		}
 	}
+	// The video creation page submits with the signed-in session; the request
+	// then follows the same task plugin pipeline as POST /v1/videos.
+	router.POST("/pg/videos",
+		middleware.RouteTag("relay"), middleware.UserAuth(), middleware.SystemPerformanceCheck(),
+		controller.PreparePlaygroundVideo,
+		middleware.PinTaskPluginEndpoint(), middleware.TaskPluginEndpointOnly(middleware.ModelRequestRateLimit()), middleware.PrepareTaskPluginEndpoint(), middleware.Distribute(),
+		func(c *gin.Context) { controller.RelayTaskPluginEndpoint(c, controller.RelayTask) },
+	)
 }
 
 func taskPluginProtocolHandlers(protocol, operation string) ([]gin.HandlerFunc, error) {

@@ -14,3 +14,12 @@ func SetHomeMediaRouter(router *gin.Engine) {
 	route.GET("/:name", controller.ServeHomeMedia)
 	route.HEAD("/:name", controller.ServeHomeMedia)
 }
+
+// SetVideoAssetRouter serves reference files users upload on the video
+// creation page. Upstream video services fetch them without credentials.
+func SetVideoAssetRouter(router *gin.Engine) {
+	route := router.Group("/video-assets")
+	route.Use(middleware.RouteTag("web"))
+	route.GET("/:name", controller.ServeVideoAsset)
+	route.HEAD("/:name", controller.ServeVideoAsset)
+}

@@ -52,7 +52,10 @@ const (
 	ContextKeyUserEmail   ContextKey = "user_email"
 	ContextKeyUserGroup   ContextKey = "user_group"
 	ContextKeyUsingGroup  ContextKey = "group"
-	ContextKeyUserName    ContextKey = "username"
+	// ContextKeyPlayground marks a request from the web console playground
+	// that was rewritten to a native endpoint path.
+	ContextKeyPlayground ContextKey = "playground"
+	ContextKeyUserName   ContextKey = "username"
 
 	ContextKeyLocalCountTokens ContextKey = "local_count_tokens"
 
