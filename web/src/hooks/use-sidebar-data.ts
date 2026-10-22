@@ -19,6 +19,7 @@ For commercial licensing, please contact support@quantumnous.com
 import {
   Activity,
   Box,
+  Clapperboard,
   ClipboardList,
   CreditCard,
   FileText,
@@ -57,6 +58,11 @@ export function useSidebarData(): SidebarData {
         id: 'chat',
         title: t('Chat'),
         items: [
+          {
+            title: t('Video Creation'),
+            url: '/video-studio',
+            icon: Clapperboard,
+          },
           {
             title: t('Playground'),
             url: '/playground',
