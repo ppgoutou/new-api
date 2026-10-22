@@ -68,6 +68,16 @@ func SetRelayRouter(router *gin.Engine) {
 	{
 		playgroundRouter.POST("/chat/completions", controller.Playground)
 	}
+	// The video creation page submits with the signed-in session; the request
+	// then follows the same task plugin pipeline as POST /v1/videos. It is not
+	// in playgroundRouter because Distribute must run after the task plugin
+	// endpoint is pinned.
+	router.POST("/pg/videos",
+		middleware.RouteTag("relay"), middleware.UserAuth(), middleware.SystemPerformanceCheck(),
+		controller.PreparePlaygroundVideo,
+		middleware.PinTaskPluginEndpoint(), middleware.TaskPluginEndpointOnly(middleware.ModelRequestRateLimit()), middleware.PrepareTaskPluginEndpoint(), middleware.Distribute(),
+		func(c *gin.Context) { controller.RelayTaskPluginEndpoint(c, controller.RelayTask) },
+	)
 	relayV1Router := router.Group("/v1")
 	relayV1Router.Use(middleware.RouteTag("relay"))
 	relayV1Router.Use(middleware.SystemPerformanceCheck())

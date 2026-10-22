@@ -309,8 +309,7 @@ var accessTokenRouteRules = map[string]accessTokenRouteRule{
 	// router/relay-router.go
 	"POST /pg/chat/completions": accessTokenSessionRule,
 
-	// router/task-plugin-protocol-router.go and router/api-router.go: video
-	// creation page
+	// router/relay-router.go and router/api-router.go: video creation page
 	"POST /pg/videos":        accessTokenSessionRule,
 	"POST /api/video_assets": accessTokenSessionRule,
 }
