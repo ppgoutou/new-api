@@ -7356,6 +7356,7 @@
     "Submitted. Videos usually take a few minutes; they appear below.": "已提交，生成通常需要几分钟，完成后会显示在下方。",
     "Task submission failed": "提交任务失败",
     "Describe the video you want": "请先描述你想要的视频",
+    "No video model is available": "暂无可用的视频模型",
     "Wait for the uploads to finish": "请等待素材上传完成",
     "Remove the files that failed to upload": "请移除上传失败的素材",
     "Add a first frame image": "请添加首帧图片",

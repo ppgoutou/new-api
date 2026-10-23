@@ -19,22 +19,22 @@ For commercial licensing, please contact support@quantumnous.com
 import { useRef, useState } from 'react'
 
 import { DEFAULT_DRAFT } from '../constants'
-import { fitDraftToModel, removeReferenceFromPrompt } from '../lib/draft'
+import { removeReferenceFromPrompt } from '../lib/draft'
 import type { StudioAsset, StudioDraft } from '../types'
 
 type FrameSlot = 'first' | 'last'
 
 /**
- * Draft state of the composer. Upload callbacks keep reporting progress after
- * a file is removed, so removed assets are remembered and their late updates
- * ignored.
+ * Draft state of the composer, as the user picked it; readers fit it to the
+ * available models. Upload callbacks keep reporting progress after a file is
+ * removed, so removed assets are remembered and their late updates ignored.
  */
 export function useStudioDraft() {
   const [draft, setDraft] = useState<StudioDraft>(DEFAULT_DRAFT)
   const removedIds = useRef(new Set<string>())
 
   const update = (patch: Partial<StudioDraft>) =>
-    setDraft((current) => fitDraftToModel({ ...current, ...patch }))
+    setDraft((current) => ({ ...current, ...patch }))
 
   const putReference = (asset: StudioAsset) => {
     if (removedIds.current.has(asset.id)) return

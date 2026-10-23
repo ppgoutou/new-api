@@ -7356,6 +7356,7 @@
     "Submitted. Videos usually take a few minutes; they appear below.": "Envoyé. Une vidéo prend généralement quelques minutes ; elle apparaîtra ci-dessous.",
     "Task submission failed": "Échec de l'envoi de la tâche",
     "Describe the video you want": "Décrivez la vidéo souhaitée",
+    "No video model is available": "Aucun modèle vidéo disponible",
     "Wait for the uploads to finish": "Attendez la fin des importations",
     "Remove the files that failed to upload": "Retirez les fichiers dont l'importation a échoué",
     "Add a first frame image": "Ajoutez une image de début",

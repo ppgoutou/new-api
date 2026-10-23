@@ -7356,6 +7356,7 @@
     "Submitted. Videos usually take a few minutes; they appear below.": "送信しました。通常は数分で生成され、下に表示されます。",
     "Task submission failed": "タスクの送信に失敗しました",
     "Describe the video you want": "作りたい動画を説明してください",
+    "No video model is available": "利用できる動画モデルがありません",
     "Wait for the uploads to finish": "アップロードの完了をお待ちください",
     "Remove the files that failed to upload": "アップロードに失敗したファイルを削除してください",
     "Add a first frame image": "最初のフレーム画像を追加してください",

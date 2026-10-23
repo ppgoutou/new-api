@@ -16,10 +16,13 @@ along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 For commercial licensing, please contact support@quantumnous.com
 */
+import { getVideoPricing } from '@/features/pricing/lib/video-pricing'
+import type { PricingModel } from '@/features/pricing/types'
+
 import {
+  DEFAULT_STUDIO_DURATION,
   REFERENCE_LIMITS,
   REFERENCE_TOKEN_NAMES,
-  STUDIO_MODELS,
   type StudioModel,
 } from '../constants'
 import type {
@@ -29,8 +32,32 @@ import type {
   VideoTaskRequest,
 } from '../types'
 
-export function findStudioModel(name: string): StudioModel {
-  return STUDIO_MODELS.find((model) => model.name === name) ?? STUDIO_MODELS[0]
+/**
+ * Models of the public pricing list that the canvas can submit: video models
+ * priced per output second by resolution, in pricing list order.
+ */
+export function studioModelsFromPricing(
+  models: readonly PricingModel[]
+): StudioModel[] {
+  return models.flatMap((model) => {
+    const pricing = getVideoPricing(model)
+    if (!pricing || pricing.optionField !== 'resolution') return []
+    return [
+      {
+        name: model.model_name,
+        resolutions: pricing.rows.map((row) => row.option),
+        duration: pricing.durationRange ?? DEFAULT_STUDIO_DURATION,
+      },
+    ]
+  })
+}
+
+/** The named model, else the first one; undefined when there are none. */
+export function findStudioModel(
+  models: readonly StudioModel[],
+  name: string
+): StudioModel | undefined {
+  return models.find((model) => model.name === name) ?? models[0]
 }
 
 /** Prompt token of a reference, such as "图片2" for the second image. */
@@ -70,9 +97,16 @@ export function removeReferenceFromPrompt(
   })
 }
 
-/** Keeps resolution and duration inside what the chosen model supports. */
-export function fitDraftToModel(draft: StudioDraft): StudioDraft {
-  const model = findStudioModel(draft.model)
+/**
+ * Keeps model, resolution and duration inside what the available models
+ * support. Leaves the draft unchanged while there are no models.
+ */
+export function fitDraftToModel(
+  draft: StudioDraft,
+  models: readonly StudioModel[]
+): StudioDraft {
+  const model = findStudioModel(models, draft.model)
+  if (!model) return draft
   const [shortest, longest] = model.duration
   return {
     ...draft,
@@ -122,9 +156,8 @@ export function validateDraft(draft: StudioDraft): string | null {
   return null
 }
 
-/** Body of POST /pg/videos for a valid draft. */
-export function buildVideoRequest(draft: StudioDraft): VideoTaskRequest {
-  const fitted = fitDraftToModel(draft)
+/** Body of POST /pg/videos for a valid draft already fitted to its model. */
+export function buildVideoRequest(fitted: StudioDraft): VideoTaskRequest {
   const body: VideoTaskRequest = {
     model: fitted.model,
     prompt: fitted.prompt.trim(),
