@@ -7476,6 +7476,14 @@
     "Title (Chinese)": "Titre (chinois)",
     "Category (Chinese)": "Catégorie (chinois)",
     "Prompt text (Chinese)": "Texte du prompt (chinois)",
-    "Chinese fields are shown to simplified and traditional Chinese interfaces; leave them empty to show the default text.": "Les champs chinois s'affichent dans les interfaces en chinois simplifié et traditionnel ; laissez-les vides pour afficher le texte par défaut."
+    "Chinese fields are shown to simplified and traditional Chinese interfaces; leave them empty to show the default text.": "Les champs chinois s'affichent dans les interfaces en chinois simplifié et traditionnel ; laissez-les vides pour afficher le texte par défaut.",
+    "X conversion tracking": "Suivi des conversions X",
+    "Use an event ID like tw-rhw6r-xxxxx": "Utilisez un ID d’événement comme tw-rhw6r-xxxxx",
+    "Sign-up event ID": "ID de l’événement d’inscription",
+    "Top-up event ID": "ID de l’événement de recharge",
+    "Reports sign-ups and top-ups to the X Conversion API from the server. Fields left empty use the X_PIXEL_* environment variables.": "Envoie les inscriptions et les recharges à l’API Conversions de X depuis le serveur. Les champs vides utilisent les variables d’environnement X_PIXEL_*.",
+    "Access token": "Jeton d’accès",
+    "Generated in X Ads Manager under Manual setup. The saved token is never shown; leave blank to keep it.": "Généré dans X Ads Manager, sous Manual setup. Le jeton enregistré n’est jamais affiché ; laissez vide pour le conserver.",
+    "Copied from X Events Manager. Leave empty to not send it.": "Copié depuis X Events Manager. Laissez vide pour ne pas l’envoyer."
   }
 }

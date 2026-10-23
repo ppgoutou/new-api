@@ -28,7 +28,7 @@ func reportXSignUp(c *gin.Context, userId int, email string) {
 			_ = model.UpdateUserSetting(userId, setting)
 		}
 	}
-	service.SendXConversion(service.XSignUpEventEnv, service.XConversion{
+	service.SendXConversion(service.XSignUpEvent, service.XConversion{
 		ConversionID: "signup-" + strconv.Itoa(userId),
 		ClickID:      clickID,
 		Email:        email,

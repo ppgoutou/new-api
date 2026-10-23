@@ -7476,6 +7476,14 @@
     "Title (Chinese)": "タイトル（中国語）",
     "Category (Chinese)": "カテゴリ（中国語）",
     "Prompt text (Chinese)": "プロンプト（中国語）",
-    "Chinese fields are shown to simplified and traditional Chinese interfaces; leave them empty to show the default text.": "中国語の項目は簡体字・繁体字中国語の画面で表示されます。空欄の場合は既定のテキストが表示されます。"
+    "Chinese fields are shown to simplified and traditional Chinese interfaces; leave them empty to show the default text.": "中国語の項目は簡体字・繁体字中国語の画面で表示されます。空欄の場合は既定のテキストが表示されます。",
+    "X conversion tracking": "X コンバージョン計測",
+    "Use an event ID like tw-rhw6r-xxxxx": "tw-rhw6r-xxxxx の形式のイベント ID を入力してください",
+    "Sign-up event ID": "登録イベント ID",
+    "Top-up event ID": "チャージイベント ID",
+    "Reports sign-ups and top-ups to the X Conversion API from the server. Fields left empty use the X_PIXEL_* environment variables.": "登録とチャージをサーバーから X Conversion API に送信します。空欄の項目はサーバーの X_PIXEL_* 環境変数を使用します。",
+    "Access token": "アクセストークン",
+    "Generated in X Ads Manager under Manual setup. The saved token is never shown; leave blank to keep it.": "X Ads Manager の Manual setup で生成します。保存済みのトークンは表示されません。空欄のままにすると変更されません。",
+    "Copied from X Events Manager. Leave empty to not send it.": "X Events Manager からコピーします。空欄の場合は送信しません。"
   }
 }

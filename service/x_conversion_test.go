@@ -4,6 +4,8 @@ import (
 	"testing"
 	"time"
 
+	"github.com/QuantumNous/new-api/setting"
+
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -46,4 +48,16 @@ func TestBuildXConversionRequest(t *testing.T) {
 func TestBuildXConversionRequestSkipsConversionWithoutIdentifier(t *testing.T) {
 	_, ok := buildXConversionRequest("tw-rhw6r-abcde", XConversion{ConversionID: "topup-T1", Email: "  ", UserAgent: "Mozilla/5.0"}, time.Now())
 	assert.False(t, ok)
+}
+
+func TestXSettingPrefersAdminValueOverEnvironment(t *testing.T) {
+	original := setting.XPixelSignupEventId
+	t.Cleanup(func() { setting.XPixelSignupEventId = original })
+	t.Setenv("X_PIXEL_SIGNUP_EVENT_ID", "tw-rhw6r-fromenv")
+
+	setting.XPixelSignupEventId = ""
+	assert.Equal(t, "tw-rhw6r-fromenv", XSignUpEvent.value())
+
+	setting.XPixelSignupEventId = " tw-rhw6r-admin "
+	assert.Equal(t, "tw-rhw6r-admin", XSignUpEvent.value())
 }

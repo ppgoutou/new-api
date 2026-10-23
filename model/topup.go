@@ -62,13 +62,6 @@ func notifyTopUpCompleted(userId int, tradeNo string) {
 	}
 }
 
-// CountSuccessfulTopUps counts the user's paid top-up orders.
-func CountSuccessfulTopUps(userId int) (int64, error) {
-	var count int64
-	err := DB.Model(&TopUp{}).Where("user_id = ? AND status = ?", userId, common.TopUpStatusSuccess).Count(&count).Error
-	return count, err
-}
-
 func (topUp *TopUp) Insert() error {
 	var err error
 	err = DB.Create(topUp).Error

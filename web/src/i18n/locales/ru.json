@@ -7476,6 +7476,14 @@
     "Title (Chinese)": "Заголовок (китайский)",
     "Category (Chinese)": "Категория (китайский)",
     "Prompt text (Chinese)": "Текст промпта (китайский)",
-    "Chinese fields are shown to simplified and traditional Chinese interfaces; leave them empty to show the default text.": "Поля на китайском показываются в интерфейсе на упрощённом и традиционном китайском; оставьте их пустыми, чтобы показывать текст по умолчанию."
+    "Chinese fields are shown to simplified and traditional Chinese interfaces; leave them empty to show the default text.": "Поля на китайском показываются в интерфейсе на упрощённом и традиционном китайском; оставьте их пустыми, чтобы показывать текст по умолчанию.",
+    "X conversion tracking": "Отслеживание конверсий X",
+    "Use an event ID like tw-rhw6r-xxxxx": "Укажите ID события вида tw-rhw6r-xxxxx",
+    "Sign-up event ID": "ID события регистрации",
+    "Top-up event ID": "ID события пополнения",
+    "Reports sign-ups and top-ups to the X Conversion API from the server. Fields left empty use the X_PIXEL_* environment variables.": "Отправляет регистрации и пополнения в X Conversion API с сервера. Пустые поля берут значения из переменных окружения X_PIXEL_*.",
+    "Access token": "Токен доступа",
+    "Generated in X Ads Manager under Manual setup. The saved token is never shown; leave blank to keep it.": "Создаётся в X Ads Manager в разделе Manual setup. Сохранённый токен не показывается; оставьте поле пустым, чтобы сохранить его.",
+    "Copied from X Events Manager. Leave empty to not send it.": "Скопируйте из X Events Manager. Оставьте пустым, чтобы не отправлять."
   }
 }

@@ -14,22 +14,37 @@ import (
 
 	"github.com/QuantumNous/new-api/common"
 	"github.com/QuantumNous/new-api/model"
+	"github.com/QuantumNous/new-api/setting"
 
 	"github.com/bytedance/gopkg/util/gopool"
 )
 
 // X (Twitter) Conversion API for pixel rhw6r. The access token and the event
-// IDs come from X Ads Manager / Events Manager and are read from the
-// environment; nothing is sent while the token or an event's ID is unset.
-const (
-	xConversionURL = "https://ads-api.x.com/12/measurement/conversions/rhw6r"
+// IDs come from X Ads Manager / Events Manager. They are set in the admin
+// panel, with the X_PIXEL_* environment variables as a fallback; nothing is
+// sent while the token or an event's ID is unset.
+const xConversionURL = "https://ads-api.x.com/12/measurement/conversions/rhw6r"
 
-	XPixelTokenEnv = "X_PIXEL_TOKEN"
+// XSetting is an X value set in the admin panel, with an environment
+// variable as the fallback.
+type XSetting struct {
+	adminValue *string
+	env        string
+}
 
-	XSignUpEventEnv        = "X_PIXEL_SIGNUP_EVENT_ID"
-	XPurchaseEventEnv      = "X_PIXEL_PURCHASE_EVENT_ID"
-	XFirstPurchaseEventEnv = "X_PIXEL_FIRST_PURCHASE_EVENT_ID"
+var (
+	xPixelToken    = XSetting{adminValue: &setting.XPixelToken, env: "X_PIXEL_TOKEN"}
+	XSignUpEvent   = XSetting{adminValue: &setting.XPixelSignupEventId, env: "X_PIXEL_SIGNUP_EVENT_ID"}
+	XPurchaseEvent = XSetting{adminValue: &setting.XPixelPurchaseEventId, env: "X_PIXEL_PURCHASE_EVENT_ID"}
 )
+
+// value is the admin setting, or the environment variable when it is empty.
+func (s XSetting) value() string {
+	if value := strings.TrimSpace(*s.adminValue); value != "" {
+		return value
+	}
+	return strings.TrimSpace(os.Getenv(s.env))
+}
 
 // XConversion is one confirmed conversion. ConversionID deduplicates repeats
 // on X's side; the other fields identify the user, at least one is needed.
@@ -95,11 +110,11 @@ func buildXConversionRequest(eventID string, conversion XConversion, now time.Ti
 	}}}, true
 }
 
-// SendXConversion reports a conversion for the event whose ID is in eventEnv,
-// in the background. Failures are logged and never affect the caller.
-func SendXConversion(eventEnv string, conversion XConversion) {
-	token := strings.TrimSpace(os.Getenv(XPixelTokenEnv))
-	eventID := strings.TrimSpace(os.Getenv(eventEnv))
+// SendXConversion reports a conversion for the event in the background.
+// Failures are logged and never affect the caller.
+func SendXConversion(event XSetting, conversion XConversion) {
+	token := xPixelToken.value()
+	eventID := event.value()
 	if token == "" || eventID == "" {
 		return
 	}
@@ -139,11 +154,10 @@ func postXConversion(token string, body xConversionRequest) error {
 	return nil
 }
 
-// SendXTopUpConversions reports a paid top-up as a purchase, and also as a
-// first purchase when it is the user's first paid order. The user is
+// SendXTopUpConversion reports a paid top-up as a purchase. The user is
 // identified by the X click ID saved at sign-up and their email.
-func SendXTopUpConversions(userId int, tradeNo string) {
-	if strings.TrimSpace(os.Getenv(XPixelTokenEnv)) == "" {
+func SendXTopUpConversion(userId int, tradeNo string) {
+	if xPixelToken.value() == "" || XPurchaseEvent.value() == "" {
 		return
 	}
 	user, err := model.GetUserById(userId, true)
@@ -155,10 +169,5 @@ func SendXTopUpConversions(userId int, tradeNo string) {
 		ClickID:      user.GetSetting().XClickId,
 		Email:        user.Email,
 	}
-	SendXConversion(XPurchaseEventEnv, conversion)
-
-	if count, err := model.CountSuccessfulTopUps(userId); err == nil && count == 1 {
-		conversion.ConversionID = "first-topup-" + tradeNo
-		SendXConversion(XFirstPurchaseEventEnv, conversion)
-	}
+	SendXConversion(XPurchaseEvent, conversion)
 }

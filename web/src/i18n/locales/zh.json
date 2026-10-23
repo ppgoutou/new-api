@@ -7476,6 +7476,14 @@
     "Title (Chinese)": "标题（中文）",
     "Category (Chinese)": "分类（中文）",
     "Prompt text (Chinese)": "提示词（中文）",
-    "Chinese fields are shown to simplified and traditional Chinese interfaces; leave them empty to show the default text.": "中文字段在简体和繁体中文界面显示；留空则显示默认文字。"
+    "Chinese fields are shown to simplified and traditional Chinese interfaces; leave them empty to show the default text.": "中文字段在简体和繁体中文界面显示；留空则显示默认文字。",
+    "X conversion tracking": "X 转化追踪",
+    "Use an event ID like tw-rhw6r-xxxxx": "请填写形如 tw-rhw6r-xxxxx 的事件 ID",
+    "Sign-up event ID": "注册事件 ID",
+    "Top-up event ID": "充值事件 ID",
+    "Reports sign-ups and top-ups to the X Conversion API from the server. Fields left empty use the X_PIXEL_* environment variables.": "在服务端向 X Conversion API 回传注册和充值。留空的字段使用服务器上的 X_PIXEL_* 环境变量。",
+    "Access token": "访问令牌",
+    "Generated in X Ads Manager under Manual setup. The saved token is never shown; leave blank to keep it.": "在 X Ads Manager 的 Manual setup 中生成。已保存的令牌不会显示，留空则保持不变。",
+    "Copied from X Events Manager. Leave empty to not send it.": "从 X Events Manager 复制。留空则不发送该事件。"
   }
 }
