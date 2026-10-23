@@ -298,6 +298,7 @@ func Register(c *gin.Context) {
 		common.ApiErrorT(c, "User registration failed or user ID retrieval failed")
 		return
 	}
+	reportXSignUp(c, insertedUser.Id, insertedUser.Email)
 	// 生成默认令牌
 	if constant.GenerateDefaultToken {
 		key, err := common.GenerateKey()
@@ -1424,6 +1425,7 @@ func UpdateUserSetting(c *gin.Context) {
 
 	// 构建设置
 	settings := dto.UserSetting{
+		XClickId:                         existingSettings.XClickId,
 		NotifyType:                       req.QuotaWarningType,
 		QuotaWarningThreshold:            req.QuotaWarningThreshold,
 		UpstreamModelUpdateNotifyEnabled: upstreamModelUpdateNotifyEnabled,

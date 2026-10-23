@@ -573,6 +573,7 @@ func findOrCreateOAuthUser(c *gin.Context, provider oauth.Provider, oauthUser *o
 		// Perform post-transaction tasks
 		user.FinalizeOAuthUserCreation(inviterId)
 	}
+	reportXSignUp(c, user.Id, user.Email)
 
 	return user, nil, nil
 }
