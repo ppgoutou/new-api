@@ -31,9 +31,16 @@ import { Textarea } from '@/components/ui/textarea'
 import type { HomeShowcaseFormValues } from './schema'
 
 type TextFieldName =
-  | `hero.${'title' | 'spec' | 'prompt'}`
+  | `hero.${'title' | 'titleZh' | 'spec' | 'prompt' | 'promptZh'}`
   | `imageToVideo.${'prompt'}`
-  | `showcase.${number}.${'title' | 'category' | 'spec' | 'prompt'}`
+  | `showcase.${number}.${
+      | 'title'
+      | 'titleZh'
+      | 'category'
+      | 'categoryZh'
+      | 'spec'
+      | 'prompt'
+      | 'promptZh'}`
 
 type TextFieldProps = {
   control: Control<HomeShowcaseFormValues>

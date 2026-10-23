@@ -7471,6 +7471,11 @@
     "Remove official price": "公式価格を削除",
     "Save official price": "公式価格を保存",
     "Failed to save official price": "公式価格の保存に失敗しました",
-    "Shown to users above the group prices. It is never charged. Use the same usage fields as the billing expression, in USD; leave it empty to hide the section.": "グループ価格の上にユーザー向けに表示され、課金には使われません。課金式と同じ使用量フィールドを USD で指定します。空欄にするとこの欄は表示されません。"
+    "Shown to users above the group prices. It is never charged. Use the same usage fields as the billing expression, in USD; leave it empty to hide the section.": "グループ価格の上にユーザー向けに表示され、課金には使われません。課金式と同じ使用量フィールドを USD で指定します。空欄にするとこの欄は表示されません。",
+    "To add other languages, start each version with a line such as <!-- lang:en --> or <!-- lang:zh -->. Text before the first such line shows in every language.": "他の言語を追加するには、各バージョンの前に <!-- lang:en --> や <!-- lang:zh --> のような行を入れてください。最初のその行より前の内容はすべての言語で表示されます。",
+    "Title (Chinese)": "タイトル（中国語）",
+    "Category (Chinese)": "カテゴリ（中国語）",
+    "Prompt text (Chinese)": "プロンプト（中国語）",
+    "Chinese fields are shown to simplified and traditional Chinese interfaces; leave them empty to show the default text.": "中国語の項目は簡体字・繁体字中国語の画面で表示されます。空欄の場合は既定のテキストが表示されます。"
   }
 }

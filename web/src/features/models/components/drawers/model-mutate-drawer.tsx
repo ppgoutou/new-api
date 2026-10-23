@@ -64,6 +64,7 @@ import { Switch } from '@/components/ui/switch'
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Textarea } from '@/components/ui/textarea'
 import { ModelPricingPanel } from '@/features/model-pricing/model-pricing-panel'
+import { LANGUAGE_BLOCKS_HINT } from '@/lib/language-blocks'
 import {
   requireServerSuccess,
   createServerError,
@@ -361,6 +362,9 @@ export function ModelMutateDrawer(props: {
                                 {...field}
                               />
                             </FormControl>
+                            <FormDescription>
+                              {t(LANGUAGE_BLOCKS_HINT)}
+                            </FormDescription>
                             <FormMessage />
                           </FormItem>
                         )}

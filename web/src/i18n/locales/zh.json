@@ -7471,6 +7471,11 @@
     "Remove official price": "移除官方价格",
     "Save official price": "保存官方价格",
     "Failed to save official price": "保存官方价格失败",
-    "Shown to users above the group prices. It is never charged. Use the same usage fields as the billing expression, in USD; leave it empty to hide the section.": "在分组定价上方展示给用户，不参与计费。使用与计费表达式相同的用量字段，单位为美元；留空则不显示该栏目。"
+    "Shown to users above the group prices. It is never charged. Use the same usage fields as the billing expression, in USD; leave it empty to hide the section.": "在分组定价上方展示给用户，不参与计费。使用与计费表达式相同的用量字段，单位为美元；留空则不显示该栏目。",
+    "To add other languages, start each version with a line such as <!-- lang:en --> or <!-- lang:zh -->. Text before the first such line shows in every language.": "如需其他语言版本，请在每个版本前单独写一行 <!-- lang:en --> 或 <!-- lang:zh -->。第一行标记之前的内容在所有语言下都会显示。",
+    "Title (Chinese)": "标题（中文）",
+    "Category (Chinese)": "分类（中文）",
+    "Prompt text (Chinese)": "提示词（中文）",
+    "Chinese fields are shown to simplified and traditional Chinese interfaces; leave them empty to show the default text.": "中文字段在简体和繁体中文界面显示；留空则显示默认文字。"
   }
 }

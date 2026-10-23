@@ -32,6 +32,7 @@ import {
 } from '@/components/ui/form'
 import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
+import { LANGUAGE_BLOCKS_HINT } from '@/lib/language-blocks'
 
 import { FormDirtyIndicator } from '../components/form-dirty-indicator'
 import { FormNavigationGuard } from '../components/form-navigation-guard'
@@ -270,7 +271,8 @@ export function SystemInfoSection({ defaultValues }: SystemInfoSectionProps) {
                       />
                     </FormControl>
                     <FormDescription>
-                      {t('Footer text displayed at the bottom of pages')}
+                      {t('Footer text displayed at the bottom of pages')}{' '}
+                      {t(LANGUAGE_BLOCKS_HINT)}
                     </FormDescription>
                     <FormMessage />
                   </FormItem>
@@ -295,7 +297,8 @@ export function SystemInfoSection({ defaultValues }: SystemInfoSectionProps) {
                     <FormDescription>
                       {t(
                         'Supports HTML markup or iframe embedding. Enter HTML code directly, or provide a complete URL to automatically embed it as an iframe.'
-                      )}
+                      )}{' '}
+                      {t(LANGUAGE_BLOCKS_HINT)}
                     </FormDescription>
                     <FormMessage />
                   </FormItem>
@@ -319,7 +322,8 @@ export function SystemInfoSection({ defaultValues }: SystemInfoSectionProps) {
                       <FormDescription>
                         {t(
                           'Content displayed on the home page (supports Markdown)'
-                        )}
+                        )}{' '}
+                        {t(LANGUAGE_BLOCKS_HINT)}
                       </FormDescription>
                       <FormMessage />
                     </FormItem>
@@ -345,7 +349,8 @@ export function SystemInfoSection({ defaultValues }: SystemInfoSectionProps) {
                     <FormDescription>
                       {t(
                         'Leave empty to disable the agreement requirement. Supports Markdown, HTML, or a full URL to redirect users.'
-                      )}
+                      )}{' '}
+                      {t(LANGUAGE_BLOCKS_HINT)}
                     </FormDescription>
                     <FormMessage />
                   </FormItem>
@@ -370,7 +375,8 @@ export function SystemInfoSection({ defaultValues }: SystemInfoSectionProps) {
                     <FormDescription>
                       {t(
                         'Leave empty to disable the privacy policy requirement. Supports Markdown, HTML, or a full URL to redirect users.'
-                      )}
+                      )}{' '}
+                      {t(LANGUAGE_BLOCKS_HINT)}
                     </FormDescription>
                     <FormMessage />
                   </FormItem>

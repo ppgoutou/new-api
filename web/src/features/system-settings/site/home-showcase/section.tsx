@@ -90,6 +90,9 @@ export function HomeShowcaseSection(props: HomeShowcaseSectionProps) {
       <p className='text-muted-foreground text-sm'>
         {t(
           'Upload the videos shown on the home page. Slots without a video keep the built-in examples. Changes appear on the home page after saving.'
+        )}{' '}
+        {t(
+          'Chinese fields are shown to simplified and traditional Chinese interfaces; leave them empty to show the default text.'
         )}
       </p>
       <Form {...form}>
@@ -132,6 +135,17 @@ export function HomeShowcaseSection(props: HomeShowcaseSectionProps) {
               control={form.control}
               name='hero.prompt'
               label={t('Prompt text')}
+              multiline
+            />
+            <ShowcaseTextField
+              control={form.control}
+              name='hero.titleZh'
+              label={t('Title (Chinese)')}
+            />
+            <ShowcaseTextField
+              control={form.control}
+              name='hero.promptZh'
+              label={t('Prompt text (Chinese)')}
               multiline
             />
           </fieldset>
@@ -251,6 +265,24 @@ export function HomeShowcaseSection(props: HomeShowcaseSectionProps) {
                   control={form.control}
                   name={`showcase.${index}.prompt`}
                   label={t('Prompt text')}
+                  multiline
+                />
+                <div className='grid gap-4 sm:grid-cols-3'>
+                  <ShowcaseTextField
+                    control={form.control}
+                    name={`showcase.${index}.titleZh`}
+                    label={t('Title (Chinese)')}
+                  />
+                  <ShowcaseTextField
+                    control={form.control}
+                    name={`showcase.${index}.categoryZh`}
+                    label={t('Category (Chinese)')}
+                  />
+                </div>
+                <ShowcaseTextField
+                  control={form.control}
+                  name={`showcase.${index}.promptZh`}
+                  label={t('Prompt text (Chinese)')}
                   multiline
                 />
               </section>

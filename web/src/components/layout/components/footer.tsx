@@ -22,6 +22,7 @@ import { useTranslation } from 'react-i18next'
 
 import { useStatus } from '@/hooks/use-status'
 import { useSystemConfig } from '@/hooks/use-system-config'
+import { selectLanguageBlock } from '@/lib/language-blocks'
 import { cn } from '@/lib/utils'
 
 interface FooterLink {
@@ -150,13 +151,17 @@ function ProjectAttribution(props: { currentYear: number; inline?: boolean }) {
 }
 
 export function Footer(props: FooterProps) {
-  const { t } = useTranslation()
+  const { t, i18n } = useTranslation()
   const {
     systemName,
     logo: systemLogo,
-    footerHtml,
+    footerHtml: configuredFooterHtml,
     demoSiteEnabled,
   } = useSystemConfig()
+  const footerHtml = selectLanguageBlock(
+    configuredFooterHtml ?? '',
+    i18n.resolvedLanguage || i18n.language
+  )
 
   const displayLogo = systemLogo || props.logo || '/logo.png'
   const displayName = systemName || props.name || 'API-Finder'
