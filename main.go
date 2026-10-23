@@ -308,6 +308,7 @@ func InitResources() error {
 	ratio_setting.InitRatioSettings()
 
 	service.InitHttpClient()
+	model.TopUpCompletedHook = service.SendXTopUpConversions
 
 	// Initialize SQL Database
 	err = model.InitDB()
