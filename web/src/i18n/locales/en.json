@@ -7476,6 +7476,14 @@
     "Title (Chinese)": "Title (Chinese)",
     "Category (Chinese)": "Category (Chinese)",
     "Prompt text (Chinese)": "Prompt text (Chinese)",
-    "Chinese fields are shown to simplified and traditional Chinese interfaces; leave them empty to show the default text.": "Chinese fields are shown to simplified and traditional Chinese interfaces; leave them empty to show the default text."
+    "Chinese fields are shown to simplified and traditional Chinese interfaces; leave them empty to show the default text.": "Chinese fields are shown to simplified and traditional Chinese interfaces; leave them empty to show the default text.",
+    "X conversion tracking": "X conversion tracking",
+    "Use an event ID like tw-rhw6r-xxxxx": "Use an event ID like tw-rhw6r-xxxxx",
+    "Sign-up event ID": "Sign-up event ID",
+    "Top-up event ID": "Top-up event ID",
+    "Reports sign-ups and top-ups to the X Conversion API from the server. Fields left empty use the X_PIXEL_* environment variables.": "Reports sign-ups and top-ups to the X Conversion API from the server. Fields left empty use the X_PIXEL_* environment variables.",
+    "Access token": "Access token",
+    "Generated in X Ads Manager under Manual setup. The saved token is never shown; leave blank to keep it.": "Generated in X Ads Manager under Manual setup. The saved token is never shown; leave blank to keep it.",
+    "Copied from X Events Manager. Leave empty to not send it.": "Copied from X Events Manager. Leave empty to not send it."
   }
 }

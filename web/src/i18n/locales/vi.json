@@ -7476,6 +7476,14 @@
     "Title (Chinese)": "Tiêu đề (tiếng Trung)",
     "Category (Chinese)": "Danh mục (tiếng Trung)",
     "Prompt text (Chinese)": "Nội dung prompt (tiếng Trung)",
-    "Chinese fields are shown to simplified and traditional Chinese interfaces; leave them empty to show the default text.": "Các trường tiếng Trung hiển thị trên giao diện tiếng Trung giản thể và phồn thể; để trống để hiển thị nội dung mặc định."
+    "Chinese fields are shown to simplified and traditional Chinese interfaces; leave them empty to show the default text.": "Các trường tiếng Trung hiển thị trên giao diện tiếng Trung giản thể và phồn thể; để trống để hiển thị nội dung mặc định.",
+    "X conversion tracking": "Theo dõi chuyển đổi X",
+    "Use an event ID like tw-rhw6r-xxxxx": "Nhập ID sự kiện dạng tw-rhw6r-xxxxx",
+    "Sign-up event ID": "ID sự kiện đăng ký",
+    "Top-up event ID": "ID sự kiện nạp tiền",
+    "Reports sign-ups and top-ups to the X Conversion API from the server. Fields left empty use the X_PIXEL_* environment variables.": "Gửi lượt đăng ký và nạp tiền tới X Conversion API từ máy chủ. Trường để trống sẽ dùng biến môi trường X_PIXEL_*.",
+    "Access token": "Mã truy cập",
+    "Generated in X Ads Manager under Manual setup. The saved token is never shown; leave blank to keep it.": "Tạo trong X Ads Manager, mục Manual setup. Mã đã lưu không bao giờ hiển thị; để trống để giữ nguyên.",
+    "Copied from X Events Manager. Leave empty to not send it.": "Sao chép từ X Events Manager. Để trống để không gửi sự kiện này."
   }
 }

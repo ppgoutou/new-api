@@ -375,6 +375,9 @@ export type OperationsSettings = {
   WorkerUrl: string
   WorkerValidKey: string
   WorkerAllowHttpImageRequestEnabled: boolean
+  XPixelToken: string
+  XPixelSignupEventId: string
+  XPixelPurchaseEventId: string
   LogConsumeEnabled: boolean
   'log_setting.user_export_enabled': boolean
   'log_setting.max_range_days': number
