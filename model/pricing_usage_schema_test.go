@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"strings"
 	"testing"
-	"time"
 
 	"github.com/QuantumNous/new-api/common"
 	"github.com/QuantumNous/new-api/constant"
@@ -59,12 +58,34 @@ func TestPricingCarriesTaskUsageSchemaAndRefreshesWithPluginGeneration(t *testin
 }`)
 	_, err = jsplugin.DefaultRegistry.Register(updatedSource, jsplugin.Options{})
 	require.NoError(t, err)
-	lastGetPricingTime = time.Now().Add(-2 * time.Minute)
 
 	refreshedPricing := pricingByModel(GetPricing())
 	require.Len(t, refreshedPricing["pricing-usage-model"].BillingUsageSchema, 2)
 	assert.Equal(t, "Measured duration.", refreshedPricing["pricing-usage-model"].BillingUsageSchema["seconds"].Description["en"])
 	assert.Equal(t, "count", refreshedPricing["pricing-usage-model"].BillingUsageSchema["clips"].Unit)
+}
+
+// Task plugins load in the background at startup. Pricing requested before
+// they finish must pick up their usage schemas once they are published, not a
+// minute later when the cache expires.
+func TestPricingBuiltBeforeTaskPluginLoadsGainsUsageSchemaOnPublish(t *testing.T) {
+	resetPricingEndpointTestTables(t)
+	const pluginKey = "pricing-usage-probe"
+	insertPricingEndpointChannel(t, 905, constant.ChannelTypeTaskPlugin, dto.ChannelOtherSettings{})
+	insertPricingEndpointAbility(t, 905, "pricing-usage-model")
+
+	beforeLoad := pricingByModel(GetPricing())
+	require.Contains(t, beforeLoad, "pricing-usage-model")
+	require.Nil(t, beforeLoad["pricing-usage-model"].BillingUsageSchema)
+
+	_, err := jsplugin.DefaultRegistry.Register(pricingUsagePluginSource("1.0.0", `{
+  seconds: {type: "number", unit: "second", description: "Estimated duration."}
+}`), jsplugin.Options{})
+	require.NoError(t, err)
+	t.Cleanup(func() { jsplugin.DefaultRegistry.Unregister(pluginKey) })
+
+	afterLoad := pricingByModel(GetPricing())
+	assert.Equal(t, "second", afterLoad["pricing-usage-model"].BillingUsageSchema["seconds"].Unit)
 }
 
 func TestPricingAliasCarriesPluginUsageSchemaAndTailExpr(t *testing.T) {

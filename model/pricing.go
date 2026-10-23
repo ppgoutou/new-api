@@ -64,6 +64,8 @@ var (
 	supportedEndpointMap map[string]common.EndpointInfo
 	lastGetPricingTime   time.Time
 	updatePricingLock    sync.Mutex
+	// Task plugin routing generation the cached pricing was built from.
+	pricingPluginGeneration uint64
 
 	// 缓存映射：模型名 -> 启用分组 / 计费类型
 	modelEnableGroups     = make(map[string][]string)
@@ -76,12 +78,22 @@ var (
 	modelSupportEndpointsLock = sync.RWMutex{}
 )
 
+// pricingCacheStale reports whether the cached pricing is over a minute old,
+// empty, or built from an earlier task plugin generation. Task plugins load in
+// the background at startup, so pricing built before they finish lacks their
+// usage schemas and must be rebuilt as soon as the plugins are published.
+func pricingCacheStale() bool {
+	return time.Since(lastGetPricingTime) > time.Minute*1 ||
+		len(pricingMap) == 0 ||
+		jsplugin.DefaultRegistry.Generation().Number != pricingPluginGeneration
+}
+
 func GetPricing() []Pricing {
-	if time.Since(lastGetPricingTime) > time.Minute*1 || len(pricingMap) == 0 {
+	if pricingCacheStale() {
 		updatePricingLock.Lock()
 		defer updatePricingLock.Unlock()
 		// Double check after acquiring the lock
-		if time.Since(lastGetPricingTime) > time.Minute*1 || len(pricingMap) == 0 {
+		if pricingCacheStale() {
 			modelSupportEndpointsLock.Lock()
 			defer modelSupportEndpointsLock.Unlock()
 			updatePricing()
@@ -101,7 +113,7 @@ func InvalidatePricingCache() {
 
 // GetVendors 返回当前定价接口使用到的供应商信息
 func GetVendors() []PricingVendor {
-	if time.Since(lastGetPricingTime) > time.Minute*1 || len(pricingMap) == 0 {
+	if pricingCacheStale() {
 		// 保证先刷新一次
 		GetPricing()
 	}
@@ -326,6 +338,7 @@ func updatePricing() {
 
 	pricingMap = make([]Pricing, 0)
 	pluginGeneration := jsplugin.DefaultRegistry.Generation()
+	pricingPluginGeneration = pluginGeneration.Number
 	for model, groups := range modelGroupsMap {
 		pricing := Pricing{
 			ModelName:              model,
