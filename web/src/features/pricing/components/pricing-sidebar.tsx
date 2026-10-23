@@ -69,20 +69,11 @@ export interface PricingSidebarProps {
   onTagChange: (value: string) => void
   vendors: PricingVendor[]
   groups: string[]
-  groupRatios?: Record<string, number>
   tags: string[]
   models: PricingModel[]
   hasActiveFilters: boolean
   onClearFilters: () => void
   className?: string
-}
-
-function formatGroupRatio(ratio: number | undefined): string | undefined {
-  if (ratio == null) return undefined
-  const formatted = Number.isInteger(ratio)
-    ? ratio.toString()
-    : ratio.toFixed(3).replace(/0+$/, '').replace(/\.$/, '')
-  return `x${formatted}`
 }
 
 function FilterChip(props: {
@@ -209,7 +200,6 @@ export const PricingSidebar = memo(function PricingSidebar(
     ...props.groups.map((group) => ({
       value: group,
       label: group,
-      suffix: formatGroupRatio(props.groupRatios?.[group]),
     })),
   ]
 
