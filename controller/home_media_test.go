@@ -155,6 +155,8 @@ func TestValidateHomeShowcase(t *testing.T) {
 		{"traversal in uploaded path", `{"showcase":[{"video":"/home-media/../config.json"}]}`, false},
 		{"too many clips", `{"showcase":` + manyItems + `}`, false},
 		{"title too long", `{"showcase":[{"title":"` + strings.Repeat("长", 81) + `"}]}`, false},
+		{"chinese versions", `{"hero":{"title":"Hero","title_zh":"主视频","prompt_zh":"提示词"},"showcase":[{"title":"Clip","title_zh":"案例","category":"Ads","category_zh":"广告"}]}`, true},
+		{"chinese category too long", `{"showcase":[{"category_zh":"` + strings.Repeat("长", 21) + `"}]}`, false},
 		{"not json", `{"showcase":`, false},
 	}
 	for _, tc := range cases {

@@ -7471,6 +7471,11 @@
     "Remove official price": "Supprimer le prix officiel",
     "Save official price": "Enregistrer le prix officiel",
     "Failed to save official price": "Échec de l'enregistrement du prix officiel",
-    "Shown to users above the group prices. It is never charged. Use the same usage fields as the billing expression, in USD; leave it empty to hide the section.": "Affiché aux utilisateurs au-dessus des prix par groupe. Il n'est jamais facturé. Utilisez les mêmes champs d'usage que l'expression de facturation, en USD ; laissez vide pour masquer la section."
+    "Shown to users above the group prices. It is never charged. Use the same usage fields as the billing expression, in USD; leave it empty to hide the section.": "Affiché aux utilisateurs au-dessus des prix par groupe. Il n'est jamais facturé. Utilisez les mêmes champs d'usage que l'expression de facturation, en USD ; laissez vide pour masquer la section.",
+    "To add other languages, start each version with a line such as <!-- lang:en --> or <!-- lang:zh -->. Text before the first such line shows in every language.": "Pour ajouter d'autres langues, commencez chaque version par une ligne telle que <!-- lang:en --> ou <!-- lang:zh -->. Le texte placé avant la première de ces lignes s'affiche dans toutes les langues.",
+    "Title (Chinese)": "Titre (chinois)",
+    "Category (Chinese)": "Catégorie (chinois)",
+    "Prompt text (Chinese)": "Texte du prompt (chinois)",
+    "Chinese fields are shown to simplified and traditional Chinese interfaces; leave them empty to show the default text.": "Les champs chinois s'affichent dans les interfaces en chinois simplifié et traditionnel ; laissez-les vides pour afficher le texte par défaut."
   }
 }

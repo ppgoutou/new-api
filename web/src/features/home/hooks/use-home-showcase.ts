@@ -17,22 +17,33 @@ along with this program. If not, see <https://www.gnu.org/licenses/>.
 For commercial licensing, please contact support@quantumnous.com
 */
 import { useQuery } from '@tanstack/react-query'
+import { useTranslation } from 'react-i18next'
 
 import { getHomeShowcase } from '../api'
-import { parseHomeShowcase } from '../lib/home-showcase'
+import { localizeShowcaseItem, parseHomeShowcase } from '../lib/home-showcase'
 
 export const HOME_SHOWCASE_QUERY_KEY = ['home-showcase'] as const
 
 /**
- * Home page video settings from the admin. While loading or on failure the
- * settings are empty, so every slot shows its built-in default.
+ * Home page video settings from the admin, in the interface language. While
+ * loading or on failure the settings are empty, so every slot shows its
+ * built-in default.
  */
 export function useHomeShowcase() {
+  const { i18n } = useTranslation()
+  const language = i18n.resolvedLanguage || i18n.language
   const { data } = useQuery({
     queryKey: HOME_SHOWCASE_QUERY_KEY,
     queryFn: getHomeShowcase,
     staleTime: 60 * 1000,
     meta: { errorToast: false },
   })
-  return parseHomeShowcase(data?.success ? data.data : '')
+  const settings = parseHomeShowcase(data?.success ? data.data : '')
+  return {
+    hero: localizeShowcaseItem(settings.hero, language),
+    imageToVideo: localizeShowcaseItem(settings.imageToVideo, language),
+    showcase: settings.showcase.map((item) =>
+      localizeShowcaseItem(item, language)
+    ),
+  }
 }

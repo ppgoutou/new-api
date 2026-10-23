@@ -7471,6 +7471,11 @@
     "Remove official price": "Remove official price",
     "Save official price": "Save official price",
     "Failed to save official price": "Failed to save official price",
-    "Shown to users above the group prices. It is never charged. Use the same usage fields as the billing expression, in USD; leave it empty to hide the section.": "Shown to users above the group prices. It is never charged. Use the same usage fields as the billing expression, in USD; leave it empty to hide the section."
+    "Shown to users above the group prices. It is never charged. Use the same usage fields as the billing expression, in USD; leave it empty to hide the section.": "Shown to users above the group prices. It is never charged. Use the same usage fields as the billing expression, in USD; leave it empty to hide the section.",
+    "To add other languages, start each version with a line such as <!-- lang:en --> or <!-- lang:zh -->. Text before the first such line shows in every language.": "To add other languages, start each version with a line such as <!-- lang:en --> or <!-- lang:zh -->. Text before the first such line shows in every language.",
+    "Title (Chinese)": "Title (Chinese)",
+    "Category (Chinese)": "Category (Chinese)",
+    "Prompt text (Chinese)": "Prompt text (Chinese)",
+    "Chinese fields are shown to simplified and traditional Chinese interfaces; leave them empty to show the default text.": "Chinese fields are shown to simplified and traditional Chinese interfaces; leave them empty to show the default text."
   }
 }

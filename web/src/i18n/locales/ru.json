@@ -7471,6 +7471,11 @@
     "Remove official price": "Удалить официальную цену",
     "Save official price": "Сохранить официальную цену",
     "Failed to save official price": "Не удалось сохранить официальную цену",
-    "Shown to users above the group prices. It is never charged. Use the same usage fields as the billing expression, in USD; leave it empty to hide the section.": "Показывается пользователям над ценами групп и никогда не списывается. Используйте те же поля использования, что и в выражении тарификации, в USD; оставьте пустым, чтобы скрыть раздел."
+    "Shown to users above the group prices. It is never charged. Use the same usage fields as the billing expression, in USD; leave it empty to hide the section.": "Показывается пользователям над ценами групп и никогда не списывается. Используйте те же поля использования, что и в выражении тарификации, в USD; оставьте пустым, чтобы скрыть раздел.",
+    "To add other languages, start each version with a line such as <!-- lang:en --> or <!-- lang:zh -->. Text before the first such line shows in every language.": "Чтобы добавить другие языки, начинайте каждую версию со строки вида <!-- lang:en --> или <!-- lang:zh -->. Текст перед первой такой строкой показывается на всех языках.",
+    "Title (Chinese)": "Заголовок (китайский)",
+    "Category (Chinese)": "Категория (китайский)",
+    "Prompt text (Chinese)": "Текст промпта (китайский)",
+    "Chinese fields are shown to simplified and traditional Chinese interfaces; leave them empty to show the default text.": "Поля на китайском показываются в интерфейсе на упрощённом и традиционном китайском; оставьте их пустыми, чтобы показывать текст по умолчанию."
   }
 }

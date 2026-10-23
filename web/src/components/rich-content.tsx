@@ -16,8 +16,11 @@ along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 For commercial licensing, please contact support@quantumnous.com
 */
+import { useTranslation } from 'react-i18next'
+
 import { HtmlContent, type HtmlContentVariant } from '@/components/html-content'
 import { Markdown } from '@/components/ui/markdown'
+import { selectLanguageBlock } from '@/lib/language-blocks'
 
 type RichContentMode = 'markdown' | 'html'
 
@@ -30,10 +33,15 @@ interface RichContentProps {
 }
 
 export function RichContent(props: RichContentProps) {
+  const { i18n } = useTranslation()
+  const content = selectLanguageBlock(
+    props.content,
+    i18n.resolvedLanguage || i18n.language
+  )
   if (props.mode === 'html') {
     return (
       <HtmlContent
-        content={props.content}
+        content={content}
         className={props.className}
         variant={props.htmlVariant}
       />
@@ -42,7 +50,7 @@ export function RichContent(props: RichContentProps) {
 
   return (
     <Markdown breaks={props.breaks} className={props.className}>
-      {props.content}
+      {content}
     </Markdown>
   )
 }

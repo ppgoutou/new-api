@@ -18,14 +18,18 @@ For commercial licensing, please contact support@quantumnous.com
 */
 import { useQuery } from '@tanstack/react-query'
 import { useMemo } from 'react'
+import { useTranslation } from 'react-i18next'
 
 import { useStatus } from '@/hooks/use-status'
+import { selectLanguageBlock } from '@/lib/language-blocks'
 import { requireServerSuccess } from '@/lib/server-error-message'
 
 import { getPricing } from '../api'
 
 export function usePricingData(enabled = true) {
   const { status } = useStatus()
+  const { i18n } = useTranslation()
+  const language = i18n.resolvedLanguage || i18n.language
 
   const { data, isLoading, error, refetch } = useQuery({
     queryKey: ['pricing'],
@@ -56,13 +60,18 @@ export function usePricingData(enabled = true) {
       return {
         ...model,
         key: model.model_name,
+        description: model.description
+          ? selectLanguageBlock(model.description, language)
+          : model.description,
         vendor_name: vendor?.name,
         vendor_icon: vendor?.icon,
-        vendor_description: vendor?.description,
+        vendor_description: vendor?.description
+          ? selectLanguageBlock(vendor.description, language)
+          : vendor?.description,
         group_ratio: data.group_ratio,
       }
     })
-  }, [data])
+  }, [data, language])
 
   return {
     models,

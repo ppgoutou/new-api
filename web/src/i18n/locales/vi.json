@@ -7471,6 +7471,11 @@
     "Remove official price": "Xóa giá chính thức",
     "Save official price": "Lưu giá chính thức",
     "Failed to save official price": "Lưu giá chính thức thất bại",
-    "Shown to users above the group prices. It is never charged. Use the same usage fields as the billing expression, in USD; leave it empty to hide the section.": "Hiển thị cho người dùng phía trên giá theo nhóm và không bao giờ bị tính phí. Dùng cùng các trường sử dụng như biểu thức tính phí, đơn vị USD; để trống để ẩn mục này."
+    "Shown to users above the group prices. It is never charged. Use the same usage fields as the billing expression, in USD; leave it empty to hide the section.": "Hiển thị cho người dùng phía trên giá theo nhóm và không bao giờ bị tính phí. Dùng cùng các trường sử dụng như biểu thức tính phí, đơn vị USD; để trống để ẩn mục này.",
+    "To add other languages, start each version with a line such as <!-- lang:en --> or <!-- lang:zh -->. Text before the first such line shows in every language.": "Để thêm ngôn ngữ khác, hãy bắt đầu mỗi phiên bản bằng một dòng như <!-- lang:en --> hoặc <!-- lang:zh -->. Nội dung trước dòng đánh dấu đầu tiên hiển thị ở mọi ngôn ngữ.",
+    "Title (Chinese)": "Tiêu đề (tiếng Trung)",
+    "Category (Chinese)": "Danh mục (tiếng Trung)",
+    "Prompt text (Chinese)": "Nội dung prompt (tiếng Trung)",
+    "Chinese fields are shown to simplified and traditional Chinese interfaces; leave them empty to show the default text.": "Các trường tiếng Trung hiển thị trên giao diện tiếng Trung giản thể và phồn thể; để trống để hiển thị nội dung mặc định."
   }
 }

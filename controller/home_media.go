@@ -232,10 +232,15 @@ type homeShowcaseItem struct {
 	Title    string `json:"title"`
 	Category string `json:"category"`
 	Prompt   string `json:"prompt"`
-	Spec     string `json:"spec"`
-	Video    string `json:"video"`
-	Poster   string `json:"poster"`
-	Image    string `json:"image"`
+	// Chinese versions shown to Chinese interfaces; empty falls back to the
+	// default text above.
+	TitleZh    string `json:"title_zh"`
+	CategoryZh string `json:"category_zh"`
+	PromptZh   string `json:"prompt_zh"`
+	Spec       string `json:"spec"`
+	Video      string `json:"video"`
+	Poster     string `json:"poster"`
+	Image      string `json:"image"`
 }
 
 type homeShowcaseSettings struct {
@@ -269,8 +274,11 @@ func validateHomeShowcase(value string) error {
 	}
 	for _, item := range items {
 		if utf8.RuneCountInString(item.Title) > 80 ||
+			utf8.RuneCountInString(item.TitleZh) > 80 ||
 			utf8.RuneCountInString(item.Category) > 20 ||
+			utf8.RuneCountInString(item.CategoryZh) > 20 ||
 			utf8.RuneCountInString(item.Prompt) > 2000 ||
+			utf8.RuneCountInString(item.PromptZh) > 2000 ||
 			utf8.RuneCountInString(item.Spec) > 60 {
 			return errInvalidHomeShowcase
 		}

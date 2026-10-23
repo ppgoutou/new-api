@@ -22,6 +22,7 @@ import {
   collectUploadedMedia,
   EMPTY_HOME_SHOWCASE,
   EMPTY_SHOWCASE_ITEM,
+  localizeShowcaseItem,
   parseHomeShowcase,
   serializeHomeShowcase,
 } from '../lib/home-showcase'
@@ -92,5 +93,66 @@ describe('home showcase settings', () => {
         showcase: [],
       })
     ).toEqual([VIDEO])
+  })
+
+  it('stores the Chinese versions under snake_case keys', () => {
+    const settings = {
+      ...EMPTY_HOME_SHOWCASE,
+      showcase: [
+        {
+          ...EMPTY_SHOWCASE_ITEM,
+          title: 'Shark attack',
+          titleZh: '快艇惊遇大白鲨',
+          categoryZh: '卡通动画',
+          promptZh: '皮克斯风格',
+          video: VIDEO,
+        },
+      ],
+    }
+
+    const stored = JSON.parse(serializeHomeShowcase(settings))
+    expect(stored.showcase[0]).toMatchObject({
+      title_zh: '快艇惊遇大白鲨',
+      category_zh: '卡通动画',
+      prompt_zh: '皮克斯风格',
+    })
+    expect(parseHomeShowcase(JSON.stringify(stored))).toEqual(settings)
+  })
+})
+
+describe('showcase text by interface language', () => {
+  const item = {
+    ...EMPTY_SHOWCASE_ITEM,
+    title: 'Shark attack',
+    category: 'Cartoon',
+    prompt: 'Pixar-style 3D cartoon',
+    titleZh: '快艇惊遇大白鲨',
+    categoryZh: '卡通动画',
+    promptZh: '皮克斯风格 3D 卡通',
+  }
+
+  it.each(['zhCN', 'zhTW'])('uses the Chinese text for %s', (language) => {
+    expect(localizeShowcaseItem(item, language)).toMatchObject({
+      title: '快艇惊遇大白鲨',
+      category: '卡通动画',
+      prompt: '皮克斯风格 3D 卡通',
+    })
+  })
+
+  it.each(['en', 'fr', 'ru', 'ja', 'vi', 'xx'])(
+    'keeps the default text for %s',
+    (language) => {
+      expect(localizeShowcaseItem(item, language)).toEqual(item)
+    }
+  )
+
+  it('falls back to the default text where a Chinese field is blank', () => {
+    expect(
+      localizeShowcaseItem({ ...item, categoryZh: ' ', promptZh: '' }, 'zhCN')
+    ).toMatchObject({
+      title: '快艇惊遇大白鲨',
+      category: 'Cartoon',
+      prompt: 'Pixar-style 3D cartoon',
+    })
   })
 })

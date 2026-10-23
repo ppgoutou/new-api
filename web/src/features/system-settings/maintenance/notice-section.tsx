@@ -25,12 +25,14 @@ import * as z from 'zod'
 import {
   Form,
   FormControl,
+  FormDescription,
   FormField,
   FormItem,
   FormLabel,
   FormMessage,
 } from '@/components/ui/form'
 import { Textarea } from '@/components/ui/textarea'
+import { LANGUAGE_BLOCKS_HINT } from '@/lib/language-blocks'
 
 import { SettingsForm } from '../components/settings-form-layout'
 import { SettingsPageFormActions } from '../components/settings-page-context'
@@ -96,6 +98,7 @@ export function NoticeSection({ defaultValue }: NoticeSectionProps) {
                     {...field}
                   />
                 </FormControl>
+                <FormDescription>{t(LANGUAGE_BLOCKS_HINT)}</FormDescription>
                 <FormMessage />
               </FormItem>
             )}
