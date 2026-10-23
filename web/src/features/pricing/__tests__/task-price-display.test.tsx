@@ -189,7 +189,7 @@ const imageModel: PricingModel = {
 }
 
 it.each([false, true])(
-  'shows localized image labels and units in base and group pricing when configured=%s',
+  'shows localized image labels and units in the visible pricing tables when configured=%s',
   async (configured) => {
     vi.spyOn(api, 'get').mockResolvedValue({ data: { data: { groups: [] } } })
     const client = new QueryClient({
@@ -214,15 +214,49 @@ it.each([false, true])(
       </QueryClientProvider>
     )
     await act(() => i18next.changeLanguage('zhCN'))
-    expect(screen.getAllByText('图片生成单价')).toHaveLength(2)
-    expect(screen.getAllByText(configured ? '/ 张' : '张')).toHaveLength(2)
+    expect(screen.getAllByText('图片生成单价')).toHaveLength(configured ? 1 : 2)
+    expect(screen.getAllByText(configured ? '/ 张' : '张')).toHaveLength(
+      configured ? 1 : 2
+    )
     expect(screen.queryByText('image_count')).not.toBeInTheDocument()
     if (configured) {
-      expect(screen.getByText('$0.2')).toBeVisible()
       expect(screen.getByText('$0.4')).toBeVisible()
     }
   }
 )
+
+it('shows only group selling prices for an image model, without the base price or group ratio', () => {
+  vi.spyOn(api, 'get').mockResolvedValue({ data: { data: { groups: [] } } })
+  const client = new QueryClient({
+    defaultOptions: { queries: { retry: false } },
+  })
+  clients.push(client)
+  render(
+    <QueryClientProvider client={client}>
+      <ModelDetailsContent
+        model={{
+          ...model,
+          model_name: 'seedream',
+          billing_expr: 'tier("per_image", fixed(0.1296)) * image_count',
+          billing_usage_schema: undefined,
+        }}
+        groupRatio={{ default: 1.05 }}
+        usableGroup={{ default: { desc: '', ratio: 1.05 } }}
+        endpointMap={{}}
+        autoGroups={[]}
+        priceRate={1}
+        usdExchangeRate={1}
+        tokenUnit='M'
+      />
+    </QueryClientProvider>
+  )
+  expect(screen.queryByText('Base Price')).not.toBeInTheDocument()
+  expect(screen.queryByText('Tiered price table')).not.toBeInTheDocument()
+  expect(screen.queryByText('$0.1296')).not.toBeInTheDocument()
+  expect(screen.queryByText('1.05x')).not.toBeInTheDocument()
+  expect(screen.getByText('Pricing by Group')).toBeVisible()
+  expect(screen.getByText('$0.13608')).toBeVisible()
+})
 
 it('updates count unit labels across cards, table cells and breakdowns with locale fallback', async () => {
   render(

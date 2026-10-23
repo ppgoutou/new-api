@@ -51,6 +51,15 @@ export function getConfiguredGroupRatio(
 }
 
 /**
+ * Image models bill per generated image. Their details show only the group
+ * selling prices, never the base price the group ratio is applied to.
+ */
+export function isImagePricingModel(model: PricingModel): boolean {
+  if (model.supported_endpoint_types?.includes('image-generation')) return true
+  return /\bimage_count\b/.test(model.billing_expr ?? '')
+}
+
+/**
  * Resolve the group ratio used by model square summary prices.
  *
  * When no specific group is selected, the model square shows the best price

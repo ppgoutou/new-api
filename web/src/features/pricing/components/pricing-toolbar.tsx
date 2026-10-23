@@ -72,7 +72,6 @@ export interface PricingToolbarProps {
   onTagChange: (value: string) => void
   vendors: PricingVendor[]
   groups: string[]
-  groupRatios?: Record<string, number>
   tags: string[]
   models: PricingModel[]
   hasActiveFilters: boolean
@@ -216,7 +215,6 @@ export function PricingToolbar(props: PricingToolbarProps) {
               onTagChange={props.onTagChange}
               vendors={props.vendors}
               groups={props.groups}
-              groupRatios={props.groupRatios}
               tags={props.tags}
               models={props.models}
               hasActiveFilters={props.hasActiveFilters}

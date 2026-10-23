@@ -78,7 +78,11 @@ import {
   type DynamicPriceEntry,
 } from '../lib/dynamic-price'
 import { parseTags } from '../lib/filters'
-import { getAvailableGroups, isTokenBasedModel } from '../lib/model-helpers'
+import {
+  getAvailableGroups,
+  isImagePricingModel,
+  isTokenBasedModel,
+} from '../lib/model-helpers'
 import { withPluginPricing } from '../lib/plugin-pricing'
 import { formatFixedPrice, formatGroupPrice } from '../lib/price'
 import {
@@ -1199,11 +1203,8 @@ function ProviderGroupPricingSection(
 
             return (
               <div key={group} className='overflow-hidden rounded-lg border'>
-                <div className='bg-muted/20 flex items-center justify-between gap-3 border-b px-3 py-2'>
+                <div className='bg-muted/20 border-b px-3 py-2'>
                   <GroupBadge group={group} size='sm' />
-                  <span className='text-muted-foreground font-mono text-xs'>
-                    {ratio}x
-                  </span>
                 </div>
                 <StaticDataTable
                   className='rounded-none border-0'
@@ -1393,13 +1394,6 @@ function ProviderGroupPricingSection(
             cellClassName: 'py-2.5',
             cell: (group) => <GroupBadge group={group} size='sm' />,
           },
-          {
-            id: 'ratio',
-            header: t('Ratio'),
-            className: thClass,
-            cellClassName: 'text-muted-foreground py-2.5 font-mono',
-            cell: (group) => `${props.groupRatio[group] || 1}x`,
-          },
           ...(isTokenBased
             ? [
                 {
@@ -1483,10 +1477,12 @@ export function ModelDetailsContent(props: ModelDetailsContentProps) {
     props.model.billing_expr,
     props.model.billing_usage_schema
   )
+  const isImageModel = isImagePricingModel(props.model)
   const showBasePrices =
-    !props.model.billing_usage_schema ||
-    simpleTaskPricing ||
-    taskTiers.length === 0
+    !isImageModel &&
+    (!props.model.billing_usage_schema ||
+      simpleTaskPricing ||
+      taskTiers.length === 0)
   const videoPricing = getVideoPricing(props.model)
 
   return (
@@ -1536,17 +1532,20 @@ export function ModelDetailsContent(props: ModelDetailsContentProps) {
                 showRechargePrice={showRechargePrice}
               />
             )}
-            {!videoPricing && isDynamic && !simpleTaskPricing && (
-              <DynamicPricingBreakdown
-                billingExpr={props.model.billing_expr}
-                usageSchema={props.model.billing_usage_schema}
-                taskPriceOptions={{
-                  showRechargePrice,
-                  priceRate: props.priceRate,
-                  usdExchangeRate: props.usdExchangeRate,
-                }}
-              />
-            )}
+            {!videoPricing &&
+              !isImageModel &&
+              isDynamic &&
+              !simpleTaskPricing && (
+                <DynamicPricingBreakdown
+                  billingExpr={props.model.billing_expr}
+                  usageSchema={props.model.billing_usage_schema}
+                  taskPriceOptions={{
+                    showRechargePrice,
+                    priceRate: props.priceRate,
+                    usdExchangeRate: props.usdExchangeRate,
+                  }}
+                />
+              )}
             {!videoPricing && (
               <GroupPricingSection
                 model={props.model}
