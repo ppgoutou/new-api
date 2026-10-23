@@ -220,7 +220,8 @@ it.each([false, true])(
     )
     expect(screen.queryByText('image_count')).not.toBeInTheDocument()
     if (configured) {
-      expect(screen.getByText('$0.4')).toBeVisible()
+      // A USD site shows the Chinese interface in CNY (default rate 1).
+      expect(screen.getByText('¥0.4')).toBeVisible()
     }
   }
 )
