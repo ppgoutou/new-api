@@ -19,6 +19,7 @@ For commercial licensing, please contact support@quantumnous.com
 import { describe, expect, test } from 'vitest'
 
 import {
+  getOfficialVideoPricing,
   getReferenceOrderExample,
   getVideoPricing,
   isVideoPricingSchema,
@@ -155,5 +156,39 @@ describe('video pricing', () => {
 
     expect(example?.billedReferenceSeconds).toBe(12)
     expect(example?.tokens).toBe(27 * 21600)
+  })
+
+  test('prices the only option of a single-resolution model from one unconditional tier', () => {
+    const pricing = getVideoPricing(
+      videoModel('tier("720p", u("seconds") * 0.27)', {
+        billing_usage_schema: {
+          seconds: { type: 'number', unit: 'second' },
+          resolution: { enum: ['720p'] },
+        },
+      })
+    )
+
+    expect(pricing?.rows).toEqual([
+      { option: '720p', secondPrice: 0.27, tokensPerSecond: 21600 },
+    ])
+    expect(pricing?.hasReferencePricing).toBe(false)
+  })
+
+  test('keeps the generic display for an unconditional tier when several options exist', () => {
+    expect(
+      getVideoPricing(videoModel('tier("base", u("seconds") * 0.27)'))
+    ).toBeNull()
+  })
+
+  test('reads the official price from its own expression and ignores the charged one', () => {
+    const model = videoModel(SEEDANCE_25_EXPR, {
+      official_price_expr: SEEDANCE_25_EXPR.replaceAll('* 0.6)', '* 0.9)'),
+    })
+
+    expect(getOfficialVideoPricing(model)?.rows[0].secondPrice).toBe(0.9)
+    expect(getVideoPricing(model)?.rows[0].secondPrice).toBe(0.6)
+    expect(
+      getOfficialVideoPricing({ ...model, official_price_expr: ' ' })
+    ).toBeNull()
   })
 })

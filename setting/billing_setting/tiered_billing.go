@@ -23,22 +23,27 @@ const (
 	BillingModeField        = "billing_mode"
 	BillingExprField        = "billing_expr"
 	PluginBillingExprOption = "billing_setting.plugin_billing_expr"
+	OfficialPriceExprOption = "billing_setting.official_price_expr"
 	maxTaskExprSmokeTests   = 64
 )
 
 // BillingSetting is managed by config.GlobalConfig.Register.
 // DB keys: billing_setting.billing_mode, billing_setting.billing_expr,
-// billing_setting.plugin_billing_expr
+// billing_setting.plugin_billing_expr, billing_setting.official_price_expr
 type BillingSetting struct {
 	BillingMode       map[string]string `json:"billing_mode"`
 	BillingExpr       map[string]string `json:"billing_expr"`
 	PluginBillingExpr map[string]string `json:"plugin_billing_expr"`
+	// OfficialPriceExpr holds the vendor's published price per model in the
+	// billing expression language. It is shown to users and never charged.
+	OfficialPriceExpr map[string]string `json:"official_price_expr"`
 }
 
 var billingSetting = BillingSetting{
 	BillingMode:       make(map[string]string),
 	BillingExpr:       make(map[string]string),
 	PluginBillingExpr: make(map[string]string),
+	OfficialPriceExpr: make(map[string]string),
 }
 
 func init() {
@@ -65,6 +70,11 @@ func GetBillingMode(model string) string {
 		return BillingModeTieredExpr
 	}
 	return BillingModeRatio
+}
+
+func GetOfficialPriceExpr(model string) (string, bool) {
+	expr, ok := billingSetting.OfficialPriceExpr[model]
+	return expr, ok
 }
 
 func GetBillingExpr(model string) (string, bool) {

@@ -310,3 +310,72 @@ func TestPricingSharedPluginVariantsUseEachSchemaAndExpression(t *testing.T) {
 	require.NoError(t, err)
 	assert.Contains(t, string(encoded), "billing_plugin_variants")
 }
+
+func TestOfficialPriceExprIsDisplayOnlyAndValidatedAgainstPluginSchema(t *testing.T) {
+	resetPricingEndpointTestTables(t)
+	require.NoError(t, DB.AutoMigrate(&Option{}))
+	require.NoError(t, DB.Exec("DELETE FROM options").Error)
+	t.Cleanup(func() { require.NoError(t, DB.Exec("DELETE FROM options").Error) })
+	originalOptionMap := common.OptionMap
+	common.OptionMap = make(map[string]string)
+	t.Cleanup(func() { common.OptionMap = originalOptionMap })
+	saved := config.GlobalConfig.ExportAllConfigs()
+	t.Cleanup(func() { require.NoError(t, config.GlobalConfig.LoadFromDB(saved)) })
+	source := pricingUsagePluginSource("1.0.0", `{seconds:{type:"number",unit:"second"},resolution:{enum:["480p","720p"]}}`)
+	_, err := jsplugin.DefaultRegistry.Register(source, jsplugin.Options{})
+	require.NoError(t, err)
+	t.Cleanup(func() { jsplugin.DefaultRegistry.Unregister("pricing-usage-probe") })
+	insertPricingEndpointChannel(t, 940, constant.ChannelTypeTaskPlugin, dto.ChannelOtherSettings{})
+	insertPricingEndpointAbility(t, 940, "pricing-usage-model")
+
+	const charged = `tier("base", u("seconds") * 0.04)`
+	const official = `u("resolution") == "480p" ? tier("480p", u("seconds") * 0.065) : tier("720p", u("seconds") * 0.146)`
+	draft := PricingValues{
+		"billing_setting.billing_mode":          "tiered_expr",
+		"billing_setting.billing_expr":          charged,
+		billing_setting.OfficialPriceExprOption: official,
+	}
+	require.NoError(t, ValidateModelPricing("pricing-usage-model", draft))
+	for _, invalid := range []any{`tier("base", u("credits") * 1)`, "invalid expression(", "  ", float64(1)} {
+		draft[billing_setting.OfficialPriceExprOption] = invalid
+		assert.Error(t, ValidateModelPricing("pricing-usage-model", draft), "%v", invalid)
+	}
+
+	require.NoError(t, config.GlobalConfig.LoadFromDB(map[string]string{
+		"billing_setting.billing_mode":          `{"pricing-usage-model":"tiered_expr"}`,
+		"billing_setting.billing_expr":          `{"pricing-usage-model":"tier(\"base\", u(\"seconds\") * 0.04)"}`,
+		billing_setting.OfficialPriceExprOption: `{"pricing-usage-model":"u(\"resolution\") == \"480p\" ? tier(\"480p\", u(\"seconds\") * 0.065) : tier(\"720p\", u(\"seconds\") * 0.146)"}`,
+	}))
+	InvalidatePricingCache()
+	priced := pricingByModel(GetPricing())["pricing-usage-model"]
+	assert.Equal(t, official, priced.OfficialPriceExpr)
+	assert.Equal(t, charged, priced.BillingExpr)
+	expr, ok := billing_setting.ResolveTaskBillingExpr("pricing-usage-probe", "pricing-usage-model", "")
+	require.True(t, ok)
+	assert.Equal(t, charged, expr)
+
+	// The official price has its own editor: saving or resetting the charged
+	// price keeps it, and an empty expression removes it.
+	require.NoError(t, UpdateOfficialPriceExpr("pricing-usage-model", official))
+	require.Error(t, UpdateOfficialPriceExpr("pricing-usage-model", `tier("base", u("credits") * 1)`))
+	officialOf := func() string {
+		snapshot, err := GetModelPricingSnapshot([]string{"pricing-usage-model"})
+		require.NoError(t, err)
+		value, _ := snapshot.Entries[0].Configured[billing_setting.OfficialPriceExprOption].(string)
+		return value
+	}
+	require.Equal(t, official, officialOf())
+	snapshot, err := GetModelPricingSnapshot([]string{"pricing-usage-model"})
+	require.NoError(t, err)
+	require.NoError(t, UpdateModelPricing([]ModelPricingChange{{
+		ModelName: "pricing-usage-model", ExpectedVersion: snapshot.Entries[0].Version,
+		Pricing: PricingValues{"billing_setting.billing_mode": "tiered_expr", "billing_setting.billing_expr": `tier("base", u("seconds") * 0.05)`},
+	}}))
+	assert.Equal(t, official, officialOf())
+	snapshot, err = GetModelPricingSnapshot([]string{"pricing-usage-model"})
+	require.NoError(t, err)
+	require.NoError(t, UpdateModelPricing([]ModelPricingChange{{ModelName: "pricing-usage-model", ExpectedVersion: snapshot.Entries[0].Version, Reset: true}}))
+	assert.Equal(t, official, officialOf())
+	require.NoError(t, UpdateOfficialPriceExpr("pricing-usage-model", ""))
+	assert.Empty(t, officialOf())
+}

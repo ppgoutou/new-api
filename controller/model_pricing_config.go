@@ -79,3 +79,20 @@ func UpdateModelPricingConfig(c *gin.Context) {
 	recordManageAudit(c, "model.pricing.update", map[string]any{"models": names})
 	common.ApiSuccess(c, gin.H{"updated_models": names})
 }
+
+func UpdateOfficialPriceConfig(c *gin.Context) {
+	var request struct {
+		ModelName  string `json:"model_name"`
+		Expression string `json:"expression"`
+	}
+	if err := common.DecodeJson(c.Request.Body, &request); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"success": false, "message": err.Error()})
+		return
+	}
+	if err := model.UpdateOfficialPriceExpr(request.ModelName, request.Expression); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"success": false, "message": err.Error()})
+		return
+	}
+	recordManageAudit(c, "model.official_price.update", map[string]any{"model": request.ModelName})
+	common.ApiSuccess(c, gin.H{"model_name": request.ModelName})
+}

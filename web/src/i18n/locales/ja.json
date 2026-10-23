@@ -7463,6 +7463,13 @@
     "Play sound": "音声を再生",
     "Mute": "ミュート",
     "Play with sound": "音声付きで再生",
-    "Play {{title}} with sound": "「{{title}}」を音声付きで再生"
+    "Play {{title}} with sound": "「{{title}}」を音声付きで再生",
+    "Official Price": "公式価格",
+    "Official price saved": "公式価格を保存しました",
+    "Official price removed": "公式価格を削除しました",
+    "Remove official price": "公式価格を削除",
+    "Save official price": "公式価格を保存",
+    "Failed to save official price": "公式価格の保存に失敗しました",
+    "Shown to users above the group prices. It is never charged. Use the same usage fields as the billing expression, in USD; leave it empty to hide the section.": "グループ価格の上にユーザー向けに表示され、課金には使われません。課金式と同じ使用量フィールドを USD で指定します。空欄にするとこの欄は表示されません。"
   }
 }

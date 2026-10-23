@@ -48,6 +48,7 @@ import {
 } from '@/components/data-table'
 import { Button } from '@/components/ui/button'
 import { useModelPricing } from '@/features/model-pricing/api'
+import { OfficialPriceEditor } from '@/features/model-pricing/official-price-editor'
 import {
   applyPricingDraft,
   pricingOptions,
@@ -762,6 +763,11 @@ const ModelRatioVisualEditorComponent = forwardRef<
               onSave={onSave}
               isSaving={isSaving}
               className='h-full min-h-0'
+              scrollHeader={
+                editData?.name ? (
+                  <OfficialPriceEditor modelName={editData.name} />
+                ) : undefined
+              }
             />
           ) : (
             <div className='bg-card text-muted-foreground flex h-full min-h-0 flex-col items-center justify-center gap-3 rounded-xl border border-dashed p-6 text-center'>

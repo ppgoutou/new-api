@@ -7463,6 +7463,13 @@
     "Play sound": "Activer le son",
     "Mute": "Couper le son",
     "Play with sound": "Lire avec le son",
-    "Play {{title}} with sound": "Lire « {{title}} » avec le son"
+    "Play {{title}} with sound": "Lire « {{title}} » avec le son",
+    "Official Price": "Prix officiel",
+    "Official price saved": "Prix officiel enregistré",
+    "Official price removed": "Prix officiel supprimé",
+    "Remove official price": "Supprimer le prix officiel",
+    "Save official price": "Enregistrer le prix officiel",
+    "Failed to save official price": "Échec de l'enregistrement du prix officiel",
+    "Shown to users above the group prices. It is never charged. Use the same usage fields as the billing expression, in USD; leave it empty to hide the section.": "Affiché aux utilisateurs au-dessus des prix par groupe. Il n'est jamais facturé. Utilisez les mêmes champs d'usage que l'expression de facturation, en USD ; laissez vide pour masquer la section."
   }
 }

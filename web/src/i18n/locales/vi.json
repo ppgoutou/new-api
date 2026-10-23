@@ -7463,6 +7463,13 @@
     "Play sound": "Bật âm thanh",
     "Mute": "Tắt tiếng",
     "Play with sound": "Phát có âm thanh",
-    "Play {{title}} with sound": "Phát “{{title}}” có âm thanh"
+    "Play {{title}} with sound": "Phát “{{title}}” có âm thanh",
+    "Official Price": "Giá chính thức",
+    "Official price saved": "Đã lưu giá chính thức",
+    "Official price removed": "Đã xóa giá chính thức",
+    "Remove official price": "Xóa giá chính thức",
+    "Save official price": "Lưu giá chính thức",
+    "Failed to save official price": "Lưu giá chính thức thất bại",
+    "Shown to users above the group prices. It is never charged. Use the same usage fields as the billing expression, in USD; leave it empty to hide the section.": "Hiển thị cho người dùng phía trên giá theo nhóm và không bao giờ bị tính phí. Dùng cùng các trường sử dụng như biểu thức tính phí, đơn vị USD; để trống để ẩn mục này."
   }
 }

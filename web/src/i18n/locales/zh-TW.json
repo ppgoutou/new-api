@@ -7463,6 +7463,13 @@
     "Play sound": "播放聲音",
     "Mute": "靜音",
     "Play with sound": "播放有聲版本",
-    "Play {{title}} with sound": "播放「{{title}}」有聲版本"
+    "Play {{title}} with sound": "播放「{{title}}」有聲版本",
+    "Official Price": "官方價格",
+    "Official price saved": "官方價格已儲存",
+    "Official price removed": "官方價格已移除",
+    "Remove official price": "移除官方價格",
+    "Save official price": "儲存官方價格",
+    "Failed to save official price": "儲存官方價格失敗",
+    "Shown to users above the group prices. It is never charged. Use the same usage fields as the billing expression, in USD; leave it empty to hide the section.": "在分組定價上方展示給使用者，不參與計費。使用與計費表達式相同的用量欄位，單位為美元；留空則不顯示該欄目。"
   }
 }
