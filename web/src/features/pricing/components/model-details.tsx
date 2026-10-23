@@ -94,7 +94,7 @@ import {
   taskTierConditions,
   pricingDisplayFallbackKey,
 } from '../lib/task-price-display'
-import { getVideoPricing } from '../lib/video-pricing'
+import { getOfficialVideoPricing, getVideoPricing } from '../lib/video-pricing'
 import type {
   ModelCapability,
   PriceType,
@@ -1519,6 +1519,7 @@ export function ModelDetailsContent(props: ModelDetailsContentProps) {
               <VideoPricingTables
                 model={props.model}
                 pricing={videoPricing}
+                officialPricing={getOfficialVideoPricing(props.model)}
                 groups={getAvailableGroups(props.model, props.usableGroup)}
                 groupRatio={props.groupRatio}
                 priceRate={props.priceRate}

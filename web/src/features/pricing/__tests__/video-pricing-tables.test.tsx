@@ -25,7 +25,7 @@ import {
 } from '@/stores/system-config-store'
 
 import { VideoPricingTables } from '../components/video-pricing-tables'
-import { getVideoPricing } from '../lib/video-pricing'
+import { getOfficialVideoPricing, getVideoPricing } from '../lib/video-pricing'
 import type { PricingModel } from '../types'
 
 const MODEL: PricingModel = {
@@ -39,6 +39,9 @@ const MODEL: PricingModel = {
   billing_expr:
     'u("resolution") == "480p" ? tier("480p", u("reference_video_tokens") * 28 / 1000000 + u("seconds") * 0.56) : ' +
     'tier("720p", u("reference_video_tokens") * 28 / 1000000 + u("seconds") * 1)',
+  official_price_expr:
+    'u("resolution") == "480p" ? tier("480p", u("reference_video_tokens") * 40 / 1000000 + u("seconds") * 0.8) : ' +
+    'tier("720p", u("reference_video_tokens") * 40 / 1000000 + u("seconds") * 1.5)',
   billing_usage_schema: {
     seconds: { type: 'number', unit: 'second' },
     reference_video_tokens: { type: 'number', unit: 'token' },
@@ -46,13 +49,14 @@ const MODEL: PricingModel = {
   },
 }
 
-function renderTables(groups: string[]) {
-  const pricing = getVideoPricing(MODEL)
+function renderTables(groups: string[], model: PricingModel = MODEL) {
+  const pricing = getVideoPricing(model)
   if (!pricing) throw new Error('expected video pricing')
   return render(
     <VideoPricingTables
-      model={MODEL}
+      model={model}
       pricing={pricing}
+      officialPricing={getOfficialVideoPricing(model)}
       groups={groups}
       groupRatio={{ default: 0.65 }}
       priceRate={1}
@@ -87,13 +91,22 @@ afterEach(() => {
 })
 
 describe('video pricing tables', () => {
-  it('shows the base price per resolution with reference token rates and the available durations', () => {
+  it('shows the official price per resolution, without any group ratio, instead of the charged base price', () => {
     renderTables(['default'])
 
-    expect(tableRows('Base Price')).toEqual([
-      ['480p', '$0.56', '$28 / 1M tokens10,044 tokens per second', '4～15'],
-      ['720p', '$1', '$28 / 1M tokens21,600 tokens per second', '4～15'],
+    expect(tableRows('Official Price')).toEqual([
+      ['480p', '$0.8', '$40 / 1M tokens10,044 tokens per second', '4～15'],
+      ['720p', '$1.5', '$40 / 1M tokens21,600 tokens per second', '4～15'],
     ])
+    expect(screen.queryByText('Base Price')).not.toBeInTheDocument()
+  })
+
+  it('hides the top price table when the model has no official price', () => {
+    renderTables(['default'], { ...MODEL, official_price_expr: undefined })
+
+    expect(screen.queryByText('Official Price')).not.toBeInTheDocument()
+    expect(screen.queryByText('Base Price')).not.toBeInTheDocument()
+    expect(screen.getByText('Pricing by Group')).toBeVisible()
   })
 
   it('applies the group ratio to every price in the group table', () => {
@@ -125,10 +138,10 @@ describe('video pricing tables', () => {
     )
   })
 
-  it('shows only the base table when the model is in no available group', () => {
+  it('shows only the official table when the model is in no available group', () => {
     renderTables([])
 
-    expect(screen.getByText('Base Price')).toBeVisible()
+    expect(screen.getByText('Official Price')).toBeVisible()
     expect(screen.queryByText('Pricing by Group')).not.toBeInTheDocument()
     expect(screen.queryByText(/^Example/)).not.toBeInTheDocument()
   })

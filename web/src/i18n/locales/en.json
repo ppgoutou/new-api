@@ -7463,6 +7463,13 @@
     "Play sound": "Play sound",
     "Mute": "Mute",
     "Play with sound": "Play with sound",
-    "Play {{title}} with sound": "Play {{title}} with sound"
+    "Play {{title}} with sound": "Play {{title}} with sound",
+    "Official Price": "Official Price",
+    "Official price saved": "Official price saved",
+    "Official price removed": "Official price removed",
+    "Remove official price": "Remove official price",
+    "Save official price": "Save official price",
+    "Failed to save official price": "Failed to save official price",
+    "Shown to users above the group prices. It is never charged. Use the same usage fields as the billing expression, in USD; leave it empty to hide the section.": "Shown to users above the group prices. It is never charged. Use the same usage fields as the billing expression, in USD; leave it empty to hide the section."
   }
 }

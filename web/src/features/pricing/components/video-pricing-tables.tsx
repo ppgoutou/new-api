@@ -49,7 +49,10 @@ const EXAMPLE_OPTION = '720p'
 
 type VideoPricingTablesProps = {
   model: PricingModel
+  /** Charged price; the group table multiplies it by each group ratio. */
   pricing: VideoPricing
+  /** Vendor's published price shown above the group table; hidden when absent. */
+  officialPricing: VideoPricing | null
   groups: string[]
   groupRatio: Record<string, number>
   priceRate: number
@@ -66,7 +69,6 @@ export function VideoPricingTables(props: VideoPricingTablesProps) {
   const locale = toIntlLocale(i18n.resolvedLanguage || i18n.language)
   const optionDefinition =
     props.model.billing_usage_schema?.[props.pricing.optionField]
-  const range = props.pricing.durationRange
   const priceOptions = (ratio: number): DynamicPriceOptions => ({
     tokenUnit: 'M',
     showRechargePrice: props.showRechargePrice,
@@ -77,8 +79,10 @@ export function VideoPricingTables(props: VideoPricingTablesProps) {
   })
 
   function columns<TRow extends VideoPricingRow>(
+    pricing: VideoPricing,
     ratioOf: (row: TRow) => number
   ): StaticDataTableColumn<TRow>[] {
+    const range = pricing.durationRange
     const list: StaticDataTableColumn<TRow>[] = [
       {
         id: 'option',
@@ -94,7 +98,7 @@ export function VideoPricingTables(props: VideoPricingTablesProps) {
           formatTaskUsageUnitPrice(row.secondPrice, priceOptions(ratioOf(row))),
       },
     ]
-    if (props.pricing.hasReferencePricing) {
+    if (pricing.hasReferencePricing) {
       list.push({
         id: 'reference',
         header: t('Reference video order price'),
@@ -133,7 +137,7 @@ export function VideoPricingTables(props: VideoPricingTablesProps) {
     return list
   }
 
-  const referenceNotes = props.pricing.hasReferencePricing && (
+  const referenceNotes = (
     <div className='text-muted-foreground mt-2 space-y-1 text-xs'>
       <p>
         {t(
@@ -161,19 +165,21 @@ export function VideoPricingTables(props: VideoPricingTablesProps) {
 
   return (
     <>
-      <section>
-        <h4 className='text-muted-foreground mb-2 text-xs font-medium'>
-          {t('Base Price')}
-        </h4>
-        <StaticDataTable
-          tableClassName='text-sm'
-          headerRowClassName='hover:bg-transparent'
-          data={props.pricing.rows}
-          getRowKey={(row) => row.option}
-          columns={columns<VideoPricingRow>(() => 1)}
-        />
-        {referenceNotes}
-      </section>
+      {props.officialPricing && (
+        <section>
+          <h4 className='text-muted-foreground mb-2 text-xs font-medium'>
+            {t('Official Price')}
+          </h4>
+          <StaticDataTable
+            tableClassName='text-sm'
+            headerRowClassName='hover:bg-transparent'
+            data={props.officialPricing.rows}
+            getRowKey={(row) => row.option}
+            columns={columns<VideoPricingRow>(props.officialPricing, () => 1)}
+          />
+          {props.officialPricing.hasReferencePricing && referenceNotes}
+        </section>
+      )}
       {groupRows.length > 0 && (
         <section>
           <h4 className='text-muted-foreground mb-2 text-xs font-medium'>
@@ -190,10 +196,10 @@ export function VideoPricingTables(props: VideoPricingTablesProps) {
                 header: t('Group'),
                 cell: (row) => <GroupBadge group={row.group} size='sm' />,
               },
-              ...columns<GroupRow>((row) => row.ratio),
+              ...columns<GroupRow>(props.pricing, (row) => row.ratio),
             ]}
           />
-          {referenceNotes}
+          {props.pricing.hasReferencePricing && referenceNotes}
           {example &&
             props.groups.map((group) => {
               const options = priceOptions(

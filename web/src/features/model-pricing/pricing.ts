@@ -50,6 +50,8 @@ export type PricingValues = Partial<
   >
 > & {
   'billing_setting.plugin_billing_expr'?: Record<string, string>
+  /** Display-only official price; saved by its own editor, never by drafts. */
+  'billing_setting.official_price_expr'?: string
 }
 export type PricingOptions = Record<PricingKey, string>
 

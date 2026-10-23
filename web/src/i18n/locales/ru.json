@@ -7463,6 +7463,13 @@
     "Play sound": "Включить звук",
     "Mute": "Без звука",
     "Play with sound": "Смотреть со звуком",
-    "Play {{title}} with sound": "Смотреть «{{title}}» со звуком"
+    "Play {{title}} with sound": "Смотреть «{{title}}» со звуком",
+    "Official Price": "Официальная цена",
+    "Official price saved": "Официальная цена сохранена",
+    "Official price removed": "Официальная цена удалена",
+    "Remove official price": "Удалить официальную цену",
+    "Save official price": "Сохранить официальную цену",
+    "Failed to save official price": "Не удалось сохранить официальную цену",
+    "Shown to users above the group prices. It is never charged. Use the same usage fields as the billing expression, in USD; leave it empty to hide the section.": "Показывается пользователям над ценами групп и никогда не списывается. Используйте те же поля использования, что и в выражении тарификации, в USD; оставьте пустым, чтобы скрыть раздел."
   }
 }

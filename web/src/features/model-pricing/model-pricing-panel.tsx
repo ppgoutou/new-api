@@ -50,6 +50,7 @@ import {
   isValidPricingCurrency,
   USD_PRICING_CURRENCY,
 } from './currency'
+import { OfficialPriceEditor } from './official-price-editor'
 import { modelPricingDisplay, pricingFromDraft, pricingRow } from './pricing'
 
 export function ModelPricingPanel(props: {
@@ -225,6 +226,7 @@ export function ModelPricingPanel(props: {
                 )
               )}
             </section>
+            <OfficialPriceEditor modelName={entry.model_name} />
             {save.isError && (
               <div>
                 <p role='alert' className='text-destructive mb-2 text-sm'>

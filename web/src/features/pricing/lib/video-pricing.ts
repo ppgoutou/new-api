@@ -41,6 +41,13 @@ export const VIDEO_DURATION_RANGES: Readonly<
 > = {
   'seedance-2.0': [4, 15],
   'seedance-2.5': [4, 30],
+  'sd-2.0-线路1': [4, 15],
+  'sd-2.0-线路1-fast': [4, 15],
+  'sd-2.5-线路1（2.5）': [4, 30],
+  'seedance2.0-720p-P': [5, 15],
+  'seedance2.5-720p-P': [5, 30],
+  'seedance-2.0-official': [4, 15],
+  'seedance-2.5-official-relay': [4, 30],
 }
 
 export type VideoPricingRow = {
@@ -98,28 +105,48 @@ export function isVideoPricingSchema(
  * rules and partial matrices keep the generic pricing display.
  */
 export function getVideoPricing(model: PricingModel): VideoPricing | null {
+  if (model.billing_mode !== 'tiered_expr' || !model.billing_expr) return null
+  return videoPricingFromExpr(model, model.billing_expr)
+}
+
+/**
+ * The vendor's published price in the same per-option layout as the charged
+ * price. It is display-only: group ratios never apply to it.
+ */
+export function getOfficialVideoPricing(
+  model: PricingModel
+): VideoPricing | null {
+  if (!model.official_price_expr?.trim()) return null
+  return videoPricingFromExpr(model, model.official_price_expr)
+}
+
+function videoPricingFromExpr(
+  model: PricingModel,
+  expression: string
+): VideoPricing | null {
   const schema = model.billing_usage_schema
   const fields = getVideoSchemaFields(schema)
-  if (
-    !schema ||
-    !fields ||
-    model.billing_mode !== 'tiered_expr' ||
-    !model.billing_expr
-  ) {
-    return null
-  }
-  const split = splitBillingExprAndRequestRules(model.billing_expr)
+  if (!schema || !fields) return null
+  const split = splitBillingExprAndRequestRules(expression)
   if (split.requestRuleExpr?.trim()) return null
 
   const pricedFields = [fields.secondsField, fields.referenceField]
+  const options = schema[fields.optionField]?.enum ?? []
   const rowsByOption = new Map<string, VideoPricingRow>()
   for (const tier of getTaskPricingDisplayTiers(split.billingExpr, schema)) {
-    const condition = tier.conditions[0]
+    // A model with a single option, such as a 720p-only line, has one
+    // unconditional tier that prices that option.
+    const option =
+      tier.conditions.length === 0 && options.length === 1
+        ? options[0]
+        : tier.conditions[0]?.value
     if (
-      tier.conditions.length !== 1 ||
-      condition.field !== fields.optionField ||
+      option === undefined ||
+      tier.conditions.length > 1 ||
+      (tier.conditions.length === 1 &&
+        tier.conditions[0].field !== fields.optionField) ||
       tier.constant !== 0 ||
-      rowsByOption.has(condition.value) ||
+      rowsByOption.has(option) ||
       Object.keys(tier.unitPrices).some(
         (field) => !pricedFields.includes(field)
       )
@@ -129,15 +156,15 @@ export function getVideoPricing(model: PricingModel): VideoPricing | null {
     const referencePricePerMillion = fields.referenceField
       ? tier.unitPrices[fields.referenceField]
       : undefined
-    rowsByOption.set(condition.value, {
-      option: condition.value,
+    rowsByOption.set(option, {
+      option,
       secondPrice: tier.unitPrices[fields.secondsField] ?? 0,
       referencePricePerMillion,
-      tokensPerSecond: VIDEO_TOKENS_PER_SECOND[condition.value],
+      tokensPerSecond: VIDEO_TOKENS_PER_SECOND[option],
     })
   }
 
-  const rows = (schema[fields.optionField]?.enum ?? []).flatMap((option) => {
+  const rows = options.flatMap((option) => {
     const row = rowsByOption.get(option)
     return row ? [row] : []
   })

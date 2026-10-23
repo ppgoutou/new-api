@@ -67,6 +67,7 @@ var modelPricingOptionKeys = []string{
 	"AudioCompletionRatio", "AudioRatio", "CacheRatio", "CompletionRatio",
 	"CreateCacheRatio", "ImageRatio", "ModelPrice", "ModelRatio",
 	"billing_setting.billing_expr", "billing_setting.billing_mode", billing_setting.PluginBillingExprOption,
+	billing_setting.OfficialPriceExprOption,
 }
 
 var modelPricingMutationMu sync.Mutex
@@ -148,6 +149,11 @@ func modelPricingValues(values map[string]map[string]any, name string) PricingVa
 // Plugin expressions are grouped in the draft and flattened only in storage.
 func replaceModelPricing(values map[string]map[string]any, name string, draft PricingValues) {
 	for _, key := range modelPricingOptionKeys {
+		// The official price has its own editor; charged-price drafts and
+		// resets leave it untouched.
+		if key == billing_setting.OfficialPriceExprOption {
+			continue
+		}
 		if key == billing_setting.PluginBillingExprOption {
 			for variant := range values[key] {
 				if _, model, ok := billing_setting.SplitPluginBillingExprKey(variant); ok && model == name {
@@ -409,6 +415,33 @@ func validateModelPricing(name string, values, previous PricingValues) error {
 			}
 			continue
 		}
+		// The official price is display-only, but it must evaluate against the
+		// same usage facts as the charged expression so the pricing page can
+		// render it with the same per-option layout.
+		if key == billing_setting.OfficialPriceExprOption {
+			expression, ok := value.(string)
+			if !ok || strings.TrimSpace(expression) == "" {
+				return errors.New("official price expression is required")
+			}
+			if previous[key] == expression {
+				continue
+			}
+			var err error
+			if plugins := generation.PluginsByModel(name); len(plugins) > 0 {
+				for _, plugin := range plugins {
+					schema, _ := plugin.Meta.UsageForModel(name)
+					if err = billing_setting.SmokeTestTaskExpr(expression, schema); err == nil {
+						break
+					}
+				}
+			} else {
+				err = billing_setting.SmokeTestExpr(expression)
+			}
+			if err != nil {
+				return fmt.Errorf("model %s: official price: %w", name, err)
+			}
+			continue
+		}
 		if key == "billing_setting.billing_expr" {
 			expression, ok := value.(string)
 			if !ok || strings.TrimSpace(expression) == "" {
@@ -501,6 +534,28 @@ func UpdateModelPricing(changes []ModelPricingChange) error {
 			}
 			replaceModelPricing(values, change.ModelName, pricing)
 		}
+		return nil
+	})
+}
+
+// UpdateOfficialPriceExpr sets or, with an empty expression, removes the
+// display-only official price of one model.
+func UpdateOfficialPriceExpr(name string, expression string) error {
+	name = strings.TrimSpace(name)
+	expression = strings.TrimSpace(expression)
+	return mutateModelPricingOptions(func(_ *gorm.DB, values map[string]map[string]any) error {
+		key := billing_setting.OfficialPriceExprOption
+		if expression == "" {
+			if name == "" {
+				return errors.New("model name is required")
+			}
+			delete(values[key], name)
+			return nil
+		}
+		if err := validateModelPricing(name, PricingValues{key: expression}, modelPricingValues(values, name)); err != nil {
+			return err
+		}
+		values[key][name] = expression
 		return nil
 	})
 }

@@ -171,6 +171,24 @@ export function useSaveModelPricing() {
   })
 }
 
+export async function saveOfficialPrice(request: {
+  model_name: string
+  expression: string
+}) {
+  const res = await api.put('/api/option/model_pricing/official', request)
+  if (!res.data.success) {
+    throw createServerError(res.data, t('Failed to save official price'))
+  }
+}
+
+export function useSaveOfficialPrice() {
+  const client = useQueryClient()
+  return useMutation({
+    mutationFn: saveOfficialPrice,
+    onSuccess: () => invalidateModelPricing(client),
+  })
+}
+
 // Only dirty model fields are applied to stored configuration. Display-only
 // built-in expressions for other models never become administrator overrides.
 export function buildPricingChanges(

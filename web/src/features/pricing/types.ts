@@ -83,6 +83,8 @@ export type PricingModel = {
   billing_mode?: string
   /** Raw expression describing dynamic / tiered billing */
   billing_expr?: string
+  /** Display-only vendor price in the billing expression language; never charged. */
+  official_price_expr?: string
   /** Task-plugin usage facts and their billing units. */
   billing_usage_schema?: BillingUsageSchema
   /** Display-only labeled usage vectors for pricing examples. */
