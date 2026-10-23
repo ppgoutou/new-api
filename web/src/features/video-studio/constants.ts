@@ -16,8 +16,6 @@ along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 For commercial licensing, please contact support@quantumnous.com
 */
-import { VIDEO_DURATION_RANGES } from '@/features/pricing/lib/video-pricing'
-
 import type { AssetKind, StudioDraft, StudioRatio } from './types'
 
 export interface StudioModel {
@@ -27,18 +25,11 @@ export interface StudioModel {
   duration: readonly [number, number]
 }
 
-export const STUDIO_MODELS: readonly StudioModel[] = [
-  {
-    name: 'seedance-2.0',
-    resolutions: ['480p', '720p', '1080p', '4k'],
-    duration: VIDEO_DURATION_RANGES['seedance-2.0'],
-  },
-  {
-    name: 'seedance-2.5',
-    resolutions: ['480p', '720p', '1080p'],
-    duration: VIDEO_DURATION_RANGES['seedance-2.5'],
-  },
-]
+/**
+ * Duration range of a video model that has no entry in VIDEO_DURATION_RANGES,
+ * the same as seedance-2.0.
+ */
+export const DEFAULT_STUDIO_DURATION: readonly [number, number] = [4, 15]
 
 export const STUDIO_RATIOS: readonly StudioRatio[] = [
   'auto',

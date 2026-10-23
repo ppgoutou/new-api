@@ -18,13 +18,16 @@ For commercial licensing, please contact support@quantumnous.com
 */
 import { describe, expect, it } from 'vitest'
 
-import { DEFAULT_DRAFT } from '../constants'
+import type { PricingModel } from '@/features/pricing/types'
+
+import { DEFAULT_DRAFT, type StudioModel } from '../constants'
 import {
   buildVideoRequest,
   estimateDraftCostUSD,
   fitDraftToModel,
   labelReferences,
   removeReferenceFromPrompt,
+  studioModelsFromPricing,
   validateDraft,
 } from '../lib/draft'
 import type { AssetKind, StudioAsset, StudioDraft } from '../types'
@@ -78,18 +81,121 @@ describe('removeReferenceFromPrompt', () => {
   })
 })
 
+function pricingModel(
+  name: string,
+  patch: Partial<PricingModel> = {}
+): PricingModel {
+  return {
+    id: 1,
+    model_name: name,
+    quota_type: 0,
+    model_ratio: 0,
+    completion_ratio: 0,
+    enable_groups: ['default'],
+    ...patch,
+  }
+}
+
+/** Per-second video price by resolution, as the pricing API returns it. */
+function videoModel(name: string, resolutions: string[]): PricingModel {
+  const tiers = resolutions.map(
+    (resolution) => `tier("${resolution}", u("seconds") * 0.1)`
+  )
+  const expr = tiers.reduceRight(
+    (rest, tier, index) =>
+      `u("resolution") == "${resolutions[index]}" ? ${tier} : ${rest}`
+  )
+  return pricingModel(name, {
+    billing_mode: 'tiered_expr',
+    billing_expr: resolutions.length === 1 ? tiers[0] : expr,
+    billing_usage_schema: {
+      resolution: { enum: resolutions },
+      seconds: { type: 'number', unit: 'second' },
+    },
+  })
+}
+
+describe('studioModelsFromPricing', () => {
+  it('offers every per-second video model in pricing order with its resolutions', () => {
+    const models = studioModelsFromPricing([
+      videoModel('seedance-2.5', ['480p', '720p', '1080p']),
+      videoModel('seedance2.0-720p-P', ['720p']),
+    ])
+    expect(models).toEqual([
+      {
+        name: 'seedance-2.5',
+        resolutions: ['480p', '720p', '1080p'],
+        duration: [4, 30],
+      },
+      { name: 'seedance2.0-720p-P', resolutions: ['720p'], duration: [5, 15] },
+    ])
+  })
+
+  it('uses 4 to 15 seconds for a video model without a known duration range', () => {
+    const [model] = studioModelsFromPricing([
+      videoModel('seedance-2-0-fast-NSFW', ['480p', '720p']),
+    ])
+    expect(model.duration).toEqual([4, 15])
+  })
+
+  it('leaves out text, image and non-resolution priced models', () => {
+    const models = studioModelsFromPricing([
+      pricingModel('gpt-4o', { model_ratio: 1.25 }),
+      pricingModel('seedream-5.0', {
+        billing_mode: 'tiered_expr',
+        billing_expr: 'tier("per_image", fixed(0.1296)) * image_count',
+      }),
+      pricingModel('sora-2', {
+        billing_mode: 'tiered_expr',
+        billing_expr: 'tier("720x1280", u("seconds") * 0.1)',
+        billing_usage_schema: {
+          size: { enum: ['720x1280'] },
+          seconds: { type: 'number', unit: 'second' },
+        },
+      }),
+    ])
+    expect(models).toEqual([])
+  })
+})
+
 describe('fitDraftToModel', () => {
+  const models: StudioModel[] = [
+    {
+      name: 'seedance-2.0',
+      resolutions: ['480p', '720p', '1080p', '4k'],
+      duration: [4, 15],
+    },
+    {
+      name: 'seedance-2.5',
+      resolutions: ['480p', '720p', '1080p'],
+      duration: [4, 30],
+    },
+  ]
+
   it('lowers 4k and long durations when switching to seedance-2.5 limits', () => {
     const fitted = fitDraftToModel(
-      draft({ model: 'seedance-2.5', resolution: '4k', seconds: 40 })
+      draft({ model: 'seedance-2.5', resolution: '4k', seconds: 40 }),
+      models
     )
     expect(fitted.resolution).toBe('1080p')
     expect(fitted.seconds).toBe(30)
   })
 
   it('caps seedance-2.0 at 15 seconds and raises short durations to 4', () => {
-    expect(fitDraftToModel(draft({ seconds: 20 })).seconds).toBe(15)
-    expect(fitDraftToModel(draft({ seconds: 1 })).seconds).toBe(4)
+    expect(fitDraftToModel(draft({ seconds: 20 }), models).seconds).toBe(15)
+    expect(fitDraftToModel(draft({ seconds: 1 }), models).seconds).toBe(4)
+  })
+
+  it('switches to the first model when the chosen one is no longer offered', () => {
+    const fitted = fitDraftToModel(draft({ model: 'retired-model' }), [
+      models[1],
+    ])
+    expect(fitted.model).toBe('seedance-2.5')
+  })
+
+  it('keeps the draft unchanged while no model is available', () => {
+    const value = draft({ model: 'seedance-2.0', seconds: 40 })
+    expect(fitDraftToModel(value, [])).toBe(value)
   })
 })
 

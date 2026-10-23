@@ -29,8 +29,7 @@ import {
 import { Slider } from '@/components/ui/slider'
 import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group'
 
-import { STUDIO_MAX_COUNT, STUDIO_RATIOS } from '../constants'
-import { findStudioModel } from '../lib/draft'
+import { STUDIO_MAX_COUNT, STUDIO_RATIOS, type StudioModel } from '../constants'
 import type { StudioDraft, StudioRatio } from '../types'
 
 interface OptionRowProps {
@@ -79,7 +78,9 @@ function OptionRow(props: OptionRowProps) {
 }
 
 interface ParamsPopoverProps {
+  /** Draft already fitted to the model. */
   draft: StudioDraft
+  model: StudioModel
   onChange: (patch: Partial<StudioDraft>) => void
 }
 
@@ -87,7 +88,7 @@ interface ParamsPopoverProps {
 export function ParamsPopover(props: ParamsPopoverProps) {
   const { t } = useTranslation()
   const draft = props.draft
-  const model = findStudioModel(draft.model)
+  const model = props.model
   const [shortest, longest] = model.duration
   const ratioLabel = (ratio: StudioRatio) =>
     ratio === 'auto' ? t('Auto') : ratio

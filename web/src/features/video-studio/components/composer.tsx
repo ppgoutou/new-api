@@ -26,11 +26,18 @@ import { Spinner } from '@/components/ui/spinner'
 import { getServerErrorMessage } from '@/lib/server-error-message'
 
 import { createVideoTask } from '../api'
-import { ASSET_RETENTION_DAYS, STUDIO_MODELS } from '../constants'
+import { ASSET_RETENTION_DAYS } from '../constants'
 import { assetKindOf, useAssetUploader } from '../hooks/use-asset-uploader'
 import { useStudioDraft } from '../hooks/use-studio-draft'
+import { useStudioModels } from '../hooks/use-studio-models'
 import { useStudioPrice } from '../hooks/use-studio-price'
-import { buildVideoRequest, labelReferences, validateDraft } from '../lib/draft'
+import {
+  buildVideoRequest,
+  findStudioModel,
+  fitDraftToModel,
+  labelReferences,
+  validateDraft,
+} from '../lib/draft'
 import { rememberTaskPrompt } from '../lib/prompt-history'
 import type { StudioMode } from '../types'
 import { ChoiceMenu } from './choice-menu'
@@ -47,11 +54,13 @@ interface ComposerProps {
 export function Composer(props: ComposerProps) {
   const { t } = useTranslation()
   const studio = useStudioDraft()
-  const draft = studio.draft
+  const models = useStudioModels()
+  const draft = fitDraftToModel(studio.draft, models)
+  const model = findStudioModel(models, draft.model)
   const upload = useAssetUploader()
   const price = useStudioPrice(draft)
   const [submitting, setSubmitting] = useState(false)
-  const problem = validateDraft(draft)
+  const problem = model ? validateDraft(draft) : 'No video model is available'
 
   const addReferences = (files: File[]) => {
     const rejected = files.filter((file) => !assetKindOf(file))
@@ -157,17 +166,25 @@ export function Composer(props: ComposerProps) {
           options={modeOptions}
           onChange={(mode) => studio.update({ mode })}
         />
-        <ChoiceMenu
-          label={t('Model')}
-          value={draft.model}
-          options={STUDIO_MODELS.map((model) => ({
-            value: model.name,
-            label: model.name,
-            icon: <Film className='size-3.5' aria-hidden />,
-          }))}
-          onChange={(model) => studio.update({ model })}
-        />
-        <ParamsPopover draft={draft} onChange={studio.update} />
+        {model && (
+          <>
+            <ChoiceMenu
+              label={t('Model')}
+              value={draft.model}
+              options={models.map((option) => ({
+                value: option.name,
+                label: option.name,
+                icon: <Film className='size-3.5' aria-hidden />,
+              }))}
+              onChange={(name) => studio.update({ model: name })}
+            />
+            <ParamsPopover
+              draft={draft}
+              model={model}
+              onChange={studio.update}
+            />
+          </>
+        )}
         <div className='ml-auto flex items-center gap-3'>
           {price && (
             <span className='text-muted-foreground text-xs'>

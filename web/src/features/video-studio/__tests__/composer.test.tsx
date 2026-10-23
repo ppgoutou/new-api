@@ -22,10 +22,17 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
 import { createVideoTask, uploadVideoAsset } from '../api'
 import { Composer } from '../components/composer'
+import type { StudioModel } from '../constants'
+
+const studioModels = vi.hoisted(() => ({ current: [] as StudioModel[] }))
 
 vi.mock('../api', () => ({
   uploadVideoAsset: vi.fn(),
   createVideoTask: vi.fn(),
+}))
+
+vi.mock('../hooks/use-studio-models', () => ({
+  useStudioModels: () => studioModels.current,
 }))
 
 vi.mock('../hooks/use-studio-price', () => ({
@@ -36,6 +43,19 @@ const uploadMock = vi.mocked(uploadVideoAsset)
 const createMock = vi.mocked(createVideoTask)
 
 beforeEach(() => {
+  studioModels.current = [
+    {
+      name: 'seedance-2.0',
+      resolutions: ['480p', '720p', '1080p', '4k'],
+      duration: [4, 15],
+    },
+    {
+      name: 'seedance-2.5',
+      resolutions: ['480p', '720p', '1080p'],
+      duration: [4, 30],
+    },
+    { name: 'seedance2.0-720p-P', resolutions: ['720p'], duration: [5, 15] },
+  ]
   vi.stubGlobal(
     'URL',
     Object.assign(URL, {
@@ -129,5 +149,53 @@ describe('Composer', () => {
 
     expect(prompt).toHaveValue('keep  ')
     expect(screen.queryByText('@图片1')).not.toBeInTheDocument()
+  })
+
+  it('lists every model from the pricing data and submits the picked one', async () => {
+    const user = userEvent.setup()
+    render(<Composer onSubmitted={vi.fn()} />)
+
+    await user.click(
+      screen.getByRole('button', { name: 'Model: seedance-2.0' })
+    )
+    expect(
+      screen.getAllByRole('menuitemradio').map((item) => item.textContent)
+    ).toEqual(['seedance-2.0', 'seedance-2.5', 'seedance2.0-720p-P'])
+    await user.click(
+      screen.getByRole('menuitemradio', { name: 'seedance2.0-720p-P' })
+    )
+    await user.type(
+      screen.getByRole('textbox', { name: 'Video prompt' }),
+      'a cat runs'
+    )
+    await user.click(screen.getByRole('button', { name: 'Generate video' }))
+
+    await waitFor(() => expect(createMock).toHaveBeenCalledOnce())
+    expect(createMock).toHaveBeenCalledWith({
+      model: 'seedance2.0-720p-P',
+      prompt: 'a cat runs',
+      seconds: 5,
+      resolution: '720p',
+    })
+  })
+
+  it('hides the model menu and does not submit while no model is available', async () => {
+    studioModels.current = []
+    const user = userEvent.setup()
+    render(<Composer onSubmitted={vi.fn()} />)
+    await user.type(
+      screen.getByRole('textbox', { name: 'Video prompt' }),
+      'a cat runs'
+    )
+
+    await user.click(screen.getByRole('button', { name: 'Generate video' }))
+
+    expect(
+      screen.queryByRole('button', { name: /^Model:/ })
+    ).not.toBeInTheDocument()
+    expect(
+      screen.getByRole('button', { name: 'Generate video' })
+    ).toHaveAttribute('title', 'No video model is available')
+    expect(createMock).not.toHaveBeenCalled()
   })
 })
