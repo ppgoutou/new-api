@@ -76,7 +76,10 @@ export function ModelPricing() {
                 header: t('Official price'),
                 cellClassName:
                   'text-muted-foreground font-mono tabular-nums line-through',
-                cell: (row) => t('{{price}} / s', { price: row.officialPrice }),
+                cell: (row) =>
+                  row.officialPrice
+                    ? t('{{price}} / s', { price: row.officialPrice })
+                    : '-',
               })
             }
             columns.push({

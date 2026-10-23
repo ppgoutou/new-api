@@ -129,6 +129,35 @@ describe('home model pricing', () => {
     ).toBeVisible()
   })
 
+  it('shows the configured official price and the smallest discount against it', async () => {
+    mockPricingApi([
+      {
+        ...SEEDANCE_20,
+        official_price_expr:
+          'u("resolution") == "480p" ? tier("480p", u("seconds") * 1) : ' +
+          'tier("720p", u("seconds") * 2)',
+      },
+    ])
+    renderPricing()
+
+    const card = modelCard('seedance-2.0')
+    const rows = (await within(card).findAllByRole('row')).slice(1).map((row) =>
+      within(row)
+        .getAllByRole('cell')
+        .map((cell) => cell.textContent)
+    )
+    expect(rows).toEqual([
+      ['480p', '$1 / s', '$0.42 / s'],
+      ['720p', '$2 / s', '$0.75 / s'],
+    ])
+    expect(
+      screen.getByRole('heading', {
+        level: 2,
+        name: 'Billed per second, 58% off official prices',
+      })
+    ).toBeVisible()
+  })
+
   it('links to the model square for a model the pricing API does not return', async () => {
     mockPricingApi([SEEDANCE_20])
     renderPricing()
