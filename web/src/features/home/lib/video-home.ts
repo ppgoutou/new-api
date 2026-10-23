@@ -149,8 +149,8 @@ export type PriceDiscount = {
 }
 
 /**
- * Discount shown on the home page for a group ratio below 1, or null when the
- * ratio does not discount the official price.
+ * Discount shown on the home page for a ratio of our price to the official
+ * price below 1, or null when the ratio does not discount the official price.
  */
 export function getPriceDiscount(ratio: number): PriceDiscount | null {
   if (!Number.isFinite(ratio) || ratio <= 0 || ratio >= 1) return null

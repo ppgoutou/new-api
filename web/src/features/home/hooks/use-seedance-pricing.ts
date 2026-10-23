@@ -23,6 +23,7 @@ import {
 } from '@/features/pricing/lib/dynamic-price'
 import { getDisplayGroupRatio } from '@/features/pricing/lib/model-helpers'
 import {
+  getOfficialVideoPricing,
   getVideoPricing,
   VIDEO_PRICE_FRACTION_DIGITS,
 } from '@/features/pricing/lib/video-pricing'
@@ -38,8 +39,12 @@ export type SeedancePriceRow = {
   option: string
   /** Price per second for the viewer's best group. */
   price: string
-  /** Price per second before the group discount. */
-  officialPrice: string
+  /**
+   * The configured official price per second, or the price before the group
+   * discount when none is configured; null when the configured official price
+   * leaves this option out.
+   */
+  officialPrice: string | null
 }
 
 export type SeedanceModelPricing = {
@@ -78,17 +83,45 @@ export function useSeedancePricing() {
     const cheapest = videoPricing.rows.reduce((low, row) =>
       row.secondPrice < low.secondPrice ? row : low
     )
+    // The admin-configured official price is display-only, so group ratios
+    // never apply to it. Without one, the price before the group ratio stands
+    // in for it.
+    const official = getOfficialVideoPricing(model)
+    const officialSecondPrices = videoPricing.rows.map((row) =>
+      official
+        ? official.rows.find((entry) => entry.option === row.option)
+            ?.secondPrice
+        : row.secondPrice
+    )
+    // The smallest discount across options, so the headline holds for every
+    // resolution. No comparable option leaves -Infinity, which shows none.
+    const discountRatio = official
+      ? Math.max(
+          ...videoPricing.rows.flatMap((row, index) => {
+            const officialSecondPrice = officialSecondPrices[index]
+            return officialSecondPrice
+              ? [(row.secondPrice * ratio) / officialSecondPrice]
+              : []
+          })
+        )
+      : ratio
     byModel.set(homeModel.name, {
-      rows: videoPricing.rows.map((row) => ({
-        option: row.option,
-        price: formatTaskUsageUnitPrice(row.secondPrice, options(ratio)),
-        officialPrice: formatTaskUsageUnitPrice(row.secondPrice, options(1)),
-      })),
+      rows: videoPricing.rows.map((row, index) => {
+        const officialSecondPrice = officialSecondPrices[index]
+        return {
+          option: row.option,
+          price: formatTaskUsageUnitPrice(row.secondPrice, options(ratio)),
+          officialPrice:
+            officialSecondPrice === undefined
+              ? null
+              : formatTaskUsageUnitPrice(officialSecondPrice, options(1)),
+        }
+      }),
       lowestPrice: formatTaskUsageUnitPrice(
         cheapest.secondPrice,
         options(ratio)
       ),
-      discount: getPriceDiscount(ratio),
+      discount: getPriceDiscount(discountRatio),
     })
   }
 
