@@ -51,7 +51,6 @@ function toolbarProps(): PricingToolbarProps {
     onTagChange: vi.fn(),
     vendors: [],
     groups: ['default', 'premium'],
-    groupRatios: { default: 1, premium: 3 },
     tags: [],
     models: [],
     hasActiveFilters: false,
