@@ -77,7 +77,14 @@ For commercial licensing, please contact support@quantumnous.com
  * 3. **Payment amounts**: Always use formatLocalCurrencyAmount() for priceRatio-calculated values
  * 4. **Billing displays**: Use formatBillingCurrencyFromUSD() to avoid token display
  * 5. **Effective exchange rate**: When quotaDisplayType is 'USD', use rate of 1 regardless of config
+ * 6. **Interface language**: A 'USD' site shows simplified and traditional
+ *    Chinese interfaces in CNY at usdExchangeRate. formatLocalCurrencyAmount()
+ *    and wallet top-up amounts keep the admin setting, since the backend
+ *    prices top-ups by it.
  */
+import i18next from 'i18next'
+
+import { normalizeInterfaceLanguage } from '@/i18n/languages'
 import {
   useSystemConfigStore,
   DEFAULT_CURRENCY_CONFIG,
@@ -182,6 +189,23 @@ function getConfig(): CurrencyConfig {
       currency?.customCurrencySymbol?.trim() ||
       DEFAULT_CURRENCY_CONFIG.customCurrencySymbol,
   }
+}
+
+/** Interface languages that a 'USD' site shows in CNY. */
+const CNY_INTERFACE_LANGUAGES = new Set(['zhCN', 'zhTW'])
+
+/**
+ * The admin currency config adjusted for the interface language: a 'USD' site
+ * displays CNY to Chinese interfaces. Other display types are left as set.
+ */
+function getDisplayConfig(): CurrencyConfig {
+  const config = getConfig()
+  if (config.quotaDisplayType !== 'USD') return config
+  const language = normalizeInterfaceLanguage(
+    i18next.resolvedLanguage || i18next.language
+  )
+  if (!CNY_INTERFACE_LANGUAGES.has(language)) return config
+  return { ...config, quotaDisplayType: 'CNY' }
 }
 
 function getDisplayMeta(config: CurrencyConfig): DisplayMeta {
@@ -363,7 +387,7 @@ function formatCurrencyValue(
  * higher-level formatting functions instead.
  */
 export function getCurrencyDisplay() {
-  const config = getConfig()
+  const config = getDisplayConfig()
   const meta = getDisplayMeta(config)
   return { config, meta }
 }
@@ -629,8 +653,9 @@ export function formatLocalCurrencyAmount(
 ): string {
   if (amount == null || Number.isNaN(amount)) return '-'
 
-  const { config } = getCurrencyDisplay()
-  const meta = getBillingDisplayMeta(config)
+  // Payment amounts are money in the admin-configured currency, so the
+  // interface language does not change their symbol.
+  const meta = getBillingDisplayMeta(getConfig())
   const merged = mergeOptions(options)
 
   return formatCurrencyValue(amount, merged, meta)
