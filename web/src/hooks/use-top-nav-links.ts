@@ -70,6 +70,11 @@ export function useTopNavLinks(): TopNavLink[] {
   // Console -> /dashboard (new console path)
   if (modules?.console !== false) {
     links.push({ title: t('Console'), href: '/dashboard' })
+    links.push({
+      title: t('Video Creation'),
+      href: '/video-studio',
+      requiresAuth: !isAuthed,
+    })
   }
 
   // Pricing
