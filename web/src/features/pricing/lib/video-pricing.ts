@@ -48,6 +48,7 @@ export const VIDEO_DURATION_RANGES: Readonly<
   'seedance2.5-720p-P': [5, 30],
   'seedance-2.0-official': [4, 15],
   'seedance-2.5-official-relay': [4, 30],
+  'seedance-2-5-NSFW': [4, 30],
 }
 
 export type VideoPricingRow = {
