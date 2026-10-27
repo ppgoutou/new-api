@@ -100,7 +100,7 @@ export function LandingHero() {
               className='size-1.5 animate-pulse rounded-full bg-cyan-400 shadow-[0_0_8px_#22d3ee]'
               aria-hidden
             />
-            {t('Seedance video API · online')}
+            {t('Seedance AI video · online')}
           </p>
           <h1 className='mt-5 text-[clamp(2.25rem,5vw,3.75rem)] leading-[1.1] font-bold tracking-tight text-white'>
             {t('Cinematic AI video,')}

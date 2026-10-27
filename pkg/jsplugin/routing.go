@@ -410,6 +410,7 @@ var reservedRouteNamespaces = []string{
 	"/otp",
 	"/register",
 	"/reset",
+	"/landing",
 	"/privacy-policy",
 	"/refund-policy",
 	"/robots.txt",
