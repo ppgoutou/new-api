@@ -71,7 +71,7 @@ export function ImageToVideo() {
           </h2>
           <p className='text-muted-foreground mt-3'>
             {t(
-              'Switch the generation mode with one parameter on the same API.'
+              'Pick a mode in Video Creation and adjust resolution and duration as you go.'
             )}
           </p>
           <ol className='mt-7 flex flex-col gap-3'>

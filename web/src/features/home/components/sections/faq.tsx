@@ -16,6 +16,7 @@ along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 For commercial licensing, please contact support@quantumnous.com
 */
+import { Link } from '@tanstack/react-router'
 import { useTranslation } from 'react-i18next'
 
 import {
@@ -24,6 +25,7 @@ import {
   AccordionItem,
   AccordionTrigger,
 } from '@/components/ui/accordion'
+import { useStatus } from '@/hooks/use-status'
 
 import { useSeedancePricing } from '../../hooks/use-seedance-pricing'
 import { SupportContacts } from '../support-contacts'
@@ -31,8 +33,20 @@ import { SupportContacts } from '../support-contacts'
 export function Faq() {
   const { t } = useTranslation()
   const { bestDiscount } = useSeedancePricing()
+  const { status } = useStatus()
 
   const items = [
+    {
+      id: 'no-code',
+      question: t('Do I need to write code?'),
+      answer: (
+        <p>
+          {t(
+            'No. Create videos right in the browser with Video Creation. Developers can also call the same models through the API.'
+          )}
+        </p>
+      ),
+    },
     {
       id: 'billing',
       question: t('How is it billed?'),
@@ -69,6 +83,25 @@ export function Faq() {
         </p>
       ),
     },
+    ...(status?.refund_policy_enabled
+      ? [
+          {
+            id: 'refund',
+            question: t('Can I get a refund?'),
+            answer: (
+              <p>
+                {t('Refunds follow our refund policy.')}{' '}
+                <Link
+                  to='/refund-policy'
+                  className='text-blue-600 hover:underline dark:text-blue-400'
+                >
+                  {t('Refund Policy')}
+                </Link>
+              </p>
+            ),
+          },
+        ]
+      : []),
     {
       id: 'help',
       question: t('How do I get help?'),
@@ -83,7 +116,7 @@ export function Faq() {
           {t('FAQ')}
         </h2>
         <Accordion
-          defaultValue={['billing']}
+          defaultValue={['no-code']}
           className='bg-card border-border/60 rounded-2xl border px-5'
         >
           {items.map((item) => (

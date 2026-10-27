@@ -32,6 +32,13 @@ export async function getUserAgreement(): Promise<LegalDocumentResponse> {
   return res.data
 }
 
+export async function getRefundPolicy(): Promise<LegalDocumentResponse> {
+  const res = await api.get<LegalDocumentResponse>('/api/refund-policy', {
+    headers: { 'Cache-Control': null },
+  })
+  return res.data
+}
+
 export async function getPrivacyPolicy(): Promise<LegalDocumentResponse> {
   const res = await api.get<LegalDocumentResponse>('/api/privacy-policy', {
     headers: { 'Cache-Control': null },
