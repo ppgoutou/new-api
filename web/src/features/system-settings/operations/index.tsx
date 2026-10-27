@@ -16,7 +16,7 @@ along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 For commercial licensing, please contact support@quantumnous.com
 */
-import { useStatus } from '@/hooks/use-status'
+import { usePrivateStatus } from '@/hooks/use-status'
 
 import { SettingsPage } from '../components/settings-page'
 import type { OperationsSettings } from '../types'
@@ -64,7 +64,7 @@ const defaultOperationsSettings: OperationsSettings = {
 }
 
 export function OperationsSettings() {
-  const { status } = useStatus()
+  const { privateStatus } = usePrivateStatus()
 
   return (
     <SettingsPage
@@ -74,8 +74,8 @@ export function OperationsSettings() {
       getSectionContent={getOperationsSectionContent}
       getSectionMeta={getOperationsSectionMeta}
       extraArgs={[
-        status?.version as string | undefined,
-        status?.start_time as number | null | undefined,
+        privateStatus?.version as string | undefined,
+        privateStatus?.start_time as number | null | undefined,
       ]}
       loadingMessage='Loading maintenance settings...'
     />

@@ -37,6 +37,7 @@ const defaultSiteSettings: SiteSettings = {
   'general_setting.docs_link': '',
   'legal.user_agreement': '',
   'legal.privacy_policy': '',
+  'legal.refund_policy': '',
   HeaderNavModules: '',
   SidebarModulesAdmin: '',
 }

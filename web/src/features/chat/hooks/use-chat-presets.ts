@@ -19,25 +19,13 @@ For commercial licensing, please contact support@quantumnous.com
 import { useMemo } from 'react'
 
 import type { SystemStatus } from '@/features/auth/types'
-import { useStatus } from '@/hooks/use-status'
+import { usePrivateStatus, useStatus } from '@/hooks/use-status'
 
 import {
   type ChatPreset,
   parseChatConfig,
   type RawChatConfig,
 } from '../lib/chat-links'
-
-function getStoredStatusChats(): RawChatConfig {
-  if (typeof window === 'undefined') return undefined
-  try {
-    const raw = window.localStorage.getItem('status')
-    if (!raw) return undefined
-    const parsed = JSON.parse(raw)
-    return parsed?.chats ?? parsed?.Chats
-  } catch {
-    return undefined
-  }
-}
 
 function extractServerAddress(status: SystemStatus | null) {
   const fromStatus =
@@ -58,10 +46,7 @@ function extractServerAddress(status: SystemStatus | null) {
 }
 
 function extractChats(status: SystemStatus | null): RawChatConfig {
-  const raw =
-    status?.Chats ?? status?.chats ?? status?.data?.Chats ?? status?.data?.chats
-
-  return (raw as RawChatConfig) ?? getStoredStatusChats()
+  return (status?.chats as RawChatConfig) ?? undefined
 }
 
 export function useChatPresets(): {
@@ -69,13 +54,14 @@ export function useChatPresets(): {
   serverAddress: string
 } {
   const { status } = useStatus()
+  const { privateStatus } = usePrivateStatus()
 
   const serverAddress = useMemo(() => extractServerAddress(status), [status])
 
   const chatPresets = useMemo(() => {
-    const raw = extractChats(status)
+    const raw = extractChats(privateStatus)
     return parseChatConfig(raw)
-  }, [status])
+  }, [privateStatus])
 
   return {
     chatPresets,

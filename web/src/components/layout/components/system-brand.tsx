@@ -24,7 +24,7 @@ import {
   SidebarMenuButton,
   SidebarMenuItem,
 } from '@/components/ui/sidebar'
-import { useStatus } from '@/hooks/use-status'
+import { usePrivateStatus, useStatus } from '@/hooks/use-status'
 import { useSystemConfig } from '@/hooks/use-system-config'
 import { cn } from '@/lib/utils'
 
@@ -48,12 +48,13 @@ type SystemBrandProps = {
 export function SystemBrand(props: SystemBrandProps) {
   const { t } = useTranslation()
   const { status } = useStatus()
+  const { privateStatus } = usePrivateStatus()
   const { logo } = useSystemConfig()
 
   const variant = props.variant ?? 'sidebar'
   const name = status?.system_name || props.defaultName || 'API-Finder'
   const version =
-    status?.version || props.defaultVersion || t('Unknown version')
+    privateStatus?.version || props.defaultVersion || t('Unknown version')
 
   if (variant === 'inline') {
     return (

@@ -40,7 +40,7 @@ import { UpdateCheckerSection } from '@/features/system-settings/maintenance/upd
 import { api } from '@/lib/api'
 import { createAppQueryClient } from '@/lib/query-client'
 import { ROLE } from '@/lib/roles'
-import { STATUS_QUERY_KEY } from '@/lib/status-query'
+import { PRIVATE_STATUS_QUERY_KEY } from '@/lib/status-query'
 import { useAuthStore } from '@/stores/auth-store'
 
 import { useSystemUpdatePreferencesStore, useSystemUpdateStore } from '../store'
@@ -85,7 +85,7 @@ beforeEach(() => {
   vi.stubGlobal('fetch', fetchMock)
   respondWithRelease()
   client = createAppQueryClient()
-  client.setQueryData(STATUS_QUERY_KEY, { version: 'v1.0.0-rc.35' })
+  client.setQueryData(PRIVATE_STATUS_QUERY_KEY, { version: 'v1.0.0-rc.35' })
   vi.spyOn(api, 'get').mockResolvedValue({
     data: { success: true, data: { version: 'v1.0.0-rc.35' } },
   })
@@ -201,7 +201,7 @@ describe('administrator update entry', () => {
 
   test('does not suggest a downgrade and updates every entry after a manual recheck', async () => {
     const user = userEvent.setup()
-    client.setQueryData(STATUS_QUERY_KEY, { version: 'v1.0.0-rc.37' })
+    client.setQueryData(PRIVATE_STATUS_QUERY_KEY, { version: 'v1.0.0-rc.37' })
     render(
       <>
         <SystemUpdateAction />
@@ -235,7 +235,7 @@ describe('administrator update entry', () => {
     ).toHaveLength(2)
 
     act(() =>
-      client.setQueryData(STATUS_QUERY_KEY, { version: 'v1.0.0-rc.38' })
+      client.setQueryData(PRIVATE_STATUS_QUERY_KEY, { version: 'v1.0.0-rc.38' })
     )
     expect(
       await screen.findAllByRole('button', { name: 'Check for updates' })
@@ -246,7 +246,7 @@ describe('administrator update entry', () => {
     'shows an unknown current version for %s and allows ignoring the fetched release',
     async (version) => {
       const user = userEvent.setup()
-      client.setQueryData(STATUS_QUERY_KEY, { version })
+      client.setQueryData(PRIVATE_STATUS_QUERY_KEY, { version })
       render(<SystemUpdateAction presentation='version' />, {
         wrapper: Wrapper,
       })
@@ -378,7 +378,7 @@ describe('version label presentation', () => {
           finishRequest = resolve
         })
     )
-    client.setQueryData(STATUS_QUERY_KEY, { version: release.tag_name })
+    client.setQueryData(PRIVATE_STATUS_QUERY_KEY, { version: release.tag_name })
     render(<SystemUpdateAction presentation='version' />, { wrapper: Wrapper })
     const trigger = screen.getByRole('button', {
       name: 'System updates, current version: v1.0.0-rc.36',
@@ -399,7 +399,7 @@ describe('version label presentation', () => {
   })
 
   test('shows an unknown-version label when the server has not supplied a version', async () => {
-    client.setQueryData(STATUS_QUERY_KEY, { version: '' })
+    client.setQueryData(PRIVATE_STATUS_QUERY_KEY, { version: '' })
     render(<SystemUpdateAction presentation='version' />, { wrapper: Wrapper })
     const trigger = screen.getByRole('button', {
       name: 'System updates, current version: Unknown version',
@@ -431,7 +431,7 @@ describe('version label presentation', () => {
 
   test('keeps a long version accessible in the tooltip while constraining its visible label', async () => {
     const version = 'v1.0.0+long-build-metadata-for-a-custom-deployment'
-    client.setQueryData(STATUS_QUERY_KEY, { version })
+    client.setQueryData(PRIVATE_STATUS_QUERY_KEY, { version })
     render(<SystemUpdateAction presentation='version' />, { wrapper: Wrapper })
     const trigger = screen.getByRole('button', {
       name: `System updates, current version: ${version}`,
@@ -464,7 +464,7 @@ describe('version notification preferences', () => {
     localStorage.setItem('system-update-preferences:v1', String(saved))
     await useSystemUpdatePreferencesStore.persist.rehydrate()
     client = createAppQueryClient()
-    client.setQueryData(STATUS_QUERY_KEY, { version: 'v1.0.0-rc.35' })
+    client.setQueryData(PRIVATE_STATUS_QUERY_KEY, { version: 'v1.0.0-rc.35' })
     const second = renderHook(useSystemUpdate, { wrapper: Wrapper })
     await waitFor(() => expect(second.result.current.hasUpdate).toBe(true))
     expect(second.result.current.isIgnored).toBe(true)
@@ -637,7 +637,7 @@ describe('update cache and scheduling', () => {
     localStorage.setItem('system-update:v1', String(saved))
     await useSystemUpdateStore.persist.rehydrate()
     client = createAppQueryClient()
-    client.setQueryData(STATUS_QUERY_KEY, { version: 'v1.0.0-rc.35' })
+    client.setQueryData(PRIVATE_STATUS_QUERY_KEY, { version: 'v1.0.0-rc.35' })
     const second = renderHook(useSystemUpdate, { wrapper: Wrapper })
     expect(second.result.current.hasUpdate).toBe(true)
     expect(fetchMock).toHaveBeenCalledTimes(1)

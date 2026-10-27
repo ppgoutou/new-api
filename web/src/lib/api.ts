@@ -75,6 +75,12 @@ export async function getStatus() {
   return requireServerSuccess(res.data)?.data as Record<string, unknown>
 }
 
+/** Status fields for signed-in users only: version, start time, chat presets. */
+export async function getPrivateStatus() {
+  const res = await api.get('/api/status/private')
+  return requireServerSuccess(res.data)?.data as Record<string, unknown>
+}
+
 export async function getNotice(): Promise<{
   success: boolean
   message?: string

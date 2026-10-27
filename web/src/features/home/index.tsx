@@ -32,6 +32,7 @@ import {
   ImageToVideo,
   ModelPricing,
   Showcase,
+  UseCases,
   VideoCta,
   VideoHero,
 } from './components'
@@ -136,6 +137,7 @@ export function Home() {
         <Showcase isAuthenticated={isAuthenticated} />
         <ImageToVideo />
       </HomePlaybackProvider>
+      <UseCases />
       <ModelPricing />
       <ApiQuickstart />
       <Faq />
