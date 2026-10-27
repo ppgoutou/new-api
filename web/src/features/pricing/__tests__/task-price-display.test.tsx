@@ -699,3 +699,39 @@ it('shows provider count, price range and missing-price status in both list and 
   expect(screen.getByText('0.4 – 0.8/s')).toBeVisible()
   expect(screen.getByText('$0.4 – $0.8')).toBeVisible()
 })
+
+it('shows only group prices for seedance-2.5-G2-V, without the base price section', () => {
+  vi.spyOn(api, 'get').mockResolvedValue({ data: { data: { groups: [] } } })
+  const client = new QueryClient({
+    defaultOptions: { queries: { retry: false } },
+  })
+  clients.push(client)
+  render(
+    <QueryClientProvider client={client}>
+      <ModelDetailsContent
+        model={{
+          ...model,
+          model_name: 'seedance-2.5-G2-V',
+          billing_expr: 'tier("base", u("videos") * 1.28)',
+          billing_usage_schema: {
+            resolution: { enum: ['720p'] },
+            videos: {
+              type: 'number',
+              unit: 'count',
+              description: { en: 'Video generation unit price' },
+            },
+          },
+        }}
+        groupRatio={{ default: 1 }}
+        usableGroup={{ default: { desc: '', ratio: 1 } }}
+        endpointMap={{}}
+        autoGroups={[]}
+        priceRate={1}
+        usdExchangeRate={1}
+        tokenUnit='M'
+      />
+    </QueryClientProvider>
+  )
+  expect(screen.queryByText('Base Price')).not.toBeInTheDocument()
+  expect(screen.getByText('Pricing by Group')).toBeVisible()
+})

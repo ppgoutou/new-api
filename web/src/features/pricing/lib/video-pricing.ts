@@ -49,7 +49,16 @@ export const VIDEO_DURATION_RANGES: Readonly<
   'seedance-2.0-official': [4, 15],
   'seedance-2.5-official-relay': [4, 30],
   'seedance-2-5-NSFW': [4, 30],
+  'seedance-2.5-G2-V': [4, 30],
 }
+
+/**
+ * Models whose details page shows only the per-group prices, without the
+ * Base Price section.
+ */
+export const GROUP_PRICE_ONLY_MODELS: ReadonlySet<string> = new Set([
+  'seedance-2.5-G2-V',
+])
 
 export type VideoPricingRow = {
   option: string
@@ -58,6 +67,8 @@ export type VideoPricingRow = {
   /** USD per million reference-order tokens, when reference orders are priced. */
   referencePricePerMillion?: number
   tokensPerSecond?: number
+  /** USD per video of any length, for models billed per video. */
+  videoPrice?: number
 }
 
 export type VideoPricing = {
@@ -176,6 +187,70 @@ function videoPricingFromExpr(
     hasReferencePricing: rows.some(
       (row) => row.referencePricePerMillion !== undefined
     ),
+    durationRange: model.model_name
+      ? VIDEO_DURATION_RANGES[model.model_name]
+      : undefined,
+    rows,
+  }
+}
+
+/**
+ * Per-option prices of a video model billed per video: one count field priced
+ * by exactly one enum, such as resolution. Returns null for any other schema,
+ * per-request charges or request rules.
+ */
+export function getPerVideoPricing(model: PricingModel): VideoPricing | null {
+  if (model.billing_mode !== 'tiered_expr' || !model.billing_expr) return null
+  const schema = model.billing_usage_schema
+  const numberFields = getTaskNumberFields(schema)
+  const enumFields = getTaskEnumFields(schema)
+  if (
+    !schema ||
+    enumFields.length !== 1 ||
+    numberFields.length !== 1 ||
+    numberFields[0][1].unit !== 'count'
+  ) {
+    return null
+  }
+  const split = splitBillingExprAndRequestRules(model.billing_expr)
+  if (split.requestRuleExpr?.trim()) return null
+
+  const countField = numberFields[0][0]
+  const optionField = enumFields[0][0]
+  const options = enumFields[0][1].enum ?? []
+  const rowsByOption = new Map<string, VideoPricingRow>()
+  for (const tier of getTaskPricingDisplayTiers(split.billingExpr, schema)) {
+    const option =
+      tier.conditions.length === 0 && options.length === 1
+        ? options[0]
+        : tier.conditions[0]?.value
+    if (
+      option === undefined ||
+      tier.conditions.length > 1 ||
+      (tier.conditions.length === 1 &&
+        tier.conditions[0].field !== optionField) ||
+      tier.constant !== 0 ||
+      rowsByOption.has(option) ||
+      Object.keys(tier.unitPrices).some((field) => field !== countField)
+    ) {
+      return null
+    }
+    rowsByOption.set(option, {
+      option,
+      secondPrice: 0,
+      videoPrice: tier.unitPrices[countField] ?? 0,
+    })
+  }
+
+  const rows = options.flatMap((option) => {
+    const row = rowsByOption.get(option)
+    return row ? [row] : []
+  })
+  if (rows.length === 0 || rows.length !== rowsByOption.size) return null
+
+  return {
+    optionField,
+    hasReferencePricing: false,
     durationRange: model.model_name
       ? VIDEO_DURATION_RANGES[model.model_name]
       : undefined,
