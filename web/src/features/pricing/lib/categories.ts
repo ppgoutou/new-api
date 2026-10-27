@@ -16,8 +16,26 @@ along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 For commercial licensing, please contact support@quantumnous.com
 */
+import type { TFunction } from 'i18next'
+
 import { FILTER_ALL } from '../constants'
-import type { PricingCategory, PricingModel } from '../types'
+import type { PricingCategory, PricingModel, PricingModelBadge } from '../types'
+
+/** Card badges in the order they are offered and shown. */
+export const PRICING_MODEL_BADGES = [
+  'recommended',
+  'hot',
+  'new',
+] as const satisfies readonly PricingModelBadge[]
+
+/** Label of a card badge; HOT and NEW read the same in every language. */
+export function modelBadgeLabel(
+  badge: PricingModelBadge,
+  t: TFunction
+): string {
+  if (badge === 'recommended') return t('Recommended')
+  return badge === 'hot' ? 'HOT' : 'NEW'
+}
 
 /** Filter value and section id for models outside every category. */
 export const UNCATEGORIZED_CATEGORY = '__uncategorized'
@@ -84,4 +102,20 @@ export function filterByCategory(
   if (!category) return models
   const members = new Set(category.models)
   return models.filter((model) => members.has(model.model_name))
+}
+
+/** Maps each model name to its card badges, in PRICING_MODEL_BADGES order. */
+export function modelBadgesByName(
+  categories: PricingCategory[]
+): Map<string, PricingModelBadge[]> {
+  const result = new Map<string, PricingModelBadge[]>()
+  for (const category of categories) {
+    for (const [name, badges] of Object.entries(category.badges ?? {})) {
+      const known = PRICING_MODEL_BADGES.filter((badge) =>
+        badges.includes(badge)
+      )
+      if (known.length > 0) result.set(name, known)
+    }
+  }
+  return result
 }

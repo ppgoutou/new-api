@@ -37,6 +37,7 @@ import { useFilters } from './hooks/use-filters'
 import { usePricingData } from './hooks/use-pricing-data'
 import {
   groupModelsByCategory,
+  modelBadgesByName,
   UNCATEGORIZED_CATEGORY,
   type PricingCategorySection,
 } from './lib/categories'
@@ -123,6 +124,7 @@ export function Pricing() {
     () => groupModelsByCategory(filteredModels, categories),
     [filteredModels, categories]
   )
+  const modelBadges = useMemo(() => modelBadgesByName(categories), [categories])
 
   const renderModels = (sectionModels: PricingModel[]) => {
     if (viewMode === VIEW_MODES.CARD) {
@@ -135,6 +137,7 @@ export function Pricing() {
           tokenUnit={tokenUnit}
           showRechargePrice={showRechargePrice}
           selectedGroup={groupFilter}
+          badges={modelBadges}
         />
       )
     }

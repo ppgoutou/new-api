@@ -45,11 +45,12 @@ import {
 } from '@/lib/server-error-message'
 
 import {
-  movePricingCategory,
+  moveOneStep,
   newPricingCategoryId,
   parsePricingCategories,
   PRICING_CATEGORIES_OPTION_KEY,
   pricingCategoryOwners,
+  selectedModelBadges,
   type PricingCategoryFormValues,
 } from '../lib/pricing-categories'
 import { PricingCategoryDialog } from './dialogs/pricing-category-dialog'
@@ -108,6 +109,7 @@ export function PricingCategoriesSection() {
       name: values.name.trim(),
       description: values.description.trim(),
       models: values.models,
+      badges: selectedModelBadges(values.models, values.badges),
     }
     const next = editing
       ? categories.map((item) => (item.id === editing.id ? category : item))
@@ -177,7 +179,7 @@ export function PricingCategoriesSection() {
                     aria-label={t('Move up')}
                     disabled={index === 0 || save.isPending}
                     onClick={() =>
-                      save.mutate(movePricingCategory(categories, index, -1))
+                      save.mutate(moveOneStep(categories, index, -1))
                     }
                   >
                     <ArrowUp className='size-4' />
@@ -188,7 +190,7 @@ export function PricingCategoriesSection() {
                     aria-label={t('Move down')}
                     disabled={index === categories.length - 1 || save.isPending}
                     onClick={() =>
-                      save.mutate(movePricingCategory(categories, index, 1))
+                      save.mutate(moveOneStep(categories, index, 1))
                     }
                   >
                     <ArrowDown className='size-4' />

@@ -88,6 +88,27 @@ afterEach(() => {
 })
 
 describe('model cards', () => {
+  it('lists the administrator badges under the model name in the given order', () => {
+    render(
+      <ModelCard
+        model={pricingModel({})}
+        badges={['recommended', 'hot']}
+        onClick={vi.fn()}
+      />
+    )
+    const highlights = screen.getByRole('list', { name: 'Highlights' })
+    expect(
+      within(highlights)
+        .getAllByRole('listitem')
+        .map((item) => item.textContent)
+    ).toEqual(['Recommended', 'HOT'])
+  })
+
+  it('shows no badge list when the model has no badges', () => {
+    render(<ModelCard model={pricingModel({})} onClick={vi.fn()} />)
+    expect(screen.queryByRole('list', { name: 'Highlights' })).toBeNull()
+  })
+
   it('shows separate generic and image cache prices including a free image cache', () => {
     render(
       <CachedPriceCell

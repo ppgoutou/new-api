@@ -21,6 +21,7 @@ import { describe, expect, it } from 'vitest'
 import {
   filterByCategory,
   groupModelsByCategory,
+  modelBadgesByName,
   UNCATEGORIZED_CATEGORY,
 } from '../lib/categories'
 import type { PricingCategory, PricingModel } from '../types'
@@ -93,5 +94,29 @@ describe('pricing categories', () => {
       names(filterByCategory(models, UNCATEGORIZED_CATEGORY, categories))
     ).toEqual(['wan3.0'])
     expect(filterByCategory(models, 'deleted', categories)).toHaveLength(4)
+  })
+
+  it('collects card badges across categories in the fixed badge order and skips empty or unknown ones', () => {
+    const badged = modelBadgesByName([
+      {
+        id: 'a',
+        name: 'A',
+        models: ['seedance-2.0', 'wan3.0'],
+        badges: { 'seedance-2.0': ['new', 'recommended'], 'wan3.0': [] },
+      },
+      {
+        id: 'b',
+        name: 'B',
+        models: ['seedance-2.5'],
+        badges: {
+          'seedance-2.5': ['free' as never, 'hot'],
+        },
+      },
+    ])
+
+    expect([...badged]).toEqual([
+      ['seedance-2.0', ['recommended', 'new']],
+      ['seedance-2.5', ['hot']],
+    ])
   })
 })

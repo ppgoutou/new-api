@@ -29,6 +29,7 @@ import { useSystemConfigStore } from '@/stores/system-config-store'
 
 import { DEFAULT_TOKEN_UNIT } from '../constants'
 import { useBillingTime } from '../hooks/use-billing-time'
+import { modelBadgeLabel } from '../lib/categories'
 import {
   formatTaskUsageUnitPrice,
   getCardExamplePrice,
@@ -51,7 +52,12 @@ import {
   getVideoPricing,
   VIDEO_PRICE_FRACTION_DIGITS,
 } from '../lib/video-pricing'
-import type { PricingModel, PriceType, TokenUnit } from '../types'
+import type {
+  PricingModel,
+  PricingModelBadge,
+  PriceType,
+  TokenUnit,
+} from '../types'
 import { ModelBillingModeBadge } from './model-billing-mode-badge'
 import { ModelPerfBadge, type ModelPerfBadgeData } from './model-perf-badge'
 
@@ -68,6 +74,13 @@ export interface ModelCardProps {
   showRechargePrice?: boolean
   selectedGroup?: string
   perf?: ModelPerfBadgeData
+  badges?: PricingModelBadge[]
+}
+
+const MODEL_BADGE_CLASSES: Record<PricingModelBadge, string> = {
+  recommended: 'bg-[#2f6bff] text-white',
+  hot: 'bg-[#ff4d2e] text-white',
+  new: 'bg-[#16c784] text-neutral-950',
 }
 
 export const ModelCard = memo(function ModelCard(props: ModelCardProps) {
@@ -385,6 +398,24 @@ export const ModelCard = memo(function ModelCard(props: ModelCardProps) {
           >
             {props.model.model_name}
           </h3>
+          {props.badges && props.badges.length > 0 && (
+            <ul
+              aria-label={t('Highlights')}
+              className='mt-1.5 flex flex-wrap gap-1'
+            >
+              {props.badges.map((badge) => (
+                <li
+                  key={badge}
+                  className={cn(
+                    'border-foreground rounded-md border-[1.5px] px-1.5 py-px text-[11px] leading-4 font-bold tracking-wide',
+                    MODEL_BADGE_CLASSES[badge]
+                  )}
+                >
+                  {modelBadgeLabel(badge, t)}
+                </li>
+              ))}
+            </ul>
+          )}
           {props.model.vendor_name && (
             <p
               className='text-muted-foreground mt-1 truncate text-xs'

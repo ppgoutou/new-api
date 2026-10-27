@@ -29,6 +29,10 @@ func TestValidatePricingCategories(t *testing.T) {
 		{name: "padded model name", value: `[{"id":"a","name":"A","models":[" seedance-2.0"]}]`},
 		{name: "name over 40 characters", value: `[{"id":"a","name":"` + strings.Repeat("类", 41) + `","models":[]}]`},
 		{name: "not a list", value: `{"id":"a"}`},
+		{name: "badges on own models", value: `[{"id":"a","name":"A","models":["seedance-2.0","sd-2.0"],"badges":{"seedance-2.0":["hot","recommended"],"sd-2.0":[]}}]`, valid: true},
+		{name: "unknown badge", value: `[{"id":"a","name":"A","models":["seedance-2.0"],"badges":{"seedance-2.0":["free"]}}]`},
+		{name: "repeated badge", value: `[{"id":"a","name":"A","models":["seedance-2.0"],"badges":{"seedance-2.0":["hot","hot"]}}]`},
+		{name: "badge on a model outside the category", value: `[{"id":"a","name":"A","models":["seedance-2.0"],"badges":{"seedance-2.5":["hot"]}}]`},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -53,7 +57,7 @@ func TestPublicPricingCategoriesKeepsOnlyVisibleModels(t *testing.T) {
 	common.OptionMapRWMutex.Lock()
 	previous := common.OptionMap
 	common.OptionMap = map[string]string{
-		pricingCategoriesOptionKey: `[{"id":"sd20","name":"Seedance 2.0","models":["seedance-2.0","hidden-model","sd-2.0-线路1"]},{"id":"empty","name":"Empty","models":["hidden-model"]}]`,
+		pricingCategoriesOptionKey: `[{"id":"sd20","name":"Seedance 2.0","models":["seedance-2.0","hidden-model","sd-2.0-线路1"],"badges":{"seedance-2.0":["hot"],"hidden-model":["new"]}},{"id":"empty","name":"Empty","models":["hidden-model"]}]`,
 	}
 	common.OptionMapRWMutex.Unlock()
 	t.Cleanup(func() {
@@ -66,5 +70,6 @@ func TestPublicPricingCategoriesKeepsOnlyVisibleModels(t *testing.T) {
 
 	require.Len(t, categories, 2)
 	assert.Equal(t, []string{"seedance-2.0", "sd-2.0-线路1"}, categories[0].Models)
+	assert.Equal(t, map[string][]string{"seedance-2.0": {"hot"}}, categories[0].Badges)
 	assert.Empty(t, categories[1].Models)
 }

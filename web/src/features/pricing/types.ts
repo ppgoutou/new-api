@@ -27,12 +27,17 @@ export type PricingVendor = {
   description?: string
 }
 
+/** Highlight label an administrator can put on a model card. */
+export type PricingModelBadge = 'recommended' | 'hot' | 'new'
+
 /** Administrator-defined pricing page category; models are in display order. */
 export type PricingCategory = {
   id: string
   name: string
   description?: string
   models: string[]
+  /** Card badges keyed by model name, for models of this category. */
+  badges?: Record<string, PricingModelBadge[]>
 }
 
 export type BillingUsageUnit = 'second' | 'count' | 'token' | 'credit'
