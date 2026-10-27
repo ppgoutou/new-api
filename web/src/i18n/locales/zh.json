@@ -7526,7 +7526,7 @@
     "Cinematic AI video,": "电影级 AI 视频，",
     "{{percentOff}}% below official price": "比官方价低 {{percentOff}}%",
     "billed per second": "按秒计费",
-    "API-Finder gives you access to ByteDance Seedance video models. Create in the browser or call an OpenAI-compatible API, billed per generated second.": "API-Finder 提供字节跳动 Seedance 视频模型的调用服务。可在网页上直接创作，也可调用兼容 OpenAI 的 API，按生成秒数计费。",
+    "Create cinematic video with ByteDance Seedance right in your browser, or add it to your own app with our video API. Billed per generated second.": "用字节跳动 Seedance 在浏览器里直接创作电影级视频，也可以通过我们的视频 API 接入你自己的应用。按生成秒数计费。",
     "Generated": "已生成",
     "International · Telegram": "海外 · Telegram",
     "Mainland China · QQ": "中国大陆 · QQ",

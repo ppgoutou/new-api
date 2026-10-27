@@ -116,7 +116,7 @@ export function LandingHero() {
           </h1>
           <p className='mt-5 max-w-xl text-base leading-relaxed text-slate-400 2xl:text-lg'>
             {t(
-              'API-Finder gives you access to ByteDance Seedance video models. Create in the browser or call an OpenAI-compatible API, billed per generated second.'
+              'Create cinematic video with ByteDance Seedance right in your browser, or add it to your own app with our video API. Billed per generated second.'
             )}
           </p>
           <ul className='mt-6 flex flex-col gap-2.5 text-sm text-slate-300'>
