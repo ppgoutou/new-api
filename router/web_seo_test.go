@@ -61,6 +61,9 @@ func TestRenderIndexPageServesSameMetadataAndHomeCopyToEveryone(t *testing.T) {
 	assert.NotContains(t, home, "客服")
 	assert.Contains(t, home, `<a href="/refund-policy">Refund Policy</a>`)
 	assert.Less(t, strings.Index(home, `id="prerender"`), strings.Index(home, `<div id="root"></div>`))
+	// Browsers running scripts must hide the copy before it is parsed.
+	assert.Less(t, strings.Index(home, `classList.add('js')`), strings.Index(home, `id="prerender"`))
+	assert.Contains(t, home, `html.js #prerender{display:none}`)
 
 	pricing := getBody(t, engine, "/pricing")
 	assert.Contains(t, pricing, "<title>Acme &lt;Video&gt; | Pricing</title>")
