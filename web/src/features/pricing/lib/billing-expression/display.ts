@@ -80,6 +80,22 @@ function tokenConditions(node: ExpressionNode): TokenTierCondition[] | null {
   return conditions
 }
 
+const DERIVED_USAGE_VARIABLES = new Set(['p', 'c', 'len', 'image_count'])
+const DERIVED_USAGE_FUNCTIONS = new Set(['min', 'max', 'abs', 'ceil', 'floor'])
+
+function isDerivedUsageCondition(node: ExpressionNode): boolean {
+  const dependencies = expressionDependencies(node)
+  return (
+    dependencies.variables.size > 0 &&
+    [...dependencies.variables].every((name) =>
+      DERIVED_USAGE_VARIABLES.has(name)
+    ) &&
+    [...dependencies.functions].every((name) =>
+      DERIVED_USAGE_FUNCTIONS.has(name)
+    )
+  )
+}
+
 function nonnegativePriceLiteral(node: ExpressionNode): number | null {
   if (
     node.kind === 'literal' &&
@@ -232,9 +248,17 @@ export function readTokenTierChain(node: ExpressionNode): TokenTier[] | null {
   let remaining = node
   while (remaining.kind === 'conditional') {
     const conditions = tokenConditions(remaining.condition)
-    if (!conditions) return null
-    const tier = tokenTier(remaining.yes, conditions)
+    const tier = tokenTier(remaining.yes, conditions ?? [])
     if (!tier) return null
+    // Fixed prices may branch on derived usage, such as pixels per image
+    // from `c * 256 / image_count`; the tier label names that condition.
+    if (
+      !conditions &&
+      (tier.billingUnit !== 'request' ||
+        !isDerivedUsageCondition(remaining.condition))
+    ) {
+      return null
+    }
     tiers.push(tier)
     remaining = remaining.no
   }

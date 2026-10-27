@@ -33,6 +33,7 @@ import {
   formatTaskUsageUnitPrice,
   getCardExamplePrice,
   getDynamicDisplayGroupRatio,
+  getDynamicPriceEntries,
   getDynamicPriceUnitLabelKey,
   getDynamicPricingSummary,
   isUnconfiguredTaskUsageModel,
@@ -157,6 +158,13 @@ export const ModelCard = memo(function ModelCard(props: ModelCardProps) {
     const cacheReadEntries = dynamicSummary.secondaryEntries.filter(
       (entry) => entry.field === 'cacheReadPrice' && entry.unit === 'token'
     )
+    const fixedTierRows =
+      dynamicSummary.isTaskUsage || dynamicSummary.isTimePricing
+        ? []
+        : dynamicSummary.tiers.flatMap((tier) => {
+            const entry = getDynamicPriceEntries(tier, dynamicPriceOptions)[0]
+            return entry?.key === 'fixed' ? [{ label: tier.label, entry }] : []
+          })
     if (dynamicSummary.isSpecialExpression) {
       priceSummary = (
         <div className='col-span-full min-w-0'>
@@ -167,6 +175,31 @@ export const ModelCard = memo(function ModelCard(props: ModelCardProps) {
             {dynamicSummary.rawExpression}
           </code>
         </div>
+      )
+    } else if (
+      fixedTierRows.length > 1 &&
+      fixedTierRows.length === dynamicSummary.tiers.length
+    ) {
+      priceSummary = (
+        <dl className='col-span-full grid gap-y-1'>
+          {fixedTierRows.map((row) => (
+            <div
+              key={row.label}
+              className='flex min-w-0 items-baseline justify-between gap-3'
+            >
+              <dt className='text-muted-foreground truncate text-xs'>
+                {row.label}
+              </dt>
+              <dd className='shrink-0 font-mono text-sm font-semibold tabular-nums'>
+                {row.entry.formatted}
+                <span className='text-muted-foreground text-xs font-normal'>
+                  {' '}
+                  / {t(getDynamicPriceUnitLabelKey(row.entry) ?? 'request')}
+                </span>
+              </dd>
+            </div>
+          ))}
+        </dl>
       )
     } else if (
       dynamicSummary.primaryEntries.length > 0 ||
