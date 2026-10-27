@@ -92,6 +92,33 @@ describe('expression price summaries', () => {
     expect(free?.primaryEntries).toHaveLength(1)
     expect(free?.primaryEntries[0].value).toBe(0)
   })
+  test('reads per-image prices branched on pixels per image', () => {
+    const summary = getDynamicPricingSummary(
+      pricingModel({
+        billing_mode: 'tiered_expr',
+        billing_expr:
+          '(c * 256 / image_count <= 2360000 ? tier("≤236万像素", fixed(0.0648)) : tier(">236万像素", fixed(0.1296))) * image_count',
+      }),
+      { tokenUnit: 'M' }
+    )
+    expect(summary?.isSpecialExpression).toBe(false)
+    expect(
+      summary?.tiers.map((tier) => [
+        tier.label,
+        'fixedPrice' in tier && tier.fixedPrice,
+        'imageCount' in tier && tier.imageCount,
+      ])
+    ).toEqual([
+      ['≤236万像素', 0.0648, true],
+      ['>236万像素', 0.1296, true],
+    ])
+    // A token-priced branch on a derived quantity stays a special expression.
+    expect(
+      parseTiersFromExpr(
+        'c * 256 / image_count <= 2360000 ? tier("a", p * 2) : tier("b", p * 4)'
+      )
+    ).toEqual([])
+  })
   const timeExpression =
     'weekday("Asia/Shanghai") >= 1 && weekday("Asia/Shanghai") <= 5 && ((hour("Asia/Shanghai") >= 9 && hour("Asia/Shanghai") < 12) || (hour("Asia/Shanghai") >= 14 && hour("Asia/Shanghai") < 18)) ? tier("peak", p * 3 + cr * 0.1 + c * 9) : tier("off_peak", p * 1.5 + cr * 0.05 + c * 4.5)'
 
