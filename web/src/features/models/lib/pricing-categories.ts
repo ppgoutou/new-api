@@ -18,7 +18,11 @@ For commercial licensing, please contact support@quantumnous.com
 */
 import { z } from 'zod'
 
-import type { PricingCategory } from '@/features/pricing/types'
+import { PRICING_MODEL_BADGES } from '@/features/pricing/lib/categories'
+import type {
+  PricingCategory,
+  PricingModelBadge,
+} from '@/features/pricing/types'
 
 export const PRICING_CATEGORIES_OPTION_KEY = 'PricingCategories'
 export const PRICING_CATEGORY_NAME_MAX = 40
@@ -28,6 +32,7 @@ export const pricingCategoryFormSchema = z.object({
   name: z.string().trim().min(1).max(PRICING_CATEGORY_NAME_MAX),
   description: z.string().max(PRICING_CATEGORY_DESCRIPTION_MAX),
   models: z.array(z.string()),
+  badges: z.record(z.string(), z.array(z.enum(PRICING_MODEL_BADGES))),
 })
 
 export type PricingCategoryFormValues = z.infer<
@@ -59,12 +64,41 @@ export function parsePricingCategories(
                 (model): model is string => typeof model === 'string'
               )
             : [],
+          badges: parseModelBadges(record.badges),
         },
       ]
     })
   } catch {
     return []
   }
+}
+
+function parseModelBadges(
+  value: unknown
+): Record<string, PricingModelBadge[]> | undefined {
+  if (!value || typeof value !== 'object') return undefined
+  const result: Record<string, PricingModelBadge[]> = {}
+  for (const [name, badges] of Object.entries(value)) {
+    if (!Array.isArray(badges)) continue
+    const known = PRICING_MODEL_BADGES.filter((badge) => badges.includes(badge))
+    if (known.length > 0) result[name] = known
+  }
+  return Object.keys(result).length > 0 ? result : undefined
+}
+
+/**
+ * Badges of the selected models only, dropping models without any; undefined
+ * when no model has a badge, so the stored option leaves the field out.
+ */
+export function selectedModelBadges(
+  models: string[],
+  badges: Record<string, PricingModelBadge[]>
+): Record<string, PricingModelBadge[]> | undefined {
+  const result: Record<string, PricingModelBadge[]> = {}
+  for (const name of models) {
+    if (badges[name]?.length) result[name] = badges[name]
+  }
+  return Object.keys(result).length > 0 ? result : undefined
 }
 
 export function newPricingCategoryId(existing: PricingCategory[]): string {
@@ -89,15 +123,15 @@ export function pricingCategoryOwners(
   return owners
 }
 
-/** Returns a copy with the category at index moved one step up or down. */
-export function movePricingCategory(
-  categories: PricingCategory[],
+/** Returns a copy with the item at index moved one step up or down. */
+export function moveOneStep<T>(
+  items: T[],
   index: number,
   direction: -1 | 1
-): PricingCategory[] {
+): T[] {
   const target = index + direction
-  if (target < 0 || target >= categories.length) return categories
-  const next = [...categories]
+  if (target < 0 || target >= items.length) return items
+  const next = [...items]
   const [moved] = next.splice(index, 1)
   next.splice(target, 0, moved)
   return next

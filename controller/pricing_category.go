@@ -2,6 +2,7 @@ package controller
 
 import (
 	"errors"
+	"slices"
 	"strings"
 	"unicode/utf8"
 
@@ -19,13 +20,19 @@ const (
 	pricingCategoryModelNameMaxSize = 255
 )
 
+// pricingModelBadges are the highlight labels an administrator can put on a
+// model card.
+var pricingModelBadges = []string{"recommended", "hot", "new"}
+
 // pricingCategory groups models on the public pricing page. The option stores
-// them in display order, each model listed in the order it is shown.
+// them in display order, each model listed in the order it is shown, and the
+// badges shown on the cards of its models.
 type pricingCategory struct {
-	ID          string   `json:"id"`
-	Name        string   `json:"name"`
-	Description string   `json:"description"`
-	Models      []string `json:"models"`
+	ID          string              `json:"id"`
+	Name        string              `json:"name"`
+	Description string              `json:"description"`
+	Models      []string            `json:"models"`
+	Badges      map[string][]string `json:"badges,omitempty"`
 }
 
 var errInvalidPricingCategories = errors.New("invalid pricing categories")
@@ -40,8 +47,8 @@ func (e *pricingCategoryConflictError) Error() string {
 }
 
 // validatePricingCategories checks the PricingCategories option before it is
-// saved: bounded text and counts, unique ids, and every model in at most one
-// category.
+// saved: bounded text and counts, unique ids, every model in at most one
+// category, and badges only from the known set on models of their category.
 func validatePricingCategories(value string) error {
 	if strings.TrimSpace(value) == "" {
 		return nil
@@ -83,6 +90,16 @@ func validatePricingCategories(value string) error {
 			}
 			owners[modelName] = struct{}{}
 		}
+		for modelName, badges := range category.Badges {
+			if !slices.Contains(category.Models, modelName) || len(badges) > len(pricingModelBadges) {
+				return errInvalidPricingCategories
+			}
+			for i, badge := range badges {
+				if !slices.Contains(pricingModelBadges, badge) || slices.Contains(badges[:i], badge) {
+					return errInvalidPricingCategories
+				}
+			}
+		}
 	}
 	return nil
 }
@@ -116,6 +133,11 @@ func publicPricingCategories(pricing []model.Pricing) []pricingCategory {
 			}
 		}
 		category.Models = models
+		for modelName := range category.Badges {
+			if _, ok := visible[modelName]; !ok {
+				delete(category.Badges, modelName)
+			}
+		}
 		result = append(result, category)
 	}
 	return result

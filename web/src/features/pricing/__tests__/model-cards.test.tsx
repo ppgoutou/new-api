@@ -88,6 +88,27 @@ afterEach(() => {
 })
 
 describe('model cards', () => {
+  it('lists the administrator badges under the model name in the given order', () => {
+    render(
+      <ModelCard
+        model={pricingModel({})}
+        badges={['recommended', 'hot']}
+        onClick={vi.fn()}
+      />
+    )
+    const highlights = screen.getByRole('list', { name: 'Highlights' })
+    expect(
+      within(highlights)
+        .getAllByRole('listitem')
+        .map((item) => item.textContent)
+    ).toEqual(['Recommended', 'HOT'])
+  })
+
+  it('shows no badge list when the model has no badges', () => {
+    render(<ModelCard model={pricingModel({})} onClick={vi.fn()} />)
+    expect(screen.queryByRole('list', { name: 'Highlights' })).toBeNull()
+  })
+
   it('shows separate generic and image cache prices including a free image cache', () => {
     render(
       <CachedPriceCell
@@ -533,6 +554,26 @@ describe('model cards', () => {
       screen.getByText('Orders with reference videos are priced separately')
     ).toBeVisible()
     expect(screen.queryByText(/1M/)).not.toBeInTheDocument()
+  })
+
+  it('headlines the cheapest per-second tier when the schema lists a dearer option first', () => {
+    render(
+      <ModelCard
+        model={pricingModel({
+          billing_mode: 'tiered_expr',
+          billing_expr:
+            'u("resolution") == "1080p" ? tier("1080p", u("seconds") * 1.2) : tier("480p", u("seconds") * 0.4)',
+          billing_usage_schema: {
+            seconds: { type: 'number', unit: 'second' },
+            resolution: { enum: ['1080p', '480p'] },
+          },
+        })}
+        onClick={vi.fn()}
+      />
+    )
+    const headline = screen.getByText('/s from', { exact: false })
+    expect(headline).toHaveTextContent('/s from · 480p')
+    expect(headline.previousElementSibling).toHaveTextContent('$0.4')
   })
 
   it('rounds per-second video prices to two decimal places', () => {

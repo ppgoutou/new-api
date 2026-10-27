@@ -125,4 +125,40 @@ describe('pricing categories management', () => {
       'sd20',
     ])
   })
+
+  it('saves the reordered models with the badges picked for them', async () => {
+    const user = userEvent.setup()
+    const put = mockApi()
+    renderSection()
+
+    const item = (
+      await screen.findByRole('heading', { name: 'Seedance 2.0' })
+    ).closest('li') as HTMLElement
+    await user.click(within(item).getByRole('button', { name: 'Edit' }))
+    const dialog = await screen.findByRole('dialog')
+    await user.click(within(dialog).getByRole('combobox'))
+    await user.click(
+      await screen.findByRole('option', { name: /seedance-2\.0/ })
+    )
+    await user.keyboard('{Escape}')
+
+    await user.click(
+      within(dialog).getByRole('button', { name: 'Move seedance-2.0 up' })
+    )
+    const badges = within(dialog).getByRole('group', {
+      name: 'Badges for seedance-2.0',
+    })
+    await user.click(within(badges).getByRole('button', { name: 'HOT' }))
+    await user.click(
+      within(badges).getByRole('button', { name: 'Recommended' })
+    )
+    await user.click(within(dialog).getByRole('button', { name: 'Save' }))
+
+    await waitFor(() => expect(put).toHaveBeenCalledOnce())
+    expect(savedCategories(put)[0]).toEqual({
+      ...stored[0],
+      models: ['seedance-2.0', 'sd-2.0-line-1'],
+      badges: { 'seedance-2.0': ['recommended', 'hot'] },
+    })
+  })
 })
