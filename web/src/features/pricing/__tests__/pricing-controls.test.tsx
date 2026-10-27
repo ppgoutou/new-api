@@ -38,6 +38,7 @@ function toolbarProps(): PricingToolbarProps {
     quotaTypeFilter: 'all',
     endpointTypeFilter: 'all',
     vendorFilter: 'all',
+    categoryFilter: 'all',
     groupFilter: 'all',
     tagFilter: 'all',
     onSortChange: vi.fn(),
@@ -47,9 +48,11 @@ function toolbarProps(): PricingToolbarProps {
     onQuotaTypeChange: vi.fn(),
     onEndpointTypeChange: vi.fn(),
     onVendorChange: vi.fn(),
+    onCategoryChange: vi.fn(),
     onGroupChange: vi.fn(),
     onTagChange: vi.fn(),
     vendors: [],
+    categories: [],
     groups: ['default', 'premium'],
     tags: [],
     models: [],
@@ -221,5 +224,52 @@ describe('pricing controls', () => {
     expect(props.onClearFilters).toHaveBeenCalledOnce()
     await user.keyboard('{Escape}')
     expect(await screen.findByRole('button', { name: /Filter/ })).toHaveFocus()
+  })
+  it('lists configured categories with visible model counts and selects one', async () => {
+    const user = userEvent.setup()
+    const props = toolbarProps()
+    const base: PricingModel = {
+      id: 1,
+      model_name: 'seedance-2.0',
+      quota_type: 0,
+      model_ratio: 1,
+      completion_ratio: 1,
+      enable_groups: ['default'],
+    }
+    const models = [
+      base,
+      { ...base, id: 2, model_name: 'sd-2.0-line-1' },
+      { ...base, id: 3, model_name: 'wan3.0' },
+    ]
+    render(
+      <PricingSidebar
+        {...props}
+        models={models}
+        categories={[
+          {
+            id: 'sd20',
+            name: 'Seedance 2.0',
+            models: ['seedance-2.0', 'sd-2.0-line-1', 'hidden-model'],
+          },
+          { id: 'empty', name: 'Empty', models: ['hidden-model'] },
+        ]}
+      />
+    )
+
+    expect(
+      screen.getByRole('button', { name: /^All Categories\s*3$/ })
+    ).toBeVisible()
+    expect(screen.queryByRole('button', { name: /^Empty/ })).toBeNull()
+    expect(
+      screen.getByRole('button', { name: /^Other models\s*1$/ })
+    ).toBeVisible()
+    await user.click(screen.getByRole('button', { name: /^Seedance 2.0\s*2$/ }))
+    expect(props.onCategoryChange).toHaveBeenCalledWith('sd20')
+  })
+
+  it('hides the category filter when no category is configured', () => {
+    render(<PricingSidebar {...toolbarProps()} />)
+
+    expect(screen.queryByRole('button', { name: /All Categories/ })).toBeNull()
   })
 })

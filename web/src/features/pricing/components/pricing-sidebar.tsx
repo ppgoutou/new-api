@@ -37,9 +37,10 @@ import {
   getEndpointTypeLabels,
   getQuotaTypeLabels,
 } from '../constants'
+import { UNCATEGORIZED_CATEGORY } from '../lib/categories'
 import { hasTaskUsageSchema } from '../lib/dynamic-price'
 import { parseTags } from '../lib/filters'
-import type { PricingModel, PricingVendor } from '../types'
+import type { PricingCategory, PricingModel, PricingVendor } from '../types'
 
 type FilterOption = {
   value: string
@@ -60,14 +61,17 @@ export interface PricingSidebarProps {
   quotaTypeFilter: string
   endpointTypeFilter: string
   vendorFilter: string
+  categoryFilter: string
   groupFilter: string
   tagFilter: string
   onQuotaTypeChange: (value: string) => void
   onEndpointTypeChange: (value: string) => void
   onVendorChange: (value: string) => void
+  onCategoryChange: (value: string) => void
   onGroupChange: (value: string) => void
   onTagChange: (value: string) => void
   vendors: PricingVendor[]
+  categories: PricingCategory[]
   groups: string[]
   tags: string[]
   models: PricingModel[]
@@ -173,6 +177,33 @@ export const PricingSidebar = memo(function PricingSidebar(
     }
     return { vendors, tags, endpoints, quotas }
   }, [props.models])
+  const categoryOptions = useMemo((): FilterOption[] => {
+    if (props.categories.length === 0) return []
+    const visible = new Set(props.models.map((model) => model.model_name))
+    const categorized = new Set<string>()
+    const options: FilterOption[] = [
+      { value: FILTER_ALL, label: t('All Categories'), count: visible.size },
+    ]
+    for (const category of props.categories) {
+      let count = 0
+      for (const name of category.models) {
+        categorized.add(name)
+        if (visible.has(name)) count++
+      }
+      if (count > 0) {
+        options.push({ value: category.id, label: category.name, count })
+      }
+    }
+    const rest = [...visible].filter((name) => !categorized.has(name)).length
+    if (rest > 0) {
+      options.push({
+        value: UNCATEGORIZED_CATEGORY,
+        label: t('Other models'),
+        count: rest,
+      })
+    }
+    return options
+  }, [props.categories, props.models, t])
   const quotaTypeLabels = getQuotaTypeLabels(t)
   const endpointTypeLabels = getEndpointTypeLabels(t)
 
@@ -283,6 +314,14 @@ export const PricingSidebar = memo(function PricingSidebar(
       )}
 
       <div className='space-y-1'>
+        {categoryOptions.length > 0 && (
+          <FilterSection
+            title={t('Categories')}
+            value={props.categoryFilter}
+            options={categoryOptions}
+            onChange={props.onCategoryChange}
+          />
+        )}
         <FilterSection
           title={t('Groups')}
           value={props.groupFilter}

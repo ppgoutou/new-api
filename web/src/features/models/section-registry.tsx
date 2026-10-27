@@ -33,6 +33,11 @@ const MODELS_SECTIONS = [
     build: () => null,
   },
   {
+    id: 'categories',
+    titleKey: 'Categories',
+    build: () => null,
+  },
+  {
     id: 'deployments',
     titleKey: 'Deployments',
     build: () => null, // Content is rendered directly in the page component

@@ -349,7 +349,11 @@ export type SyncSource = 'official'
 /**
  * Model tab type
  */
-export type ModelTabCategory = 'metadata' | 'vendors' | 'deployments'
+export type ModelTabCategory =
+  | 'metadata'
+  | 'vendors'
+  | 'categories'
+  | 'deployments'
 
 /**
  * Deployment entity from API

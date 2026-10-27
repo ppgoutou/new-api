@@ -7533,6 +7533,26 @@
     "Questions about pricing, volume, top-ups or integration? Reach us directly.": "Questions about pricing, volume, top-ups or integration? Reach us directly.",
     "{{model}}: {{min}}–{{max}}s per clip": "{{model}}: {{min}}–{{max}}s per clip",
     "Live · per second": "Live · per second",
-    "Prices are per generated second; struck-through prices are official prices. Tasks with a reference video are billed by tokens.": "Prices are per generated second; struck-through prices are official prices. Tasks with a reference video are billed by tokens."
+    "Prices are per generated second; struck-through prices are official prices. Tasks with a reference video are billed by tokens.": "Prices are per generated second; struck-through prices are official prices. Tasks with a reference video are billed by tokens.",
+    "All Categories": "All Categories",
+    "Categories": "Categories",
+    "Pricing categories": "Pricing categories",
+    "Add category": "Add category",
+    "Edit category": "Edit category",
+    "Each model can belong to one category. Models already used by another category are not listed.": "Each model can belong to one category. Models already used by another category are not listed.",
+    "Category name": "Category name",
+    "Models are shown on the pricing page in the order they are selected.": "Models are shown on the pricing page in the order they are selected.",
+    "Not enabled on any channel": "Not enabled on any channel",
+    "Failed to save categories": "Failed to save categories",
+    "Categories saved": "Categories saved",
+    "Categories group models on the pricing page in the order shown here. Models outside every category appear last under Other models.": "Categories group models on the pricing page in the order shown here. Models outside every category appear last under Other models.",
+    "No categories yet": "No categories yet",
+    "The pricing page lists every model without grouping until a category is added.": "The pricing page lists every model without grouping until a category is added.",
+    "Move up": "Move up",
+    "Move down": "Move down",
+    "Delete category": "Delete category",
+    "Delete category {{name}}? Its models move to Other models on the pricing page.": "Delete category {{name}}? Its models move to Other models on the pricing page.",
+    "Model {{model}} can only belong to one category": "Model {{model}} can only belong to one category",
+    "Invalid pricing category settings": "Invalid pricing category settings"
   }
 }

@@ -7533,6 +7533,26 @@
     "Questions about pricing, volume, top-ups or integration? Reach us directly.": "Вопросы о ценах, объёмах, пополнении или интеграции? Напишите нам напрямую.",
     "{{model}}: {{min}}–{{max}}s per clip": "{{model}}: {{min}}–{{max}} с на клип",
     "Live · per second": "Онлайн · посекундно",
-    "Prices are per generated second; struck-through prices are official prices. Tasks with a reference video are billed by tokens.": "Цены указаны за сгенерированную секунду; зачёркнутые — официальные. Задачи с референсным видео оплачиваются по токенам."
+    "Prices are per generated second; struck-through prices are official prices. Tasks with a reference video are billed by tokens.": "Цены указаны за сгенерированную секунду; зачёркнутые — официальные. Задачи с референсным видео оплачиваются по токенам.",
+    "All Categories": "Все категории",
+    "Categories": "Категории",
+    "Pricing categories": "Категории витрины моделей",
+    "Add category": "Добавить категорию",
+    "Edit category": "Изменить категорию",
+    "Each model can belong to one category. Models already used by another category are not listed.": "Каждая модель может входить только в одну категорию. Модели из других категорий в списке не показаны.",
+    "Category name": "Название категории",
+    "Models are shown on the pricing page in the order they are selected.": "Модели показываются на витрине в порядке выбора.",
+    "Not enabled on any channel": "Не включена ни в одном канале",
+    "Failed to save categories": "Не удалось сохранить категории",
+    "Categories saved": "Категории сохранены",
+    "Categories group models on the pricing page in the order shown here. Models outside every category appear last under Other models.": "Категории группируют модели на витрине в указанном здесь порядке. Модели вне категорий показываются последними в разделе «Другие модели».",
+    "No categories yet": "Категорий пока нет",
+    "The pricing page lists every model without grouping until a category is added.": "Пока категории не добавлены, витрина показывает все модели без группировки.",
+    "Move up": "Переместить вверх",
+    "Move down": "Переместить вниз",
+    "Delete category": "Удалить категорию",
+    "Delete category {{name}}? Its models move to Other models on the pricing page.": "Удалить категорию {{name}}? Её модели переместятся в «Другие модели» на витрине.",
+    "Model {{model}} can only belong to one category": "Модель {{model}} может входить только в одну категорию",
+    "Invalid pricing category settings": "Недопустимые настройки категорий"
   }
 }

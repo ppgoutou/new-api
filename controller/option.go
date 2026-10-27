@@ -214,6 +214,16 @@ func UpdateOption(c *gin.Context) {
 			return
 		}
 	}
+	if option.Key == pricingCategoriesOptionKey {
+		var conflict *pricingCategoryConflictError
+		if err := validatePricingCategories(option.Value.(string)); errors.As(err, &conflict) {
+			common.ApiErrorT(c, "Model {{model}} can only belong to one category", map[string]any{"model": conflict.Model})
+			return
+		} else if err != nil {
+			common.ApiErrorT(c, "Invalid pricing category settings")
+			return
+		}
+	}
 	if option.Key == "TaskPublicAddress" && option.Value.(string) != "" {
 		if err := service.ValidateTaskArtifactBaseURL(option.Value.(string)); err != nil {
 			common.ApiError(c, err)

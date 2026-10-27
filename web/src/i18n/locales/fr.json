@@ -7533,6 +7533,26 @@
     "Questions about pricing, volume, top-ups or integration? Reach us directly.": "Des questions sur les tarifs, les volumes, la recharge ou l’intégration ? Contactez-nous directement.",
     "{{model}}: {{min}}–{{max}}s per clip": "{{model}} : {{min}}–{{max}} s par clip",
     "Live · per second": "En direct · à la seconde",
-    "Prices are per generated second; struck-through prices are official prices. Tasks with a reference video are billed by tokens.": "Prix par seconde générée ; les prix barrés sont les prix officiels. Les tâches avec vidéo de référence sont facturées en tokens."
+    "Prices are per generated second; struck-through prices are official prices. Tasks with a reference video are billed by tokens.": "Prix par seconde générée ; les prix barrés sont les prix officiels. Les tâches avec vidéo de référence sont facturées en tokens.",
+    "All Categories": "Toutes les catégories",
+    "Categories": "Catégories",
+    "Pricing categories": "Catégories de tarification",
+    "Add category": "Ajouter une catégorie",
+    "Edit category": "Modifier la catégorie",
+    "Each model can belong to one category. Models already used by another category are not listed.": "Chaque modèle ne peut appartenir qu’à une seule catégorie. Les modèles déjà utilisés par une autre catégorie ne sont pas proposés.",
+    "Category name": "Nom de la catégorie",
+    "Models are shown on the pricing page in the order they are selected.": "Les modèles s’affichent sur la page de tarification dans l’ordre de sélection.",
+    "Not enabled on any channel": "Activé sur aucun canal",
+    "Failed to save categories": "Échec de l’enregistrement des catégories",
+    "Categories saved": "Catégories enregistrées",
+    "Categories group models on the pricing page in the order shown here. Models outside every category appear last under Other models.": "Les catégories regroupent les modèles sur la page de tarification dans l’ordre affiché ici. Les modèles hors catégorie apparaissent à la fin, dans Autres modèles.",
+    "No categories yet": "Aucune catégorie",
+    "The pricing page lists every model without grouping until a category is added.": "Tant qu’aucune catégorie n’est ajoutée, la page de tarification liste tous les modèles sans regroupement.",
+    "Move up": "Monter",
+    "Move down": "Descendre",
+    "Delete category": "Supprimer la catégorie",
+    "Delete category {{name}}? Its models move to Other models on the pricing page.": "Supprimer la catégorie {{name}} ? Ses modèles passeront dans Autres modèles sur la page de tarification.",
+    "Model {{model}} can only belong to one category": "Le modèle {{model}} ne peut appartenir qu’à une seule catégorie",
+    "Invalid pricing category settings": "Paramètres de catégorie invalides"
   }
 }

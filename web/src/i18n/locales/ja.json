@@ -7533,6 +7533,26 @@
     "Questions about pricing, volume, top-ups or integration? Reach us directly.": "料金、大量利用、チャージ、導入についてのご質問は直接お問い合わせください。",
     "{{model}}: {{min}}–{{max}}s per clip": "{{model}}：1本 {{min}}〜{{max}} 秒",
     "Live · per second": "リアルタイム · 秒単位",
-    "Prices are per generated second; struck-through prices are official prices. Tasks with a reference video are billed by tokens.": "価格は生成1秒あたりで、取り消し線は公式価格です。参考動画付きのタスクはトークン課金です。"
+    "Prices are per generated second; struck-through prices are official prices. Tasks with a reference video are billed by tokens.": "価格は生成1秒あたりで、取り消し線は公式価格です。参考動画付きのタスクはトークン課金です。",
+    "All Categories": "すべてのカテゴリ",
+    "Categories": "カテゴリ",
+    "Pricing categories": "モデル一覧のカテゴリ",
+    "Add category": "カテゴリを追加",
+    "Edit category": "カテゴリを編集",
+    "Each model can belong to one category. Models already used by another category are not listed.": "各モデルは 1 つのカテゴリにのみ所属できます。ほかのカテゴリで使用中のモデルは一覧に表示されません。",
+    "Category name": "カテゴリ名",
+    "Models are shown on the pricing page in the order they are selected.": "モデルは選択した順にモデル一覧へ表示されます。",
+    "Not enabled on any channel": "どのチャネルでも有効ではありません",
+    "Failed to save categories": "カテゴリの保存に失敗しました",
+    "Categories saved": "カテゴリを保存しました",
+    "Categories group models on the pricing page in the order shown here. Models outside every category appear last under Other models.": "カテゴリはここに表示された順でモデル一覧のモデルをまとめます。どのカテゴリにも属さないモデルは最後の「その他のモデル」に表示されます。",
+    "No categories yet": "カテゴリはまだありません",
+    "The pricing page lists every model without grouping until a category is added.": "カテゴリを追加するまで、モデル一覧はすべてのモデルをグループ分けせずに表示します。",
+    "Move up": "上へ移動",
+    "Move down": "下へ移動",
+    "Delete category": "カテゴリを削除",
+    "Delete category {{name}}? Its models move to Other models on the pricing page.": "カテゴリ {{name}} を削除しますか？含まれるモデルはモデル一覧の「その他のモデル」に移動します。",
+    "Model {{model}} can only belong to one category": "モデル {{model}} は 1 つのカテゴリにのみ所属できます",
+    "Invalid pricing category settings": "カテゴリ設定が無効です"
   }
 }

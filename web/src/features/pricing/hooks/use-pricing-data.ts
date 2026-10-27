@@ -25,6 +25,9 @@ import { selectLanguageBlock } from '@/lib/language-blocks'
 import { requireServerSuccess } from '@/lib/server-error-message'
 
 import { getPricing } from '../api'
+import type { PricingCategory } from '../types'
+
+const EMPTY_CATEGORIES: PricingCategory[] = []
 
 export function usePricingData(enabled = true) {
   const { status } = useStatus()
@@ -76,6 +79,7 @@ export function usePricingData(enabled = true) {
   return {
     models,
     vendors: data?.vendors ?? [],
+    categories: data?.categories ?? EMPTY_CATEGORIES,
     groupRatio: data?.group_ratio ?? {},
     usableGroup: data?.usable_group ?? {},
     endpointMap: data?.supported_endpoint ?? {},
