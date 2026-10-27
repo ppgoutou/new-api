@@ -458,7 +458,7 @@ export const ModelCard = memo(function ModelCard(props: ModelCardProps) {
         <div
           role='group'
           aria-label={t('Pricing')}
-          className='mt-auto flex min-w-0 flex-col gap-1.5'
+          className='flex min-w-0 flex-col gap-1.5'
         >
           <ModelBillingModeBadge model={props.model} appearance='caption' />
           {dynamicSummary?.providerCount && (
@@ -477,7 +477,7 @@ export const ModelCard = memo(function ModelCard(props: ModelCardProps) {
         {(groups.length > 0 || endpoints.length > 0) && (
           <dl
             className={cn(
-              'grid min-w-0 grid-cols-2 gap-3 text-xs',
+              'mt-auto grid min-w-0 grid-cols-2 gap-3 text-xs',
               (groups.length === 0 || endpoints.length === 0) && 'grid-cols-1'
             )}
           >
