@@ -55,6 +55,10 @@ import type { PricingModel, PriceType, TokenUnit } from '../types'
 import { ModelBillingModeBadge } from './model-billing-mode-badge'
 import { ModelPerfBadge, type ModelPerfBadgeData } from './model-perf-badge'
 
+// Highlight color shared by the icon tile, the cheapest tier and the details
+// action; dark text keeps it readable in both themes.
+const CARD_ACCENT_CLASS = 'bg-[#ffd23f] text-neutral-950'
+
 export interface ModelCardProps {
   model: PricingModel
   onClick: (modelName: string) => void
@@ -125,25 +129,42 @@ export const ModelCard = memo(function ModelCard(props: ModelCardProps) {
   if (videoPricing) {
     const optionDefinition =
       props.model.billing_usage_schema?.[videoPricing.optionField]
+    const formatSecondPrice = (price: number) =>
+      formatTaskUsageUnitPrice(price, {
+        ...dynamicPriceOptions,
+        fractionDigits: VIDEO_PRICE_FRACTION_DIGITS,
+      })
+    const lowestRow = videoPricing.rows.reduce((lowest, row) =>
+      row.secondPrice < lowest.secondPrice ? row : lowest
+    )
     priceSummary = (
       <>
+        <p className='col-span-full flex min-w-0 flex-wrap items-end gap-x-2'>
+          <span className='font-mono text-4xl leading-none font-bold tracking-tight tabular-nums'>
+            {formatSecondPrice(lowestRow.secondPrice)}
+          </span>
+          <span className='text-muted-foreground pb-0.5 text-xs'>
+            {t('/s from')} ·{' '}
+            {taskEnumLabel(optionDefinition, lowestRow.option, i18n.language)}
+          </span>
+        </p>
         <dl
           aria-label={t('Video billing (per second)')}
-          className='col-span-full grid grid-cols-2 gap-x-3 gap-y-1'
+          className='col-span-full flex flex-wrap gap-1.5'
         >
           {videoPricing.rows.map((row) => (
             <div
               key={row.option}
-              className='flex min-w-0 items-baseline gap-1.5'
+              className={cn(
+                'border-foreground flex min-w-0 items-baseline gap-1 rounded-full border-[1.5px] px-2.5 py-0.5',
+                row === lowestRow && CARD_ACCENT_CLASS
+              )}
             >
-              <dt className='text-muted-foreground shrink-0 text-xs'>
+              <dt className='shrink-0 text-xs'>
                 {taskEnumLabel(optionDefinition, row.option, i18n.language)}
               </dt>
-              <dd className='truncate font-mono text-sm font-semibold tabular-nums'>
-                {formatTaskUsageUnitPrice(row.secondPrice, {
-                  ...dynamicPriceOptions,
-                  fractionDigits: VIDEO_PRICE_FRACTION_DIGITS,
-                })}
+              <dd className='truncate font-mono text-xs font-bold tabular-nums'>
+                {formatSecondPrice(row.secondPrice)}
               </dd>
             </div>
           ))}
@@ -346,21 +367,20 @@ export const ModelCard = memo(function ModelCard(props: ModelCardProps) {
   }
 
   return (
-    <Card className='hover:ring-foreground/20 h-full min-w-0 gap-3 transition-colors'>
-      <CardHeader className='flex flex-row items-start gap-3'>
+    <Card className='border-foreground h-full min-w-0 gap-3 rounded-2xl border-2 shadow-[6px_6px_0_0_var(--foreground)] ring-0 transition-[translate,box-shadow] duration-200 hover:-translate-x-1 hover:-translate-y-1 hover:shadow-[10px_10px_0_0_var(--foreground)] motion-reduce:transition-none motion-reduce:hover:translate-x-0 motion-reduce:hover:translate-y-0'>
+      <CardHeader className='flex flex-row items-center gap-3'>
         <div
           aria-hidden
-          className='bg-muted/50 flex size-10 shrink-0 items-center justify-center rounded-lg'
-        >
-          {modelIcon || (
-            <span className='text-muted-foreground text-sm font-bold'>
-              {initial}
-            </span>
+          className={cn(
+            'border-foreground flex size-11 shrink-0 items-center justify-center rounded-xl border-2',
+            CARD_ACCENT_CLASS
           )}
+        >
+          {modelIcon || <span className='text-sm font-bold'>{initial}</span>}
         </div>
         <div className='min-w-0 flex-1'>
           <h3
-            className='line-clamp-2 font-mono text-[15px] leading-snug font-semibold [overflow-wrap:anywhere]'
+            className='line-clamp-2 font-mono text-lg leading-snug font-bold [overflow-wrap:anywhere]'
             title={props.model.model_name}
           >
             {props.model.model_name}
@@ -377,7 +397,7 @@ export const ModelCard = memo(function ModelCard(props: ModelCardProps) {
         <CopyButton
           value={props.model.model_name}
           tooltip={t('Copy model name')}
-          className='size-7'
+          className='border-foreground size-8 rounded-lg border-2'
           iconClassName='size-3.5'
         />
       </CardHeader>
@@ -473,18 +493,18 @@ export const ModelCard = memo(function ModelCard(props: ModelCardProps) {
           </dl>
         )}
       </CardContent>
-      <CardFooter className='mt-auto border-0 bg-transparent pt-0'>
-        <ModelPerfBadge
-          perf={props.perf}
-          className='border-border/60 border-t pt-2'
-        >
+      <CardFooter className='border-foreground mt-auto rounded-none border-t-2 bg-transparent p-0'>
+        <ModelPerfBadge perf={props.perf} className='items-stretch gap-0'>
           <Button
             variant='ghost'
-            size='sm'
             onClick={() => props.onClick(props.model.model_name || '')}
+            className={cn(
+              'border-foreground h-auto shrink-0 self-stretch rounded-none border-l-2 px-5 font-bold hover:bg-[#ffc400] hover:text-neutral-950',
+              CARD_ACCENT_CLASS
+            )}
           >
             {t('Details')}
-            <ChevronRight aria-hidden className='size-3.5' />
+            <ChevronRight aria-hidden className='size-4' />
           </Button>
         </ModelPerfBadge>
       </CardFooter>

@@ -535,6 +535,26 @@ describe('model cards', () => {
     expect(screen.queryByText(/1M/)).not.toBeInTheDocument()
   })
 
+  it('headlines the cheapest per-second tier when the schema lists a dearer option first', () => {
+    render(
+      <ModelCard
+        model={pricingModel({
+          billing_mode: 'tiered_expr',
+          billing_expr:
+            'u("resolution") == "1080p" ? tier("1080p", u("seconds") * 1.2) : tier("480p", u("seconds") * 0.4)',
+          billing_usage_schema: {
+            seconds: { type: 'number', unit: 'second' },
+            resolution: { enum: ['1080p', '480p'] },
+          },
+        })}
+        onClick={vi.fn()}
+      />
+    )
+    const headline = screen.getByText('/s from', { exact: false })
+    expect(headline).toHaveTextContent('/s from · 480p')
+    expect(headline.previousElementSibling).toHaveTextContent('$0.4')
+  })
+
   it('rounds per-second video prices to two decimal places', () => {
     render(
       <ModelCard
