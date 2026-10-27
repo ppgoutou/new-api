@@ -7511,6 +7511,7 @@
     "The administrator has not configured a refund policy yet.": "管理者はまだ返金ポリシーを設定していません。",
     "Provide Markdown, HTML, or an external URL for the refund policy": "返金ポリシーの Markdown、HTML、または外部 URL を入力",
     "Leave empty to hide the refund policy page. Supports Markdown, HTML, or a full URL to redirect users.": "空欄にすると返金ポリシーページを非表示にします。Markdown、HTML、またはリダイレクト用の完全な URL に対応しています。",
+    "Supported resolutions": "対応解像度",
     "Text-to-video · Image-to-video · Reference video": "テキストから動画 · 画像から動画 · 参考動画",
     "Pay as you go, no subscription or minimum spend": "従量課金、サブスクや最低利用額なし",
     "Top up by card or code, use instantly": "カードまたはコードでチャージ、すぐに利用可能",

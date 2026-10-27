@@ -734,4 +734,12 @@ it('shows only group prices for seedance-2.5-G2-V, without the base price sectio
   )
   expect(screen.queryByText('Base Price')).not.toBeInTheDocument()
   expect(screen.getByText('Pricing by Group')).toBeVisible()
+  const headers = screen
+    .getAllByRole('columnheader')
+    .map((header) => header.textContent)
+  expect(headers).toEqual([
+    expect.stringContaining('Video generation unit price'),
+    'Supported resolutions',
+  ])
+  expect(screen.getByRole('cell', { name: '720P' })).toBeVisible()
 })

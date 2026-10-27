@@ -7511,6 +7511,7 @@
     "The administrator has not configured a refund policy yet.": "管理員尚未設定退款政策。",
     "Provide Markdown, HTML, or an external URL for the refund policy": "填寫退款政策的 Markdown、HTML 或外部連結",
     "Leave empty to hide the refund policy page. Supports Markdown, HTML, or a full URL to redirect users.": "留空則隱藏退款政策頁面。支援 Markdown、HTML，或填寫完整 URL 跳轉。",
+    "Supported resolutions": "支援解析度",
     "Text-to-video · Image-to-video · Reference video": "文生影片 · 圖生影片 · 參考影片",
     "Pay as you go, no subscription or minimum spend": "按量付費，無訂閱、無最低消費",
     "Top up by card or code, use instantly": "信用卡或兌換碼儲值，即儲即用",

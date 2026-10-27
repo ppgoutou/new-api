@@ -7511,6 +7511,7 @@
     "The administrator has not configured a refund policy yet.": "The administrator has not configured a refund policy yet.",
     "Provide Markdown, HTML, or an external URL for the refund policy": "Provide Markdown, HTML, or an external URL for the refund policy",
     "Leave empty to hide the refund policy page. Supports Markdown, HTML, or a full URL to redirect users.": "Leave empty to hide the refund policy page. Supports Markdown, HTML, or a full URL to redirect users.",
+    "Supported resolutions": "Supported resolutions",
     "Text-to-video · Image-to-video · Reference video": "Text-to-video · Image-to-video · Reference video",
     "Pay as you go, no subscription or minimum spend": "Pay as you go, no subscription or minimum spend",
     "Top up by card or code, use instantly": "Top up by card or code, use instantly",

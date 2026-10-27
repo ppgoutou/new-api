@@ -100,6 +100,7 @@ import {
 } from '../lib/task-price-display'
 import {
   getOfficialVideoPricing,
+  getPerVideoPricing,
   getVideoPricing,
   GROUP_PRICE_ONLY_MODELS,
 } from '../lib/video-pricing'
@@ -1162,6 +1163,11 @@ function ProviderGroupPricingSection(
       )
     }
 
+    // Per-video models on the group-price-only list show the price first and
+    // the resolutions it covers in a column of their own.
+    const perVideoPricing = GROUP_PRICE_ONLY_MODELS.has(props.model.model_name)
+      ? getPerVideoPricing(props.model)
+      : null
     const usageExampleRows = evaluateTaskUsageExamples(
       props.model.billing_expr,
       props.model.billing_usage_schema,
@@ -1282,14 +1288,32 @@ function ProviderGroupPricingSection(
                         ) : (
                           fieldLabel
                         ),
-                        className: `${thClass} text-right`,
-                        cellClassName: 'py-2.5 text-right font-mono',
+                        className: perVideoPricing
+                          ? thClass
+                          : `${thClass} text-right`,
+                        cellClassName: perVideoPricing
+                          ? 'py-2.5 font-mono'
+                          : 'py-2.5 text-right font-mono',
                         cell: (tier: (typeof dynamicTiers)[number]) =>
                           formattedPricesByTier
                             .get(tier)
                             ?.get(fieldEntry.field) ?? '-',
                       }
                     }),
+                    ...(perVideoPricing
+                      ? [
+                          {
+                            id: 'resolutions',
+                            header: t('Supported resolutions'),
+                            className: `${thClass} text-right`,
+                            cellClassName: 'py-2.5 text-right font-mono',
+                            cell: () =>
+                              perVideoPricing.rows
+                                .map((row) => row.option.toUpperCase())
+                                .join(' / '),
+                          },
+                        ]
+                      : []),
                   ]}
                 />
                 {usageExampleRows.length > 0 ? (
