@@ -26,8 +26,8 @@ import { applyFaviconToDom } from '@/lib/dom-utils'
 import '@/lib/dayjs'
 import { initializeFrontendCache } from '@/lib/frontend-cache'
 import { createAppQueryClient } from '@/lib/query-client'
-import { rememberXClickId } from '@/lib/x-click-id'
 import { readCachedStatus, statusQueryOptions } from '@/lib/status-query'
+import { rememberXClickId } from '@/lib/x-click-id'
 
 import { DirectionProvider } from './context/direction-provider'
 import { FontProvider } from './context/font-provider'
@@ -102,6 +102,9 @@ if (!rootElement) {
     /* empty */
   }
 })()
+// The server prerenders static home copy for clients without JavaScript;
+// the app renders the same content, so drop it before mounting.
+document.querySelector('#prerender')?.remove()
 if (!rootElement.innerHTML) {
   const root = ReactDOM.createRoot(rootElement)
   root.render(

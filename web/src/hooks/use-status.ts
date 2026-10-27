@@ -19,7 +19,12 @@ For commercial licensing, please contact support@quantumnous.com
 import { useQuery } from '@tanstack/react-query'
 
 import type { SystemStatus } from '@/features/auth/types'
-import { readCachedStatus, statusQueryOptions } from '@/lib/status-query'
+import {
+  privateStatusQueryOptions,
+  readCachedStatus,
+  statusQueryOptions,
+} from '@/lib/status-query'
+import { useAuthStore } from '@/stores/auth-store'
 
 /** Seed value from the persisted snapshot, so the first render is not empty. */
 function getInitialStatus(): SystemStatus | undefined {
@@ -44,4 +49,17 @@ export function useStatus() {
     loading: isLoading,
     error,
   }
+}
+
+/**
+ * Subscribe to `/api/status/private`. Stays idle until a user is signed in.
+ */
+export function usePrivateStatus() {
+  const signedIn = useAuthStore((s) => s.auth.user !== null)
+  const { data } = useQuery({
+    ...privateStatusQueryOptions,
+    enabled: signedIn,
+  })
+
+  return { privateStatus: (data as SystemStatus | undefined) ?? null }
 }

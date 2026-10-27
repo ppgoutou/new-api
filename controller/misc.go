@@ -48,8 +48,6 @@ func GetStatus(c *gin.Context) {
 	legalSetting := system_setting.GetLegalSettings()
 
 	data := gin.H{
-		"version":                     common.Version,
-		"start_time":                  common.StartTime,
 		"email_verification":          common.EmailVerificationEnabled,
 		"github_oauth":                common.GitHubOAuthEnabled,
 		"github_client_id":            common.GitHubClientId,
@@ -84,7 +82,6 @@ func GetStatus(c *gin.Context) {
 		"data_export_default_time":      common.DataExportDefaultTime,
 		"default_collapse_sidebar":      common.DefaultCollapseSidebar,
 		"mj_notify_enabled":             setting.MjNotifyEnabled,
-		"chats":                         setting.Chats,
 		"demo_site_enabled":             operation_setting.DemoSiteEnabled,
 		"self_use_mode_enabled":         operation_setting.SelfUseModeEnabled,
 		"register_enabled":              common.RegisterEnabled,
@@ -122,6 +119,7 @@ func GetStatus(c *gin.Context) {
 		"setup":                       constant.Setup,
 		"user_agreement_enabled":      legalSetting.UserAgreement != "",
 		"privacy_policy_enabled":      legalSetting.PrivacyPolicy != "",
+		"refund_policy_enabled":       legalSetting.RefundPolicy != "",
 		"checkin_enabled":             operation_setting.GetCheckinSetting().Enabled,
 		"log_export_enabled":          operation_setting.GetLogSetting().UserExportEnabled,
 		"log_max_range_days":          operation_setting.GetLogSetting().MaxRangeDays,
@@ -174,6 +172,23 @@ func GetStatus(c *gin.Context) {
 	return
 }
 
+// GetPrivateStatus returns the status fields that are only useful to signed-in
+// users, so the public /api/status does not expose the server version, uptime
+// or the client deep-link presets to anonymous visitors.
+func GetPrivateStatus(c *gin.Context) {
+	common.OptionMapRWMutex.RLock()
+	defer common.OptionMapRWMutex.RUnlock()
+	c.JSON(http.StatusOK, gin.H{
+		"success": true,
+		"message": "",
+		"data": gin.H{
+			"version":    common.Version,
+			"start_time": common.StartTime,
+			"chats":      setting.Chats,
+		},
+	})
+}
+
 func GetNotice(c *gin.Context) {
 	common.OptionMapRWMutex.RLock()
 	notice := common.OptionMap["Notice"]
@@ -194,6 +209,10 @@ func GetUserAgreement(c *gin.Context) {
 
 func GetPrivacyPolicy(c *gin.Context) {
 	serveRevalidatedJSON(c, system_setting.GetLegalSettings().PrivacyPolicy)
+}
+
+func GetRefundPolicy(c *gin.Context) {
+	serveRevalidatedJSON(c, system_setting.GetLegalSettings().RefundPolicy)
 }
 
 func GetMidjourney(c *gin.Context) {

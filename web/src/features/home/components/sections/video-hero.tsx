@@ -45,12 +45,12 @@ export function VideoHero(props: VideoHeroProps) {
         video: getHomeMediaUrl(`${HERO_VIDEO.name}.mp4`),
         poster: getHomeMediaUrl(`${HERO_VIDEO.name}.jpg`),
       }
-  const startTarget = props.isAuthenticated ? '/dashboard' : '/sign-up'
+  const startTarget = props.isAuthenticated ? '/video-studio' : '/sign-up'
 
   const facts = [
     t('Up to 4K resolution'),
     t('4–30 seconds per clip'),
-    t('OpenAI-compatible video API'),
+    t('Text, image or reference-video input'),
     t('Top up by card, use instantly'),
   ]
 
@@ -75,7 +75,7 @@ export function VideoHero(props: VideoHeroProps) {
           style={{ animationDelay: '120ms' }}
         >
           {t(
-            'Call ByteDance Seedance video models through one API: text-to-video, image-to-video and reference video, billed per second.'
+            'An AI video creation platform powered by ByteDance Seedance. Turn a prompt, an image or a reference clip into a finished video in the browser, billed by the second.'
           )}
           {bestDiscount && (
             <>
@@ -95,7 +95,7 @@ export function VideoHero(props: VideoHeroProps) {
             render={<Link to={startTarget} />}
           >
             {props.isAuthenticated
-              ? t('Go to Dashboard')
+              ? t('Open Video Creation')
               : t('Sign up free and start creating')}
             <ArrowRight
               className='ml-1.5 size-4 transition-transform duration-200 group-hover:translate-x-0.5'

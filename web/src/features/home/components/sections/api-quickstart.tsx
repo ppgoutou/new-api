@@ -68,10 +68,10 @@ export function ApiQuickstart() {
       <div className='mx-auto flex max-w-6xl flex-wrap items-start gap-12'>
         <div className='min-w-0 flex-[1_1_20rem]'>
           <p className='mb-2 text-sm font-semibold text-blue-600 dark:text-blue-400'>
-            {t('Get started')}
+            {t('For developers')}
           </p>
           <h2 className='text-3xl font-bold tracking-tight md:text-4xl'>
-            {t('Three steps to generate video with code')}
+            {t('Prefer code? Generate video with the API')}
           </h2>
           <ol className='mt-7 flex flex-col gap-5'>
             {steps.map((step, index) => (

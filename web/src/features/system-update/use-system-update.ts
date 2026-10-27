@@ -27,10 +27,10 @@ import type { TFunction } from 'i18next'
 import { useEffect, useSyncExternalStore } from 'react'
 import { useTranslation } from 'react-i18next'
 
-import { useStatus } from '@/hooks/use-status'
+import { usePrivateStatus } from '@/hooks/use-status'
 import { handleServerError } from '@/lib/handle-server-error'
 import { ROLE } from '@/lib/roles'
-import { statusQueryOptions } from '@/lib/status-query'
+import { privateStatusQueryOptions } from '@/lib/status-query'
 import { useAuthStore } from '@/stores/auth-store'
 
 import {
@@ -70,7 +70,7 @@ export const systemUpdateQueryOptions = queryOptions({
   queryFn: async ({ signal, client }): Promise<SystemUpdateSnapshot> => {
     // Refresh the running server version too, so an open tab notices upgrades.
     void client
-      .fetchQuery({ ...statusQueryOptions, meta: { errorToast: false } })
+      .fetchQuery({ ...privateStatusQueryOptions, meta: { errorToast: false } })
       .catch(() => undefined)
     let snapshot: SystemUpdateSnapshot
     try {
@@ -135,7 +135,7 @@ export function useSystemUpdate() {
   const isAdmin = (user?.role ?? 0) >= ROLE.ADMIN
   const visible = useSyncExternalStore(focusManager.subscribe, isPageVisible)
   const online = useSyncExternalStore(onlineManager.subscribe, isBrowserOnline)
-  const { status } = useStatus()
+  const { privateStatus } = usePrivateStatus()
   const queryClient = useQueryClient()
   const query = useQuery({
     ...systemUpdateQueryOptions,
@@ -148,7 +148,7 @@ export function useSystemUpdate() {
     }
   }, [isAdmin, queryClient])
 
-  const version = status?.version?.trim()
+  const version = privateStatus?.version?.trim()
   const currentVersion =
     version === 'v0.0.0' || version === '0.0.0'
       ? undefined

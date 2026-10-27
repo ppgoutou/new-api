@@ -19,7 +19,7 @@ For commercial licensing, please contact support@quantumnous.com
 import { useTranslation } from 'react-i18next'
 
 import { SystemUpdateAction } from '@/features/system-update/system-update-action'
-import { useStatus } from '@/hooks/use-status'
+import { usePrivateStatus } from '@/hooks/use-status'
 import { formatTimestamp } from '@/lib/format'
 
 import { SettingsSection } from '../components/settings-section'
@@ -31,11 +31,11 @@ type UpdateCheckerSectionProps = {
 
 export function UpdateCheckerSection(props: UpdateCheckerSectionProps) {
   const { t } = useTranslation()
-  const { status } = useStatus()
+  const { privateStatus } = usePrivateStatus()
   const uptime = props.startTime
     ? formatTimestamp(props.startTime)
     : t('Unknown')
-  const version = status?.version || props.currentVersion || t('Unknown')
+  const version = privateStatus?.version || props.currentVersion || t('Unknown')
 
   return (
     <SettingsSection title={t('System maintenance')}>

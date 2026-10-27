@@ -51,7 +51,7 @@ interface ShowcaseProps {
 export function Showcase(props: ShowcaseProps) {
   const { t } = useTranslation()
   const [category, setCategory] = useState(ALL_CATEGORIES)
-  const startTarget = props.isAuthenticated ? '/dashboard' : '/sign-up'
+  const startTarget = props.isAuthenticated ? '/video-studio' : '/sign-up'
   const configured = useHomeShowcase().showcase.filter((item) => item.video)
   // Admin clips replace the built-in examples as a whole.
   const cards: ShowcaseCard[] =
@@ -106,7 +106,7 @@ export function Showcase(props: ShowcaseProps) {
             </h2>
             <p className='text-muted-foreground mt-3'>
               {t(
-                "Every clip here was generated through this site's Seedance channel. Copy a prompt to create the same effect."
+                'Every clip here was made on this platform with Seedance. Copy a prompt to create the same effect.'
               )}
             </p>
           </div>
