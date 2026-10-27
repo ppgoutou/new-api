@@ -7533,6 +7533,26 @@
     "Questions about pricing, volume, top-ups or integration? Reach us directly.": "Thắc mắc về giá, số lượng lớn, nạp tiền hay tích hợp? Liên hệ trực tiếp với chúng tôi.",
     "{{model}}: {{min}}–{{max}}s per clip": "{{model}}: {{min}}–{{max}} giây mỗi clip",
     "Live · per second": "Trực tiếp · theo giây",
-    "Prices are per generated second; struck-through prices are official prices. Tasks with a reference video are billed by tokens.": "Giá tính theo mỗi giây được tạo; giá gạch ngang là giá chính thức. Tác vụ có video tham chiếu tính phí theo token."
+    "Prices are per generated second; struck-through prices are official prices. Tasks with a reference video are billed by tokens.": "Giá tính theo mỗi giây được tạo; giá gạch ngang là giá chính thức. Tác vụ có video tham chiếu tính phí theo token.",
+    "All Categories": "Tất cả danh mục",
+    "Categories": "Danh mục",
+    "Pricing categories": "Danh mục trang giá",
+    "Add category": "Thêm danh mục",
+    "Edit category": "Sửa danh mục",
+    "Each model can belong to one category. Models already used by another category are not listed.": "Mỗi mô hình chỉ thuộc một danh mục. Mô hình đã nằm trong danh mục khác sẽ không được liệt kê.",
+    "Category name": "Tên danh mục",
+    "Models are shown on the pricing page in the order they are selected.": "Mô hình hiển thị trên trang giá theo thứ tự được chọn.",
+    "Not enabled on any channel": "Chưa bật trên kênh nào",
+    "Failed to save categories": "Lưu danh mục thất bại",
+    "Categories saved": "Đã lưu danh mục",
+    "Categories group models on the pricing page in the order shown here. Models outside every category appear last under Other models.": "Danh mục nhóm mô hình trên trang giá theo thứ tự ở đây. Mô hình không thuộc danh mục nào hiển thị cuối cùng trong Mô hình khác.",
+    "No categories yet": "Chưa có danh mục",
+    "The pricing page lists every model without grouping until a category is added.": "Khi chưa có danh mục, trang giá liệt kê mọi mô hình mà không nhóm.",
+    "Move up": "Di chuyển lên",
+    "Move down": "Di chuyển xuống",
+    "Delete category": "Xóa danh mục",
+    "Delete category {{name}}? Its models move to Other models on the pricing page.": "Xóa danh mục {{name}}? Các mô hình của nó sẽ chuyển sang Mô hình khác trên trang giá.",
+    "Model {{model}} can only belong to one category": "Mô hình {{model}} chỉ có thể thuộc một danh mục",
+    "Invalid pricing category settings": "Cài đặt danh mục không hợp lệ"
   }
 }

@@ -27,6 +27,14 @@ export type PricingVendor = {
   description?: string
 }
 
+/** Administrator-defined pricing page category; models are in display order. */
+export type PricingCategory = {
+  id: string
+  name: string
+  description?: string
+  models: string[]
+}
+
 export type BillingUsageUnit = 'second' | 'count' | 'token' | 'credit'
 
 export type BillingUsageFieldSchema = {
@@ -128,6 +136,7 @@ export type PricingData = {
   message?: string
   data: PricingModel[]
   vendors: PricingVendor[]
+  categories?: PricingCategory[]
   group_ratio: Record<string, number>
   usable_group: Record<string, { desc: string; ratio: number }>
   supported_endpoint: Record<string, string>

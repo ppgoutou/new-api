@@ -7533,6 +7533,26 @@
     "Questions about pricing, volume, top-ups or integration? Reach us directly.": "价格、批量使用、充值或接入有疑问？直接联系我们。",
     "{{model}}: {{min}}–{{max}}s per clip": "{{model}}：单段 {{min}}–{{max}} 秒",
     "Live · per second": "实时 · 按秒",
-    "Prices are per generated second; struck-through prices are official prices. Tasks with a reference video are billed by tokens.": "价格按每生成一秒计算，划线价为官方价。带参考视频的任务按 token 计费。"
+    "Prices are per generated second; struck-through prices are official prices. Tasks with a reference video are billed by tokens.": "价格按每生成一秒计算，划线价为官方价。带参考视频的任务按 token 计费。",
+    "All Categories": "全部类目",
+    "Categories": "类目",
+    "Pricing categories": "模型广场类目",
+    "Add category": "新建类目",
+    "Edit category": "编辑类目",
+    "Each model can belong to one category. Models already used by another category are not listed.": "每个模型只能属于一个类目，已放入其他类目的模型不会出现在可选列表中。",
+    "Category name": "类目名称",
+    "Models are shown on the pricing page in the order they are selected.": "模型在模型广场中按选择的先后顺序显示。",
+    "Not enabled on any channel": "没有渠道启用",
+    "Failed to save categories": "保存类目失败",
+    "Categories saved": "类目已保存",
+    "Categories group models on the pricing page in the order shown here. Models outside every category appear last under Other models.": "类目按这里的顺序在模型广场中分组显示模型。没有放进任何类目的模型显示在最后的“其他模型”中。",
+    "No categories yet": "还没有类目",
+    "The pricing page lists every model without grouping until a category is added.": "添加类目前，模型广场不分组，直接列出所有模型。",
+    "Move up": "上移",
+    "Move down": "下移",
+    "Delete category": "删除类目",
+    "Delete category {{name}}? Its models move to Other models on the pricing page.": "删除类目 {{name}}？其中的模型会移到模型广场的“其他模型”中。",
+    "Model {{model}} can only belong to one category": "模型 {{model}} 只能属于一个类目",
+    "Invalid pricing category settings": "类目设置无效"
   }
 }

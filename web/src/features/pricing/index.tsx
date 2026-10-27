@@ -35,6 +35,12 @@ import {
 import { EXCLUDED_GROUPS, VIEW_MODES } from './constants'
 import { useFilters } from './hooks/use-filters'
 import { usePricingData } from './hooks/use-pricing-data'
+import {
+  groupModelsByCategory,
+  UNCATEGORIZED_CATEGORY,
+  type PricingCategorySection,
+} from './lib/categories'
+import type { PricingModel } from './types'
 
 export function Pricing() {
   const { t } = useTranslation()
@@ -45,6 +51,7 @@ export function Pricing() {
   const {
     models,
     vendors,
+    categories,
     groupRatio,
     usableGroup,
     endpointMap,
@@ -58,6 +65,7 @@ export function Pricing() {
     searchInput,
     sortBy,
     vendorFilter,
+    categoryFilter,
     groupFilter,
     quotaTypeFilter,
     endpointTypeFilter,
@@ -68,6 +76,7 @@ export function Pricing() {
     setSearchInput,
     setSortBy,
     setVendorFilter,
+    setCategoryFilter,
     setGroupFilter,
     setQuotaTypeFilter,
     setEndpointTypeFilter,
@@ -81,7 +90,7 @@ export function Pricing() {
     availableTags,
     clearFilters,
     clearSearch,
-  } = useFilters(models || [])
+  } = useFilters(models || [], categories)
 
   const handleModelClick = useCallback((modelName: string) => {
     setSelectedModelName(modelName)
@@ -110,21 +119,16 @@ export function Pricing() {
     clearSearch()
   }, [clearFilters, clearSearch])
 
-  const renderPricingContent = () => {
-    if (filteredModels.length === 0) {
-      return (
-        <EmptyState
-          searchQuery={searchInput}
-          hasActiveFilters={hasActiveFilters}
-          onClearFilters={handleClearAll}
-        />
-      )
-    }
+  const categorySections = useMemo(
+    () => groupModelsByCategory(filteredModels, categories),
+    [filteredModels, categories]
+  )
 
+  const renderModels = (sectionModels: PricingModel[]) => {
     if (viewMode === VIEW_MODES.CARD) {
       return (
         <ModelCardGrid
-          models={filteredModels}
+          models={sectionModels}
           onModelClick={handleModelClick}
           priceRate={priceRate}
           usdExchangeRate={usdExchangeRate}
@@ -137,7 +141,7 @@ export function Pricing() {
 
     return (
       <PricingTable
-        models={filteredModels}
+        models={sectionModels}
         priceRate={priceRate}
         usdExchangeRate={usdExchangeRate}
         tokenUnit={tokenUnit}
@@ -145,6 +149,58 @@ export function Pricing() {
         selectedGroup={groupFilter}
         onModelClick={handleModelClick}
       />
+    )
+  }
+
+  const renderPricingContent = () => {
+    if (filteredModels.length === 0) {
+      return (
+        <EmptyState
+          searchQuery={searchInput}
+          hasActiveFilters={hasActiveFilters}
+          onClearFilters={handleClearAll}
+        />
+      )
+    }
+
+    if (categorySections.length === 0) {
+      return renderModels(filteredModels)
+    }
+
+    return (
+      <div className='space-y-8'>
+        {categorySections.map((section) => renderCategorySection(section))}
+      </div>
+    )
+  }
+
+  const renderCategorySection = (section: PricingCategorySection) => {
+    const name =
+      section.id === UNCATEGORIZED_CATEGORY ? t('Other models') : section.name
+    return (
+      <section
+        key={section.id}
+        aria-labelledby={`pricing-category-${section.id}`}
+        className='space-y-3'
+      >
+        <div className='flex flex-wrap items-baseline gap-x-3 gap-y-1 px-1'>
+          <h2
+            id={`pricing-category-${section.id}`}
+            className='text-foreground text-lg font-semibold'
+          >
+            {name}
+          </h2>
+          <span className='text-muted-foreground text-xs'>
+            {t('{{count}} models', { count: section.models.length })}
+          </span>
+          {section.description && (
+            <p className='text-muted-foreground w-full text-sm'>
+              {section.description}
+            </p>
+          )}
+        </div>
+        {renderModels(section.models)}
+      </section>
     )
   }
 
@@ -207,14 +263,17 @@ export function Pricing() {
               quotaTypeFilter={quotaTypeFilter}
               endpointTypeFilter={endpointTypeFilter}
               vendorFilter={vendorFilter}
+              categoryFilter={categoryFilter}
               groupFilter={groupFilter}
               tagFilter={tagFilter}
               onQuotaTypeChange={setQuotaTypeFilter}
               onEndpointTypeChange={setEndpointTypeFilter}
               onVendorChange={setVendorFilter}
+              onCategoryChange={setCategoryFilter}
               onGroupChange={setGroupFilter}
               onTagChange={setTagFilter}
               vendors={vendors || []}
+              categories={categories}
               groups={availableGroups}
               tags={availableTags}
               models={models || []}
@@ -238,14 +297,17 @@ export function Pricing() {
                 quotaTypeFilter={quotaTypeFilter}
                 endpointTypeFilter={endpointTypeFilter}
                 vendorFilter={vendorFilter}
+                categoryFilter={categoryFilter}
                 groupFilter={groupFilter}
                 tagFilter={tagFilter}
                 onQuotaTypeChange={setQuotaTypeFilter}
                 onEndpointTypeChange={setEndpointTypeFilter}
                 onVendorChange={setVendorFilter}
+                onCategoryChange={setCategoryFilter}
                 onGroupChange={setGroupFilter}
                 onTagChange={setTagFilter}
                 vendors={vendors || []}
+                categories={categories}
                 groups={availableGroups}
                 tags={availableTags}
                 models={models || []}
