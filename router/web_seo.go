@@ -78,10 +78,13 @@ var seoHeadTemplate = template.Must(template.New("seo-head").Parse(`<title>{{.Fu
     {{- end}}
     `))
 
-// seoHomeTemplate is a static, script-free rendering of the home page copy.
-// It is shown until the app boots (main.tsx removes it before mounting) and
-// is what clients without JavaScript read; it mirrors the React home page.
-var seoHomeTemplate = template.Must(template.New("seo-home").Parse(`<div id="prerender" style="max-width:960px;margin:0 auto;padding:96px 24px 48px;font-family:system-ui,-apple-system,'Segoe UI',sans-serif;line-height:1.6">
+// seoHomeTemplate is a static rendering of the home page copy for crawlers
+// and clients without JavaScript; it mirrors the React home page. Browsers
+// that run scripts hide it at once, so a first visit waiting on uncached
+// bundles never shows it unstyled, and main.tsx removes it before mounting.
+var seoHomeTemplate = template.Must(template.New("seo-home").Parse(`<style>html.js #prerender{display:none}</style>
+    <script>document.documentElement.classList.add('js')</script>
+    <div id="prerender" style="max-width:960px;margin:0 auto;padding:96px 24px 48px;font-family:system-ui,-apple-system,'Segoe UI',sans-serif;line-height:1.6">
       <header>
         <p style="font-weight:600">{{.SiteName}}</p>
         <h1 style="font-size:2.5rem;line-height:1.15;margin:16px 0">Turn one sentence into cinematic video</h1>
