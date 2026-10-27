@@ -68,7 +68,7 @@ export function LandingHero() {
   ]
 
   return (
-    <section className='mx-auto flex min-h-svh max-w-6xl flex-col px-4 pb-12 md:px-6'>
+    <section className='mx-auto flex max-w-6xl flex-col px-4 pb-10 md:px-6 2xl:max-w-7xl'>
       <header className='flex h-16 items-center justify-between gap-3'>
         <span className='flex min-w-0 items-center gap-2.5 font-semibold text-white'>
           <img
@@ -93,7 +93,7 @@ export function LandingHero() {
         </div>
       </header>
 
-      <div className='grid flex-1 grid-cols-[minmax(0,1fr)] items-center gap-10 py-10 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.1fr)] lg:gap-14'>
+      <div className='grid grid-cols-[minmax(0,1fr)] items-center gap-10 py-8 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.1fr)] lg:gap-12 lg:py-12 2xl:py-16'>
         <div className='landing-animate-fade-up opacity-0'>
           <p className='inline-flex items-center gap-2 rounded-full border border-blue-400/35 bg-blue-600/10 px-3 py-1 font-mono text-xs tracking-wide text-blue-300'>
             <span
@@ -102,8 +102,11 @@ export function LandingHero() {
             />
             {t('Seedance AI video · online')}
           </p>
-          <h1 className='mt-5 text-[clamp(2.25rem,5vw,3.75rem)] leading-[1.1] font-bold tracking-tight text-white'>
-            {t('Cinematic AI video,')}
+          {/* Three lines from lg up: the lead line never wraps there. */}
+          <h1 className='mt-5 text-[clamp(2.125rem,3.4vw,3.25rem)] leading-[1.12] font-bold tracking-tight text-white 2xl:text-[3.5rem]'>
+            <span className='lg:whitespace-nowrap'>
+              {t('Cinematic AI video,')}
+            </span>
             <br />
             <span className={GRADIENT_TEXT}>
               {bestDiscount
@@ -111,7 +114,7 @@ export function LandingHero() {
                 : t('billed per second')}
             </span>
           </h1>
-          <p className='mt-5 max-w-xl text-base leading-relaxed text-slate-400 md:text-lg'>
+          <p className='mt-5 max-w-xl text-base leading-relaxed text-slate-400 2xl:text-lg'>
             {t(
               'API-Finder gives you access to ByteDance Seedance video models. Create in the browser or call an OpenAI-compatible API, billed per generated second.'
             )}

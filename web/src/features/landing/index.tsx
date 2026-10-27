@@ -59,7 +59,7 @@ export function Landing() {
   }, [i18n])
 
   return (
-    <div className='relative min-h-svh overflow-hidden bg-[#05070d] text-slate-200'>
+    <div className='relative flex min-h-svh flex-col overflow-hidden bg-[#05070d] text-slate-200'>
       <div
         aria-hidden
         className='pointer-events-none absolute inset-0 [background-image:linear-gradient(rgba(148,163,184,0.07)_1px,transparent_1px),linear-gradient(90deg,rgba(148,163,184,0.07)_1px,transparent_1px)] [mask-image:linear-gradient(to_bottom,black,transparent_85%)] [background-size:32px_32px]'
@@ -76,13 +76,13 @@ export function Landing() {
         aria-hidden
         className='pointer-events-none absolute top-[110svh] left-1/3 size-[40rem] rounded-full bg-[radial-gradient(circle,rgba(34,211,238,0.12),transparent_65%)]'
       />
-      <div className='relative'>
+      <div className='relative flex flex-1 flex-col'>
         <LandingHero />
-        <section className='mx-auto grid max-w-6xl grid-cols-[minmax(0,1fr)] gap-6 px-4 pb-16 md:px-6 lg:grid-cols-[minmax(0,1.75fr)_minmax(0,1fr)]'>
+        <section className='mx-auto grid max-w-6xl grid-cols-[minmax(0,1fr)] gap-6 px-4 pb-16 md:px-6 lg:grid-cols-[minmax(0,1.75fr)_minmax(0,1fr)] 2xl:max-w-7xl'>
           <LandingPricing />
           <LandingContacts />
         </section>
-        <Footer className='border-slate-800/80' />
+        <Footer className='mt-auto border-slate-800/80' />
       </div>
     </div>
   )
