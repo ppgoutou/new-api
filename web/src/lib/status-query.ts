@@ -18,7 +18,7 @@ For commercial licensing, please contact support@quantumnous.com
 */
 import { queryOptions, type QueryClient } from '@tanstack/react-query'
 
-import { getStatus } from '@/lib/api'
+import { getPrivateStatus, getStatus } from '@/lib/api'
 import { DEFAULT_SYSTEM_NAME, DEFAULT_LOGO } from '@/lib/constants'
 import {
   useSystemConfigStore,
@@ -155,6 +155,21 @@ export const statusQueryOptions = queryOptions({
   // Data becomes stale after 5 minutes
   staleTime: 5 * 60 * 1000,
   // Cache expires after 30 minutes
+  gcTime: 30 * 60 * 1000,
+})
+
+/**
+ * `/api/status/private`: the server version, start time and chat presets,
+ * which the public endpoint keeps from anonymous visitors. The values are
+ * global, so the entry is shared by every signed-in user; it requires a
+ * session, so only fetch it while signed in.
+ */
+export const PRIVATE_STATUS_QUERY_KEY = ['status', 'private'] as const
+
+export const privateStatusQueryOptions = queryOptions({
+  queryKey: PRIVATE_STATUS_QUERY_KEY,
+  queryFn: getPrivateStatus,
+  staleTime: 5 * 60 * 1000,
   gcTime: 30 * 60 * 1000,
 })
 
