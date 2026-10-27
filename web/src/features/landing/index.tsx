@@ -16,34 +16,74 @@ along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 For commercial licensing, please contact support@quantumnous.com
 */
-import { PublicLayout } from '@/components/layout'
-import { Footer } from '@/components/layout/components/footer'
-import { ModelPricing, VideoCta, VideoHero } from '@/features/home/components'
-import { HomePlaybackProvider } from '@/features/home/components/home-playback'
-import { useAuthStore } from '@/stores/auth-store'
+import { useEffect } from 'react'
+import { useTranslation } from 'react-i18next'
 
-import { ContactSection } from './components/contact-section'
-import { ProductHighlights } from './components/product-highlights'
-import { RelayGuide } from './components/relay-guide'
+import { Footer } from '@/components/layout/components/footer'
+
+import { LandingContacts } from './components/landing-contacts'
+import { LandingHero } from './components/landing-hero'
+import { LandingPricing } from './components/landing-pricing'
+
+/** Set once the landing page has applied its English default. */
+const LANDING_LANGUAGE_DEFAULTED_KEY = 'landing_language_defaulted'
 
 /**
- * Standalone Seedance product landing page for campaign links: product
- * introduction, pricing, how to get into the relay station, and contacts.
+ * Standalone Seedance campaign page: always dark, English on a visitor's
+ * first visit, with one link to the main site and no site navigation.
  */
 export function Landing() {
-  const isAuthenticated = useAuthStore((state) => !!state.auth.user)
+  const { i18n } = useTranslation()
+
+  useEffect(() => {
+    const root = document.documentElement
+    const previousTheme = root.classList.contains('dark') ? 'dark' : 'light'
+    root.classList.remove('light')
+    root.classList.add('dark')
+    return () => {
+      root.classList.remove('dark')
+      root.classList.add(previousTheme)
+    }
+  }, [])
+
+  // The detector caches every detected language, so a stored language cannot
+  // tell a choice from a browser default; default to English once instead.
+  useEffect(() => {
+    try {
+      if (localStorage.getItem(LANDING_LANGUAGE_DEFAULTED_KEY)) return
+      localStorage.setItem(LANDING_LANGUAGE_DEFAULTED_KEY, '1')
+    } catch {
+      return
+    }
+    void i18n.changeLanguage('en')
+  }, [i18n])
 
   return (
-    <PublicLayout showMainContainer={false}>
-      <HomePlaybackProvider>
-        <VideoHero isAuthenticated={isAuthenticated} />
-      </HomePlaybackProvider>
-      <ProductHighlights />
-      <ModelPricing />
-      <RelayGuide isAuthenticated={isAuthenticated} />
-      <ContactSection />
-      <VideoCta isAuthenticated={isAuthenticated} />
-      <Footer />
-    </PublicLayout>
+    <div className='relative min-h-svh overflow-hidden bg-[#05070d] text-slate-200'>
+      <div
+        aria-hidden
+        className='pointer-events-none absolute inset-0 [background-image:linear-gradient(rgba(148,163,184,0.07)_1px,transparent_1px),linear-gradient(90deg,rgba(148,163,184,0.07)_1px,transparent_1px)] [mask-image:linear-gradient(to_bottom,black,transparent_85%)] [background-size:32px_32px]'
+      />
+      <div
+        aria-hidden
+        className='pointer-events-none absolute -top-48 -left-40 size-[36rem] rounded-full bg-[radial-gradient(circle,rgba(37,99,235,0.32),transparent_65%)]'
+      />
+      <div
+        aria-hidden
+        className='pointer-events-none absolute top-24 -right-48 size-[40rem] rounded-full bg-[radial-gradient(circle,rgba(139,92,246,0.24),transparent_65%)]'
+      />
+      <div
+        aria-hidden
+        className='pointer-events-none absolute top-[110svh] left-1/3 size-[40rem] rounded-full bg-[radial-gradient(circle,rgba(34,211,238,0.12),transparent_65%)]'
+      />
+      <div className='relative'>
+        <LandingHero />
+        <section className='mx-auto grid max-w-6xl grid-cols-[minmax(0,1fr)] gap-6 px-4 pb-16 md:px-6 lg:grid-cols-[minmax(0,1.75fr)_minmax(0,1fr)]'>
+          <LandingPricing />
+          <LandingContacts />
+        </section>
+        <Footer className='border-slate-800/80' />
+      </div>
+    </div>
   )
 }
