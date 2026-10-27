@@ -7537,6 +7537,7 @@
     "Refund Policy": "Politique de remboursement",
     "The administrator has not configured a refund policy yet.": "L’administrateur n’a pas encore configuré de politique de remboursement.",
     "Provide Markdown, HTML, or an external URL for the refund policy": "Indiquez du Markdown, du HTML ou une URL externe pour la politique de remboursement",
-    "Leave empty to hide the refund policy page. Supports Markdown, HTML, or a full URL to redirect users.": "Laissez vide pour masquer la page de politique de remboursement. Prend en charge le Markdown, le HTML ou une URL complète de redirection."
+    "Leave empty to hide the refund policy page. Supports Markdown, HTML, or a full URL to redirect users.": "Laissez vide pour masquer la page de politique de remboursement. Prend en charge le Markdown, le HTML ou une URL complète de redirection.",
+    "Supported resolutions": "Résolutions prises en charge"
   }
 }

@@ -7537,6 +7537,7 @@
     "Refund Policy": "退款政策",
     "The administrator has not configured a refund policy yet.": "管理员尚未配置退款政策。",
     "Provide Markdown, HTML, or an external URL for the refund policy": "填写退款政策的 Markdown、HTML 或外部链接",
-    "Leave empty to hide the refund policy page. Supports Markdown, HTML, or a full URL to redirect users.": "留空则隐藏退款政策页面。支持 Markdown、HTML，或填写完整 URL 跳转。"
+    "Leave empty to hide the refund policy page. Supports Markdown, HTML, or a full URL to redirect users.": "留空则隐藏退款政策页面。支持 Markdown、HTML，或填写完整 URL 跳转。",
+    "Supported resolutions": "支持分辨率"
   }
 }

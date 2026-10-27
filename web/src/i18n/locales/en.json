@@ -7537,6 +7537,7 @@
     "Refund Policy": "Refund Policy",
     "The administrator has not configured a refund policy yet.": "The administrator has not configured a refund policy yet.",
     "Provide Markdown, HTML, or an external URL for the refund policy": "Provide Markdown, HTML, or an external URL for the refund policy",
-    "Leave empty to hide the refund policy page. Supports Markdown, HTML, or a full URL to redirect users.": "Leave empty to hide the refund policy page. Supports Markdown, HTML, or a full URL to redirect users."
+    "Leave empty to hide the refund policy page. Supports Markdown, HTML, or a full URL to redirect users.": "Leave empty to hide the refund policy page. Supports Markdown, HTML, or a full URL to redirect users.",
+    "Supported resolutions": "Supported resolutions"
   }
 }

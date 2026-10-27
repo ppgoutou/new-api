@@ -7537,6 +7537,7 @@
     "Refund Policy": "Chính sách hoàn tiền",
     "The administrator has not configured a refund policy yet.": "Quản trị viên chưa cấu hình chính sách hoàn tiền.",
     "Provide Markdown, HTML, or an external URL for the refund policy": "Nhập Markdown, HTML hoặc URL bên ngoài cho chính sách hoàn tiền",
-    "Leave empty to hide the refund policy page. Supports Markdown, HTML, or a full URL to redirect users.": "Để trống để ẩn trang chính sách hoàn tiền. Hỗ trợ Markdown, HTML hoặc URL đầy đủ để chuyển hướng."
+    "Leave empty to hide the refund policy page. Supports Markdown, HTML, or a full URL to redirect users.": "Để trống để ẩn trang chính sách hoàn tiền. Hỗ trợ Markdown, HTML hoặc URL đầy đủ để chuyển hướng.",
+    "Supported resolutions": "Độ phân giải hỗ trợ"
   }
 }
