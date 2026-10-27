@@ -17,7 +17,7 @@ along with this program. If not, see <https://www.gnu.org/licenses/>.
 For commercial licensing, please contact support@quantumnous.com
 */
 import { zodResolver } from '@hookform/resolvers/zod'
-import { ArrowDown, ArrowUp } from 'lucide-react'
+import { ArrowDown, ArrowUp, Check } from 'lucide-react'
 import { useEffect, useMemo } from 'react'
 import { useForm } from 'react-hook-form'
 import { useTranslation } from 'react-i18next'
@@ -41,7 +41,11 @@ import {
   modelBadgeLabel,
   PRICING_MODEL_BADGES,
 } from '@/features/pricing/lib/categories'
-import type { PricingCategory } from '@/features/pricing/types'
+import type {
+  PricingCategory,
+  PricingModelBadge,
+} from '@/features/pricing/types'
+import { cn } from '@/lib/utils'
 
 import {
   PRICING_CATEGORY_DESCRIPTION_MAX,
@@ -50,6 +54,14 @@ import {
   pricingCategoryFormSchema,
   type PricingCategoryFormValues,
 } from '../../lib/pricing-categories'
+
+// Pressed toggles take the badge's card color so a selection is obvious.
+const PRESSED_BADGE_CLASSES: Record<PricingModelBadge, string> = {
+  recommended:
+    'aria-pressed:border-[#2f6bff] aria-pressed:bg-[#2f6bff] aria-pressed:text-white aria-pressed:hover:bg-[#2f6bff]/90 aria-pressed:hover:text-white',
+  hot: 'aria-pressed:border-[#ff4d2e] aria-pressed:bg-[#ff4d2e] aria-pressed:text-white aria-pressed:hover:bg-[#ff4d2e]/90 aria-pressed:hover:text-white',
+  new: 'aria-pressed:border-[#16c784] aria-pressed:bg-[#16c784] aria-pressed:text-neutral-950 aria-pressed:hover:bg-[#16c784]/90 aria-pressed:hover:text-neutral-950',
+}
 
 export function PricingCategoryDialog(props: {
   open: boolean
@@ -232,8 +244,15 @@ export function PricingCategoryDialog(props: {
                             <ToggleGroupItem
                               key={badge}
                               value={badge}
-                              className='h-7 px-2 text-xs'
+                              className={cn(
+                                'h-7 px-2 text-xs font-semibold',
+                                PRESSED_BADGE_CLASSES[badge]
+                              )}
                             >
+                              <Check
+                                aria-hidden
+                                className='hidden size-3 group-aria-pressed/toggle:block'
+                              />
                               {modelBadgeLabel(badge, t)}
                             </ToggleGroupItem>
                           ))}

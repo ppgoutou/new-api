@@ -324,6 +324,14 @@ describe('model cards', () => {
     ).toBeVisible()
   })
 
+  it('keeps the price right under the description and pins the group row above the footer', () => {
+    render(<ModelCard model={pricingModel()} onClick={vi.fn()} />)
+    expect(screen.getByRole('group', { name: 'Pricing' })).not.toHaveClass(
+      'mt-auto'
+    )
+    expect(screen.getByText('Groups').closest('dl')).toHaveClass('mt-auto')
+  })
+
   it('omits metadata fields when the model has no groups, endpoints or tags', () => {
     render(
       <ModelCard
