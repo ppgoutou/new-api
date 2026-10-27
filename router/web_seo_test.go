@@ -66,6 +66,11 @@ func TestRenderIndexPageServesSameMetadataAndHomeCopyToEveryone(t *testing.T) {
 	assert.Contains(t, pricing, "<title>Acme &lt;Video&gt; | Pricing</title>")
 	assert.NotContains(t, pricing, `id="prerender"`)
 
+	landing := getBody(t, engine, "/landing")
+	assert.Contains(t, landing, "<title>Acme &lt;Video&gt; | Cinematic AI Video, Billed per Second</title>")
+	assert.Contains(t, landing, `<link rel="canonical" href="https://video.example.com/landing" />`)
+	assert.NotContains(t, landing, `id="prerender"`)
+
 	assert.Equal(t, seoTestIndex, getBody(t, engine, "/dashboard"))
 }
 
@@ -86,6 +91,7 @@ func TestRobotsAndSitemapListOnlyConfiguredPublicPages(t *testing.T) {
 
 	sitemap := getBody(t, engine, "/sitemap.xml")
 	assert.Contains(t, sitemap, "<loc>https://video.example.com/</loc>")
+	assert.Contains(t, sitemap, "<loc>https://video.example.com/landing</loc>")
 	assert.Contains(t, sitemap, "<loc>https://video.example.com/privacy-policy</loc>")
 	assert.NotContains(t, sitemap, "/refund-policy")
 	assert.NotContains(t, sitemap, "/about")

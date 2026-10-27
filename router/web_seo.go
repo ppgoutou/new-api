@@ -34,6 +34,10 @@ var seoPages = map[string]seoPage{
 		Title:       "AI Video Generator powered by Seedance",
 		Description: seoHomeDescription,
 	},
+	"/landing": {
+		Title:       "Cinematic AI Video, Billed per Second",
+		Description: "Create cinematic AI video with ByteDance Seedance: text-to-video, image-to-video and reference video up to 4K, pay as you go with no subscription.",
+	},
 	"/pricing": {
 		Title:       "Pricing",
 		Description: "Per-second pricing for Seedance text-to-video, image-to-video and reference-video generation. No subscription or minimum spend.",
@@ -186,7 +190,7 @@ func readSEOSnapshot(c *gin.Context) seoSnapshot {
 		snap.legalLinks = append(snap.legalLinks, seoLink{Href: "/refund-policy", Label: "Refund Policy"})
 	}
 
-	snap.sitemapURLs = []string{"/", "/pricing"}
+	snap.sitemapURLs = []string{"/", "/landing", "/pricing"}
 	if snap.hasAbout {
 		snap.sitemapURLs = append(snap.sitemapURLs, "/about")
 	}
