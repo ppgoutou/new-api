@@ -47,6 +47,7 @@ import {
   taskUsageUnitLabel,
 } from '../lib/task-price-display'
 import {
+  getTokenVideoPricing,
   getVideoPricing,
   VIDEO_PRICE_FRACTION_DIGITS,
 } from '../lib/video-pricing'
@@ -117,7 +118,7 @@ export const ModelCard = memo(function ModelCard(props: ModelCardProps) {
     [props.model, dynamicPriceOptions, currency]
   )
   const videoPricing = useMemo(
-    () => getVideoPricing(props.model),
+    () => getVideoPricing(props.model) ?? getTokenVideoPricing(props.model),
     [props.model]
   )
   let priceSummary: ReactNode

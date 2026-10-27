@@ -258,6 +258,88 @@ export function getPerVideoPricing(model: PricingModel): VideoPricing | null {
   }
 }
 
+/**
+ * Per-second prices of a video model billed by video tokens, for orders without
+ * a reference video: each resolution's token price times its reference tokens
+ * per second. Returns null unless one token field is priced by a resolution
+ * enum and, optionally, other enums whose `none` value marks plain orders.
+ */
+export function getTokenVideoPricing(model: PricingModel): VideoPricing | null {
+  if (model.billing_mode !== 'tiered_expr' || !model.billing_expr) return null
+  const schema = model.billing_usage_schema
+  const numberFields = getTaskNumberFields(schema)
+  if (
+    !schema ||
+    numberFields.length !== 1 ||
+    numberFields[0][1].unit !== 'token'
+  ) {
+    return null
+  }
+  const tokensField = numberFields[0][0]
+  const enumFields = getTaskEnumFields(schema)
+  const optionEntry = enumFields.find((entry) =>
+    entry[1].enum?.every((value) => VIDEO_TOKENS_PER_SECOND[value])
+  )
+  if (
+    !optionEntry ||
+    enumFields.some(
+      (entry) => entry !== optionEntry && !entry[1].enum?.includes('none')
+    )
+  ) {
+    return null
+  }
+  const split = splitBillingExprAndRequestRules(model.billing_expr)
+  if (split.requestRuleExpr?.trim()) return null
+
+  const optionField = optionEntry[0]
+  const options = optionEntry[1].enum ?? []
+  const rowsByOption = new Map<string, VideoPricingRow>()
+  let hasReferencePricing = false
+  for (const tier of getTaskPricingDisplayTiers(split.billingExpr, schema)) {
+    if (
+      tier.constant !== 0 ||
+      Object.keys(tier.unitPrices).some((field) => field !== tokensField)
+    ) {
+      return null
+    }
+    if (
+      tier.conditions.some(
+        (condition) =>
+          condition.field !== optionField && condition.value !== 'none'
+      )
+    ) {
+      hasReferencePricing = true
+      continue
+    }
+    const option =
+      tier.conditions.find((condition) => condition.field === optionField)
+        ?.value ?? (options.length === 1 ? options[0] : undefined)
+    if (option === undefined || rowsByOption.has(option)) return null
+    const tokensPerSecond = VIDEO_TOKENS_PER_SECOND[option]
+    rowsByOption.set(option, {
+      option,
+      secondPrice:
+        ((tier.unitPrices[tokensField] ?? 0) * tokensPerSecond) / 1_000_000,
+      tokensPerSecond,
+    })
+  }
+
+  const rows = options.flatMap((option) => {
+    const row = rowsByOption.get(option)
+    return row ? [row] : []
+  })
+  if (rows.length !== options.length) return null
+
+  return {
+    optionField,
+    hasReferencePricing,
+    durationRange: model.model_name
+      ? VIDEO_DURATION_RANGES[model.model_name]
+      : undefined,
+    rows,
+  }
+}
+
 export type ReferenceOrderExample = {
   option: string
   referenceSeconds: number
