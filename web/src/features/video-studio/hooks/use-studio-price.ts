@@ -20,6 +20,7 @@ import { usePricingData } from '@/features/pricing/hooks/use-pricing-data'
 import { formatTaskUsageUnitPrice } from '@/features/pricing/lib/dynamic-price'
 import { getDisplayGroupRatio } from '@/features/pricing/lib/model-helpers'
 import {
+  getPerVideoPricing,
   getVideoPricing,
   VIDEO_PRICE_FRACTION_DIGITS,
 } from '@/features/pricing/lib/video-pricing'
@@ -40,7 +41,9 @@ export function useStudioPrice(draft: StudioDraft): string | null {
   const model = pricing.models.find(
     (candidate) => candidate.model_name === draft.model
   )
-  const videoPricing = model ? getVideoPricing(model) : null
+  const videoPricing = model
+    ? (getVideoPricing(model) ?? getPerVideoPricing(model))
+    : null
   const row = videoPricing?.rows.find(
     (candidate) => candidate.option === draft.resolution
   )

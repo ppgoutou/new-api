@@ -98,7 +98,11 @@ import {
   taskTierConditions,
   pricingDisplayFallbackKey,
 } from '../lib/task-price-display'
-import { getOfficialVideoPricing, getVideoPricing } from '../lib/video-pricing'
+import {
+  getOfficialVideoPricing,
+  getVideoPricing,
+  GROUP_PRICE_ONLY_MODELS,
+} from '../lib/video-pricing'
 import type {
   ModelCapability,
   PriceType,
@@ -1480,6 +1484,7 @@ export function ModelDetailsContent(props: ModelDetailsContentProps) {
   const isImageModel = isImagePricingModel(props.model)
   const showBasePrices =
     !isImageModel &&
+    !GROUP_PRICE_ONLY_MODELS.has(props.model.model_name) &&
     (!props.model.billing_usage_schema ||
       simpleTaskPricing ||
       taskTiers.length === 0)

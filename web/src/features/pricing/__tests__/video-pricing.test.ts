@@ -20,6 +20,7 @@ import { describe, expect, test } from 'vitest'
 
 import {
   getOfficialVideoPricing,
+  getPerVideoPricing,
   getReferenceOrderExample,
   getVideoPricing,
   isVideoPricingSchema,
@@ -189,6 +190,40 @@ describe('video pricing', () => {
     expect(getVideoPricing(model)?.rows[0].secondPrice).toBe(0.6)
     expect(
       getOfficialVideoPricing({ ...model, official_price_expr: ' ' })
+    ).toBeNull()
+  })
+})
+
+describe('per-video pricing', () => {
+  const PER_VIDEO_SCHEMA: BillingUsageSchema = {
+    resolution: { enum: ['720p'] },
+    videos: { type: 'number', unit: 'count' },
+  }
+
+  test('reads the flat price of a single-resolution model billed per video', () => {
+    const pricing = getPerVideoPricing(
+      videoModel('tier("base", u("videos") * 1.28)', {
+        model_name: 'seedance-2.5-G2-V',
+        billing_usage_schema: PER_VIDEO_SCHEMA,
+      })
+    )
+
+    expect(pricing).toEqual({
+      optionField: 'resolution',
+      hasReferencePricing: false,
+      durationRange: [4, 30],
+      rows: [{ option: '720p', secondPrice: 0, videoPrice: 1.28 }],
+    })
+  })
+
+  test('returns null for per-second models and per-video models with a fixed charge', () => {
+    expect(getPerVideoPricing(videoModel(SEEDANCE_25_EXPR))).toBeNull()
+    expect(
+      getPerVideoPricing(
+        videoModel('tier("base", u("videos") * 1.28 + 0.5)', {
+          billing_usage_schema: PER_VIDEO_SCHEMA,
+        })
+      )
     ).toBeNull()
   })
 })

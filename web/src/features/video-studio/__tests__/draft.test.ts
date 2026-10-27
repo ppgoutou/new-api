@@ -131,6 +131,22 @@ describe('studioModelsFromPricing', () => {
     ])
   })
 
+  it('offers a model billed per video with its resolutions', () => {
+    const models = studioModelsFromPricing([
+      pricingModel('seedance-2.5-G2-V', {
+        billing_mode: 'tiered_expr',
+        billing_expr: 'tier("base", u("videos") * 1.28)',
+        billing_usage_schema: {
+          resolution: { enum: ['720p'] },
+          videos: { type: 'number', unit: 'count' },
+        },
+      }),
+    ])
+    expect(models).toEqual([
+      { name: 'seedance-2.5-G2-V', resolutions: ['720p'], duration: [4, 30] },
+    ])
+  })
+
   it('uses 4 to 15 seconds for a video model without a known duration range', () => {
     const [model] = studioModelsFromPricing([
       videoModel('seedance-2-0-fast-NSFW', ['480p', '720p']),
@@ -292,6 +308,11 @@ describe('estimateDraftCostUSD', () => {
 
   it('charges per second for each video', () => {
     expect(estimateDraftCostUSD(row, 5, 2, false)).toBeCloseTo(1)
+  })
+
+  it('charges a flat price per video whatever the length or references', () => {
+    const perVideo = { secondPrice: 0, videoPrice: 1.28 }
+    expect(estimateDraftCostUSD(perVideo, 30, 2, true)).toBeCloseTo(2.56)
   })
 
   it('charges reference orders by tokens with at least 2/3 of the output as reference seconds', () => {

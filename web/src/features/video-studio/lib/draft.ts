@@ -16,7 +16,10 @@ along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 For commercial licensing, please contact support@quantumnous.com
 */
-import { getVideoPricing } from '@/features/pricing/lib/video-pricing'
+import {
+  getPerVideoPricing,
+  getVideoPricing,
+} from '@/features/pricing/lib/video-pricing'
 import type { PricingModel } from '@/features/pricing/types'
 
 import {
@@ -34,13 +37,13 @@ import type {
 
 /**
  * Models of the public pricing list that the canvas can submit: video models
- * priced per output second by resolution, in pricing list order.
+ * priced per output second or per video by resolution, in pricing list order.
  */
 export function studioModelsFromPricing(
   models: readonly PricingModel[]
 ): StudioModel[] {
   return models.flatMap((model) => {
-    const pricing = getVideoPricing(model)
+    const pricing = getVideoPricing(model) ?? getPerVideoPricing(model)
     if (!pricing || pricing.optionField !== 'resolution') return []
     return [
       {
@@ -190,6 +193,8 @@ export interface PriceRow {
   /** USD per million tokens when the request carries a reference video. */
   referencePricePerMillion?: number
   tokensPerSecond?: number
+  /** USD per video of any length, for models billed per video. */
+  videoPrice?: number
 }
 
 /**
@@ -204,6 +209,7 @@ export function estimateDraftCostUSD(
   count: number,
   hasReferenceVideo: boolean
 ): number {
+  if (row.videoPrice !== undefined) return row.videoPrice * count
   if (
     hasReferenceVideo &&
     row.referencePricePerMillion !== undefined &&
