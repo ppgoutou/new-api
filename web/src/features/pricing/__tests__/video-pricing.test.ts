@@ -22,6 +22,7 @@ import {
   getOfficialVideoPricing,
   getPerVideoPricing,
   getReferenceOrderExample,
+  getTokenVideoPricing,
   getVideoPricing,
   isVideoPricingSchema,
 } from '../lib/video-pricing'
@@ -225,5 +226,52 @@ describe('per-video pricing', () => {
         })
       )
     ).toBeNull()
+  })
+
+  const TOKEN_SCHEMA: BillingUsageSchema = {
+    resolution: { enum: ['480p', '720p'] },
+    tokens: { type: 'number', unit: 'token' },
+    video_input: { enum: ['none', 'video'] },
+  }
+
+  test('derives per-second prices of token-billed models from plain orders', () => {
+    const pricing = getTokenVideoPricing(
+      videoModel(
+        'u("resolution") == "480p" && u("video_input") == "video" ? tier("480p·video", u("tokens") * 9.984 / 1000000) : ' +
+          'u("resolution") == "480p" && u("video_input") == "none" ? tier("480p·none", u("tokens") * 16.692 / 1000000) : ' +
+          'u("resolution") == "720p" && u("video_input") == "video" ? tier("720p·video", u("tokens") * 9.984 / 1000000) : ' +
+          'tier("720p·none", u("tokens") * 16 / 1000000)',
+        { model_name: 'seedance-2-5-NSFW', billing_usage_schema: TOKEN_SCHEMA }
+      )
+    )
+
+    expect(pricing?.hasReferencePricing).toBe(true)
+    expect(pricing?.durationRange).toEqual([4, 30])
+    expect(
+      pricing?.rows.map((row) => [row.option, row.tokensPerSecond])
+    ).toEqual([
+      ['480p', 10044],
+      ['720p', 21600],
+    ])
+    expect(pricing?.rows[0].secondPrice).toBeCloseTo(0.167654, 6)
+    expect(pricing?.rows[1].secondPrice).toBeCloseTo(0.3456, 6)
+  })
+
+  test('reads a single-resolution token model and rejects per-second schemas', () => {
+    const pricing = getTokenVideoPricing(
+      videoModel(
+        'u("video_input") == "video" ? tier("720p·video", u("tokens") * 5 / 1000000) : tier("720p·none", u("tokens") * 8 / 1000000)',
+        {
+          billing_usage_schema: {
+            ...TOKEN_SCHEMA,
+            resolution: { enum: ['720p'] },
+          },
+        }
+      )
+    )
+    expect(pricing?.rows).toEqual([
+      { option: '720p', secondPrice: 0.1728, tokensPerSecond: 21600 },
+    ])
+    expect(getTokenVideoPricing(videoModel(SEEDANCE_25_EXPR))).toBeNull()
   })
 })
