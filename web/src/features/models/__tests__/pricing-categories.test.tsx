@@ -148,7 +148,10 @@ describe('pricing categories management', () => {
     const badges = within(dialog).getByRole('group', {
       name: 'Badges for seedance-2.0',
     })
-    await user.click(within(badges).getByRole('button', { name: 'HOT' }))
+    const hot = within(badges).getByRole('button', { name: 'HOT' })
+    expect(hot).toHaveAttribute('aria-pressed', 'false')
+    await user.click(hot)
+    expect(hot).toHaveAttribute('aria-pressed', 'true')
     await user.click(
       within(badges).getByRole('button', { name: 'Recommended' })
     )
