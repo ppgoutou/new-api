@@ -28,6 +28,17 @@ export const HOME_MEDIA_BASE_URL: string = ''
 export const SUPPORT_QQ = '3895235714'
 export const SUPPORT_TELEGRAM = 'APIFinder_Support'
 
+/**
+ * Link that opens a QQ chat with support: the mobile QQ app on phones and
+ * tablets, the desktop QQ client elsewhere.
+ */
+export function getSupportQqChatUrl(userAgent: string): string {
+  if (/Android|iPhone|iPad|iPod/i.test(userAgent)) {
+    return `mqqwpa://im/chat?chat_type=wpa&uin=${SUPPORT_QQ}&version=1&src_type=web`
+  }
+  return `tencent://message/?uin=${SUPPORT_QQ}&Site=api-finder&Menu=yes`
+}
+
 /** Seedance models presented on the home page, in display order. */
 export const HOME_VIDEO_MODELS = [
   {
