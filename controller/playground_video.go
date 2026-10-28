@@ -18,12 +18,29 @@ import (
 // is served as.
 const PlaygroundVideoPath = "/v1/videos"
 
+// PlaygroundImagePath is the native image endpoint a playground image request
+// is served as.
+const PlaygroundImagePath = "/v1/images/generations"
+
 // PreparePlaygroundVideo lets a signed-in user create a video task from the
 // web console without an API key. Like the chat playground it charges the
 // user's wallet through a temporary token with no token quota of its own, then
 // rewrites the request to the native video endpoint so the task plugin
 // pipeline that follows matches it exactly as an API call.
 func PreparePlaygroundVideo(c *gin.Context) {
+	preparePlaygroundRequest(c, PlaygroundVideoPath)
+}
+
+// PreparePlaygroundImage does the same for image generation from the web
+// console, so the image relay that follows bills and validates it as an API
+// call to the native image endpoint.
+func PreparePlaygroundImage(c *gin.Context) {
+	preparePlaygroundRequest(c, PlaygroundImagePath)
+}
+
+// preparePlaygroundRequest authorizes the signed-in user and rewrites the
+// request to nativePath.
+func preparePlaygroundRequest(c *gin.Context, nativePath string) {
 	if c.GetBool("use_access_token") {
 		err := types.NewError(errors.New(i18n.T(c, i18n.MsgRelayAccessTokenUnsupported)), types.ErrorCodeAccessDenied, types.ErrOptionWithSkipRetry())
 		c.JSON(err.StatusCode, gin.H{"error": err.ToOpenAIError()})
@@ -56,6 +73,6 @@ func PreparePlaygroundVideo(c *gin.Context) {
 		return
 	}
 	common.SetContextKey(c, constant.ContextKeyPlayground, true)
-	c.Request.URL.Path = PlaygroundVideoPath
+	c.Request.URL.Path = nativePath
 	c.Next()
 }

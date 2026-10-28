@@ -193,6 +193,24 @@ describe('Composer', () => {
     ).toBeInTheDocument()
   })
 
+  it('heads the models of each plaza category with the category name', async () => {
+    studioModels.current = [
+      { ...studioModels.current[1], group: 'Seedance 2.5' },
+      { ...studioModels.current[0], group: 'Seedance 2.0' },
+      { ...studioModels.current[2], group: '' },
+    ]
+    const user = userEvent.setup()
+    render(<Composer onSubmitted={vi.fn()} />)
+
+    await user.click(screen.getByRole('button', { name: /^Model:/ }))
+
+    expect(screen.getByText('Seedance 2.5')).toBeInTheDocument()
+    expect(screen.getByText('Seedance 2.0')).toBeInTheDocument()
+    expect(
+      screen.getAllByRole('menuitemradio').map((item) => item.textContent)
+    ).toEqual(['seedance-2.5', 'seedance-2.0', 'seedance2.0-720p-P'])
+  })
+
   it('keeps each model name of the model menu on a single line', async () => {
     studioModels.current = [
       {

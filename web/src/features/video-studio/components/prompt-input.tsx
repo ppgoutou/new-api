@@ -34,6 +34,8 @@ interface PromptInputProps {
   mentions: MentionOption[]
   placeholder: string
   onSubmit: () => void
+  /** Accessible name of the textarea; "Video prompt" by default. */
+  label?: string
 }
 
 /**
@@ -99,7 +101,7 @@ export function PromptInput(props: PromptInputProps) {
         ref={textareaRef}
         value={props.value}
         placeholder={props.placeholder}
-        aria-label={t('Video prompt')}
+        aria-label={props.label ?? t('Video prompt')}
         maxLength={2000}
         rows={3}
         className='min-h-20 resize-none border-0 bg-transparent px-1 py-1 shadow-none focus-visible:ring-0 dark:bg-transparent'

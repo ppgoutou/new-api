@@ -23,6 +23,8 @@ import { useTranslation } from 'react-i18next'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardFooter, CardHeader } from '@/components/ui/card'
 import { studioModelsFromPricing } from '@/features/video-studio/lib/draft'
+import { studioImageModelsFromPricing } from '@/features/video-studio/lib/image-draft'
+import type { StudioKind } from '@/features/video-studio/types'
 import { getLobeIcon } from '@/lib/lobe-icon'
 import { cn } from '@/lib/utils'
 import { useSystemConfigStore } from '@/stores/system-config-store'
@@ -68,8 +70,8 @@ const CARD_ACCENT_CLASS = 'bg-[#ffd23f] text-neutral-950'
 export interface ModelCardProps {
   model: PricingModel
   onClick: (modelName: string) => void
-  /** Opens the video studio with this model; only video models offer it. */
-  onTry?: (modelName: string) => void
+  /** Opens the studio with this model; video and image models offer it. */
+  onTry?: (modelName: string, kind: StudioKind) => void
   priceRate?: number
   usdExchangeRate?: number
   tokenUnit?: TokenUnit
@@ -140,10 +142,11 @@ export const ModelCard = memo(function ModelCard(props: ModelCardProps) {
     () => getVideoPricing(props.model) ?? getTokenVideoPricing(props.model),
     [props.model]
   )
-  const canTry = useMemo(
-    () => studioModelsFromPricing([props.model]).length > 0,
-    [props.model]
-  )
+  const tryKind = useMemo((): StudioKind | null => {
+    if (studioModelsFromPricing([props.model]).length > 0) return 'video'
+    if (studioImageModelsFromPricing([props.model]).length > 0) return 'image'
+    return null
+  }, [props.model])
   let priceSummary: ReactNode
   if (videoPricing) {
     const optionDefinition =
@@ -527,10 +530,12 @@ export const ModelCard = memo(function ModelCard(props: ModelCardProps) {
       <CardFooter className='border-foreground mt-auto rounded-none border-t-2 bg-transparent p-0'>
         <ModelPerfBadge perf={props.perf} className='items-stretch gap-0'>
           <div className='flex shrink-0 self-stretch'>
-            {canTry && props.onTry && (
+            {tryKind && props.onTry && (
               <Button
                 variant='ghost'
-                onClick={() => props.onTry?.(props.model.model_name || '')}
+                onClick={() =>
+                  props.onTry?.(props.model.model_name || '', tryKind)
+                }
                 className='border-foreground hover:bg-muted h-auto shrink-0 self-stretch rounded-none border-l-2 px-4 font-bold'
               >
                 <Play aria-hidden className='size-4' />

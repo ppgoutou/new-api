@@ -78,6 +78,16 @@ func SetRelayRouter(router *gin.Engine) {
 		middleware.PinTaskPluginEndpoint(), middleware.TaskPluginEndpointOnly(middleware.ModelRequestRateLimit()), middleware.PrepareTaskPluginEndpoint(), middleware.Distribute(),
 		func(c *gin.Context) { controller.RelayTaskPluginEndpoint(c, controller.RelayTask) },
 	)
+	// Image generation from the video creation page, the same way as above;
+	// the request then follows the POST /v1/images/generations pipeline.
+	router.POST("/pg/images/generations",
+		middleware.RouteTag("relay"), middleware.UserAuth(), middleware.SystemPerformanceCheck(),
+		controller.PreparePlaygroundImage,
+		middleware.ModelRequestRateLimit(), middleware.PinTaskPluginEndpoint(), middleware.PrepareTaskPluginEndpoint(), middleware.Distribute(),
+		func(c *gin.Context) {
+			controller.RelayTaskPluginEndpoint(c, func(c *gin.Context) { controller.Relay(c, types.RelayFormatOpenAIImage) })
+		},
+	)
 	relayV1Router := router.Group("/v1")
 	relayV1Router.Use(middleware.RouteTag("relay"))
 	relayV1Router.Use(middleware.SystemPerformanceCheck())
