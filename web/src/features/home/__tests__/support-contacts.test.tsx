@@ -17,37 +17,23 @@ along with this program. If not, see <https://www.gnu.org/licenses/>.
 For commercial licensing, please contact support@quantumnous.com
 */
 import { render, screen } from '@testing-library/react'
-import i18next from 'i18next'
-import { afterEach, describe, expect, it } from 'vitest'
+import { describe, expect, it } from 'vitest'
 
 import { SupportContacts } from '../components/support-contacts'
 
-afterEach(async () => {
-  await i18next.changeLanguage('en')
-})
-
-function contactOrder(): string[] {
-  return screen
-    .getAllByRole('listitem')
-    .map((item) => (item.textContent?.includes('QQ') ? 'qq' : 'telegram'))
-}
-
 describe('SupportContacts', () => {
-  it('lists Telegram first for non-Chinese interfaces', () => {
+  it('offers QQ and Telegram to every customer', () => {
     render(<SupportContacts />)
 
-    expect(contactOrder()).toEqual(['telegram', 'qq'])
+    const items = screen.getAllByRole('listitem')
+    expect(items.map((item) => item.textContent)).toEqual([
+      expect.stringContaining('QQ:3895235714'),
+      expect.stringContaining('Telegram:@APIFinder_Support'),
+    ])
+    expect(screen.queryByText(/Mainland|International/)).toBeNull()
     expect(
       screen.getByRole('link', { name: '@APIFinder_Support' })
     ).toHaveAttribute('href', 'https://t.me/APIFinder_Support')
-  })
-
-  it.each(['zhCN', 'zhTW'])('lists QQ first for %s', async (language) => {
-    await i18next.changeLanguage(language)
-    render(<SupportContacts />)
-
-    expect(contactOrder()).toEqual(['qq', 'telegram'])
-    expect(screen.getByText('3895235714')).toBeInTheDocument()
     expect(
       screen.getByRole('button', { name: 'Copy QQ number' })
     ).toBeInTheDocument()

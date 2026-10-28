@@ -24,7 +24,7 @@ For commercial licensing, please contact support@quantumnous.com
  */
 export const HOME_MEDIA_BASE_URL: string = ''
 
-/** Official support: QQ for mainland China, Telegram for other regions. */
+/** Official support channels; customers pick whichever suits them. */
 export const SUPPORT_QQ = '3895235714'
 export const SUPPORT_TELEGRAM = 'APIFinder_Support'
 
