@@ -28,6 +28,11 @@ const MODELS_SECTIONS = [
     build: () => null, // Content is rendered directly in the page component
   },
   {
+    id: 'onboarding',
+    titleKey: 'Onboarding',
+    build: () => null,
+  },
+  {
     id: 'vendors',
     titleKey: 'Vendors',
     build: () => null,

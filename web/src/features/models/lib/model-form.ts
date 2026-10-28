@@ -44,6 +44,7 @@ export const modelFormSchema = z.object({
 })
 
 export type ModelFormValues = z.infer<typeof modelFormSchema>
+export type ModelFormInput = z.input<typeof modelFormSchema>
 
 // ============================================================================
 // Vendor Form Schema

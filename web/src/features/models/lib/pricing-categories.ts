@@ -24,6 +24,14 @@ import type {
   PricingModelBadge,
 } from '@/features/pricing/types'
 
+// Pressed toggles take the badge's card color so a selection is obvious.
+export const PRESSED_BADGE_CLASSES: Record<PricingModelBadge, string> = {
+  recommended:
+    'aria-pressed:border-[#2f6bff] aria-pressed:bg-[#2f6bff] aria-pressed:text-white aria-pressed:hover:bg-[#2f6bff]/90 aria-pressed:hover:text-white',
+  hot: 'aria-pressed:border-[#ff4d2e] aria-pressed:bg-[#ff4d2e] aria-pressed:text-white aria-pressed:hover:bg-[#ff4d2e]/90 aria-pressed:hover:text-white',
+  new: 'aria-pressed:border-[#16c784] aria-pressed:bg-[#16c784] aria-pressed:text-neutral-950 aria-pressed:hover:bg-[#16c784]/90 aria-pressed:hover:text-neutral-950',
+}
+
 export const PRICING_CATEGORIES_OPTION_KEY = 'PricingCategories'
 export const PRICING_CATEGORY_NAME_MAX = 40
 export const PRICING_CATEGORY_DESCRIPTION_MAX = 3000

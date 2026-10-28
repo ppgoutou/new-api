@@ -30,6 +30,7 @@ import type {
   SyncUpstreamResponse,
   PreviewUpstreamDiffResponse,
   MissingModelsResponse,
+  OnboardingOverviewResponse,
   PrefillGroupsResponse,
   SyncLocale,
   SyncSource,
@@ -237,6 +238,37 @@ export async function previewUpstreamDiff(params?: {
  */
 export async function getMissingModels(): Promise<MissingModelsResponse> {
   const res = await api.get('/api/models/missing')
+  return res.data
+}
+
+/**
+ * Get pending upstream and configured models for the onboarding workbench
+ */
+export async function getModelOnboarding(): Promise<OnboardingOverviewResponse> {
+  const res = await api.get('/api/models/onboarding')
+  return res.data
+}
+
+/**
+ * Add or ignore pending upstream models on one channel
+ */
+export async function applyChannelUpstreamModels(request: {
+  id: number
+  add_models?: string[]
+  ignore_models?: string[]
+}): Promise<{ success: boolean; message?: string }> {
+  const res = await api.post('/api/channel/upstream_updates/apply', request)
+  return res.data
+}
+
+/**
+ * Queue an upstream model check across every enabled channel
+ */
+export async function detectAllChannelUpstreamModels(): Promise<{
+  success: boolean
+  message?: string
+}> {
+  const res = await api.post('/api/channel/upstream_updates/detect_all')
   return res.data
 }
 
