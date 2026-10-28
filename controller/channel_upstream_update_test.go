@@ -12,6 +12,7 @@ import (
 	"github.com/QuantumNous/new-api/constant"
 	"github.com/QuantumNous/new-api/i18n"
 	"github.com/QuantumNous/new-api/model"
+	"github.com/QuantumNous/new-api/pkg/jsplugin"
 	"github.com/QuantumNous/new-api/relaykit/dto"
 	"github.com/gin-gonic/gin"
 	"github.com/stretchr/testify/assert"
@@ -416,6 +417,53 @@ func TestFetchNewAPIModelsUsesOpenAIContract(t *testing.T) {
 
 	require.NoError(t, err)
 	require.Equal(t, []string{"gpt-5", "gpt-5-mini"}, models)
+}
+
+func TestFetchTaskPluginModelsPrefersSupplierList(t *testing.T) {
+	source := `
+export const meta = {apiVersion: 1, key: "upstream-models", name: "Upstream Models", version: "1.0.0", author: {name: "Test"}, models: ["static-model"], fetchMode: "per_task"};
+export function buildSubmitRequest() { return {}; }
+export function parseSubmitResponse() { return {}; }
+export function buildQueryRequest() { return {}; }
+export function parseTaskResult() { return {}; }
+`
+	_, err := jsplugin.DefaultRegistry.Register(source, jsplugin.Options{})
+	require.NoError(t, err)
+	t.Cleanup(func() { jsplugin.DefaultRegistry.Unregister("upstream-models") })
+	setting := `{"task_plugin_key":"upstream-models"}`
+
+	cases := []struct {
+		name     string
+		status   int
+		body     string
+		expected []string
+	}{
+		{name: "supplier list", status: http.StatusOK, body: `{"data":[{"id":"seedance-2"},{"id":"seedance-1"}]}`, expected: []string{"seedance-2", "seedance-1"}},
+		{name: "supplier error", status: http.StatusNotFound, body: `{}`, expected: []string{"static-model"}},
+		{name: "supplier empty", status: http.StatusOK, body: `{"data":[]}`, expected: []string{"static-model"}},
+	}
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+				assert.Equal(t, "/v1/models", r.URL.Path)
+				assert.Equal(t, "Bearer plugin-key", r.Header.Get("Authorization"))
+				w.WriteHeader(tc.status)
+				_, _ = w.Write([]byte(tc.body))
+			}))
+			t.Cleanup(server.Close)
+
+			baseURL := server.URL + "/"
+			channel := &model.Channel{Type: constant.ChannelTypeTaskPlugin, Key: "plugin-key", BaseURL: &baseURL, Setting: &setting}
+			models, err := fetchChannelUpstreamModelIDs(channel)
+			require.NoError(t, err)
+			assert.Equal(t, tc.expected, models)
+		})
+	}
+
+	channel := &model.Channel{Type: constant.ChannelTypeTaskPlugin, Key: "plugin-key", Setting: &setting}
+	models, err := fetchChannelUpstreamModelIDs(channel)
+	require.NoError(t, err)
+	assert.Equal(t, []string{"static-model"}, models, "no base URL keeps the plugin list")
 }
 
 func TestNormalizeModelNames(t *testing.T) {

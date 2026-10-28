@@ -369,6 +369,15 @@ func fetchChannelUpstreamModelIDs(channel *model.Channel) ([]string, error) {
 		if !ok {
 			return nil, fmt.Errorf("task plugin %q is not registered", channel.GetSetting().TaskPluginKey)
 		}
+		// A plugin channel pointed at an OpenAI-compatible supplier reports the
+		// supplier's live model list; the plugin's static list is the fallback
+		// for suppliers without /v1/models.
+		if baseURL := strings.TrimRight(channel.GetBaseURL(), "/"); baseURL != "" {
+			ids, err := fetchOpenAIModelListIDs(channel, baseURL+"/v1/models")
+			if err == nil && len(ids) > 0 {
+				return ids, nil
+			}
+		}
 		return normalizeModelNames(plugin.Meta.Models), nil
 	}
 	baseURL := constant.GetChannelBaseURL(channel.Type)
@@ -436,7 +445,12 @@ func fetchChannelUpstreamModelIDs(channel *model.Channel) ([]string, error) {
 	default:
 		url = fmt.Sprintf("%s/v1/models", baseURL)
 	}
+	return fetchOpenAIModelListIDs(channel, url)
+}
 
+// fetchOpenAIModelListIDs reads an OpenAI-style model list endpoint with the
+// channel's key, header overrides and proxy.
+func fetchOpenAIModelListIDs(channel *model.Channel, url string) ([]string, error) {
 	key, _, apiErr := channel.GetNextEnabledKey()
 	if apiErr != nil {
 		return nil, fmt.Errorf("failed to get channel key: %w", apiErr)
