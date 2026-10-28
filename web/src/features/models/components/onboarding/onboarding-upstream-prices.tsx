@@ -22,10 +22,10 @@ import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 
 import { Dialog } from '@/components/dialog'
-import { PasswordInput } from '@/components/password-input'
 import { StatusBadge } from '@/components/status-badge'
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
 import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
 import { TitledCard } from '@/components/ui/titled-card'
 import { formatTimestamp } from '@/lib/format'
 
@@ -286,9 +286,15 @@ function UpstreamTokenDialog(props: {
               />
             </div>
             <div className='flex gap-2'>
-              <PasswordInput
-                className='flex-1'
+              {/* A text field masked with CSS: browsers autofill saved
+                  passwords into password fields, never into this one. */}
+              <Input
+                type='text'
+                className='flex-1 [-webkit-text-security:disc]'
                 autoComplete='off'
+                spellCheck={false}
+                data-1p-ignore
+                data-lpignore='true'
                 aria-label={t('Supplier token for {{name}}', {
                   name: channel.name,
                 })}
