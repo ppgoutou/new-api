@@ -289,4 +289,35 @@ describe('model onboarding workbench', () => {
       )
     )
   })
+
+  it('takes supplier tokens in masked text fields that browsers do not fill with saved passwords', async () => {
+    useAuthStore
+      .getState()
+      .auth.setUser({ id: 1, username: 'administrator', role: 100 })
+    const user = userEvent.setup()
+    const { put } = mockApi()
+    renderSection()
+
+    await user.click(
+      await screen.findByRole('button', { name: 'Supplier tokens' })
+    )
+    const dialog = await screen.findByRole('dialog')
+    const field = within(dialog).getByRole('textbox', {
+      name: 'Supplier token for alpha',
+    })
+
+    expect(field).toHaveAttribute('type', 'text')
+    expect(field).toHaveAttribute('autocomplete', 'off')
+    expect(dialog.querySelector('input[type=password]')).toBeNull()
+
+    await user.type(field, 'sk-supplier')
+    await user.click(within(dialog).getByRole('button', { name: 'Save' }))
+
+    await waitFor(() =>
+      expect(put).toHaveBeenCalledWith(
+        '/api/models/onboarding/upstream_prices/token',
+        { channel_id: 1, token: 'sk-supplier' }
+      )
+    )
+  })
 })
