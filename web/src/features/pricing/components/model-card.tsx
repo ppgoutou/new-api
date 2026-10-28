@@ -526,27 +526,29 @@ export const ModelCard = memo(function ModelCard(props: ModelCardProps) {
       </CardContent>
       <CardFooter className='border-foreground mt-auto rounded-none border-t-2 bg-transparent p-0'>
         <ModelPerfBadge perf={props.perf} className='items-stretch gap-0'>
-          {canTry && props.onTry && (
+          <div className='flex shrink-0 self-stretch'>
+            {canTry && props.onTry && (
+              <Button
+                variant='ghost'
+                onClick={() => props.onTry?.(props.model.model_name || '')}
+                className='border-foreground hover:bg-muted h-auto shrink-0 self-stretch rounded-none border-l-2 px-4 font-bold'
+              >
+                <Play aria-hidden className='size-4' />
+                {t('Try')}
+              </Button>
+            )}
             <Button
               variant='ghost'
-              onClick={() => props.onTry?.(props.model.model_name || '')}
-              className='border-foreground hover:bg-muted h-auto shrink-0 self-stretch rounded-none border-l-2 px-4 font-bold'
+              onClick={() => props.onClick(props.model.model_name || '')}
+              className={cn(
+                'border-foreground h-auto shrink-0 self-stretch rounded-none border-l-2 px-5 font-bold hover:bg-[#ffc400] hover:text-neutral-950',
+                CARD_ACCENT_CLASS
+              )}
             >
-              <Play aria-hidden className='size-4' />
-              {t('Try')}
+              {t('Details')}
+              <ChevronRight aria-hidden className='size-4' />
             </Button>
-          )}
-          <Button
-            variant='ghost'
-            onClick={() => props.onClick(props.model.model_name || '')}
-            className={cn(
-              'border-foreground h-auto shrink-0 self-stretch rounded-none border-l-2 px-5 font-bold hover:bg-[#ffc400] hover:text-neutral-950',
-              CARD_ACCENT_CLASS
-            )}
-          >
-            {t('Details')}
-            <ChevronRight aria-hidden className='size-4' />
-          </Button>
+          </div>
         </ModelPerfBadge>
       </CardFooter>
     </Card>
