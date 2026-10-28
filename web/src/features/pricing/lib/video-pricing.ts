@@ -52,14 +52,6 @@ export const VIDEO_DURATION_RANGES: Readonly<
   'seedance-2.5-G2-V': [4, 30],
 }
 
-/**
- * Models whose details page shows only the per-group prices, without the
- * Base Price section.
- */
-export const GROUP_PRICE_ONLY_MODELS: ReadonlySet<string> = new Set([
-  'seedance-2.5-G2-V',
-])
-
 export type VideoPricingRow = {
   option: string
   /** USD per output second, before group and recharge adjustments. */

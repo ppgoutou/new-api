@@ -214,10 +214,8 @@ it.each([false, true])(
       </QueryClientProvider>
     )
     await act(() => i18next.changeLanguage('zhCN'))
-    expect(screen.getAllByText('图片生成单价')).toHaveLength(configured ? 1 : 2)
-    expect(screen.getAllByText(configured ? '/ 张' : '张')).toHaveLength(
-      configured ? 1 : 2
-    )
+    expect(screen.getAllByText('图片生成单价')).toHaveLength(1)
+    expect(screen.getAllByText(configured ? '/ 张' : '张')).toHaveLength(1)
     expect(screen.queryByText('image_count')).not.toBeInTheDocument()
     if (configured) {
       // A USD site shows the Chinese interface in CNY (default rate 1).
@@ -341,7 +339,7 @@ it('refreshes memoized provider prices when the group or display currency change
   }
 })
 
-it('shows one standard task price and a localized group price without duplicate tiers', async () => {
+it('shows only the localized group price of a standard task, without the base price', async () => {
   vi.spyOn(api, 'get').mockResolvedValue({ data: { data: { groups: [] } } })
   const client = new QueryClient({
     defaultOptions: { queries: { retry: false } },
@@ -363,18 +361,19 @@ it('shows one standard task price and a localized group price without duplicate 
   )
   expect(
     screen.getAllByText('Song generation unit price', { exact: false })
-  ).toHaveLength(2)
+  ).toHaveLength(1)
   expect(screen.queryByText('Tiered price table')).not.toBeInTheDocument()
   expect(screen.queryByText('Dynamic Pricing')).not.toBeInTheDocument()
   expect(screen.queryByText('music')).not.toBeInTheDocument()
-  expect(screen.getByText('$0.22')).toBeVisible()
+  expect(screen.queryByText('Base Price')).not.toBeInTheDocument()
+  expect(screen.queryByText('$0.22')).not.toBeInTheDocument()
   expect(screen.getByText('$0.44')).toBeVisible()
   await act(() => i18next.changeLanguage('zhCN'))
-  expect(screen.getAllByText('生成歌曲单价', { exact: false })).toHaveLength(2)
+  expect(screen.getAllByText('生成歌曲单价', { exact: false })).toHaveLength(1)
   await act(() => i18next.changeLanguage('fr'))
   expect(
     screen.getAllByText('Song generation unit price', { exact: false })
-  ).toHaveLength(2)
+  ).toHaveLength(1)
 })
 
 it('labels even a single task price on model cards', async () => {
@@ -700,7 +699,7 @@ it('shows provider count, price range and missing-price status in both list and 
   expect(screen.getByText('$0.4 – $0.8')).toBeVisible()
 })
 
-it('shows only group prices for seedance-2.5-G2-V, without the base price section', () => {
+it('shows a per-video model only by group, with its resolutions in their own column', () => {
   vi.spyOn(api, 'get').mockResolvedValue({ data: { data: { groups: [] } } })
   const client = new QueryClient({
     defaultOptions: { queries: { retry: false } },
@@ -711,10 +710,10 @@ it('shows only group prices for seedance-2.5-G2-V, without the base price sectio
       <ModelDetailsContent
         model={{
           ...model,
-          model_name: 'seedance-2.5-G2-V',
-          billing_expr: 'tier("base", u("videos") * 1.28)',
+          model_name: 'seedance-2.5-g4-m1-官转',
+          billing_expr: 'tier("480p", u("videos") * 1.25)',
           billing_usage_schema: {
-            resolution: { enum: ['720p'] },
+            resolution: { enum: ['480p'] },
             videos: {
               type: 'number',
               unit: 'count',
@@ -722,8 +721,8 @@ it('shows only group prices for seedance-2.5-G2-V, without the base price sectio
             },
           },
         }}
-        groupRatio={{ default: 1 }}
-        usableGroup={{ default: { desc: '', ratio: 1 } }}
+        groupRatio={{ default: 1.05 }}
+        usableGroup={{ default: { desc: '', ratio: 1.05 } }}
         endpointMap={{}}
         autoGroups={[]}
         priceRate={1}
@@ -741,5 +740,42 @@ it('shows only group prices for seedance-2.5-G2-V, without the base price sectio
     expect.stringContaining('Video generation unit price'),
     'Supported resolutions',
   ])
-  expect(screen.getByRole('cell', { name: '720P' })).toBeVisible()
+  expect(screen.getByRole('cell', { name: '480P' })).toBeVisible()
+  expect(screen.queryByText('$1.25')).not.toBeInTheDocument()
+  expect(screen.getByText('$1.3125')).toBeVisible()
+})
+
+it('lists the conditions of a token-billed video model only in the group table', () => {
+  vi.spyOn(api, 'get').mockResolvedValue({ data: { data: { groups: [] } } })
+  const client = new QueryClient({
+    defaultOptions: { queries: { retry: false } },
+  })
+  clients.push(client)
+  render(
+    <QueryClientProvider client={client}>
+      <ModelDetailsContent
+        model={{
+          ...model,
+          model_name: 'seedance-2-0-pro-NSFW',
+          billing_expr:
+            'u("video_input") == "video" ? tier("video", u("tokens") * 4 / 1000000) : tier("none", u("tokens") * 6 / 1000000)',
+          billing_usage_schema: {
+            tokens: { type: 'number', unit: 'token' },
+            video_input: { enum: ['video', 'none'] },
+          },
+        }}
+        groupRatio={{ default: 2 }}
+        usableGroup={{ default: { desc: '', ratio: 2 } }}
+        endpointMap={{}}
+        autoGroups={[]}
+        priceRate={1}
+        usdExchangeRate={1}
+        tokenUnit='M'
+      />
+    </QueryClientProvider>
+  )
+  expect(screen.getAllByText('Applicable conditions')).toHaveLength(1)
+  expect(screen.queryByText('$4')).not.toBeInTheDocument()
+  expect(screen.getByText('$8')).toBeVisible()
+  expect(screen.getByText('$12')).toBeVisible()
 })
