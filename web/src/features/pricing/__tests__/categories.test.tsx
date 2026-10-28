@@ -16,8 +16,15 @@ along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 For commercial licensing, please contact support@quantumnous.com
 */
-import { describe, expect, it } from 'vitest'
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
+import { renderHook, waitFor } from '@testing-library/react'
+import i18next from 'i18next'
+import type { ReactNode } from 'react'
+import { afterEach, describe, expect, it, vi } from 'vitest'
 
+import { api } from '@/lib/api'
+
+import { usePricingData } from '../hooks/use-pricing-data'
 import {
   filterByCategory,
   groupModelsByCategory,
@@ -118,5 +125,63 @@ describe('pricing categories', () => {
       ['seedance-2.0', ['recommended', 'new']],
       ['seedance-2.5', ['hot']],
     ])
+  })
+
+  describe('category descriptions', () => {
+    afterEach(async () => {
+      vi.restoreAllMocks()
+      await i18next.changeLanguage('en')
+    })
+
+    it.each([
+      ['en', 'Seedance 2.0 video models'],
+      ['zhCN', '字节跳动 Seedance 2.0 视频模型'],
+      ['zhTW', '字節跳動 Seedance 2.0 影片模型'],
+      ['fr', 'Seedance 2.0 video models'],
+    ])(
+      'shows the %s block of a multi-language category description',
+      async (language, expected) => {
+        await i18next.changeLanguage(language)
+        vi.spyOn(api, 'get').mockImplementation(async (url: string) => {
+          if (url !== '/api/pricing') return { data: { success: true } }
+          return {
+            data: {
+              success: true,
+              data: [],
+              vendors: [],
+              group_ratio: {},
+              usable_group: {},
+              supported_endpoint: {},
+              auto_groups: [],
+              categories: [
+                {
+                  id: 'sd20',
+                  name: 'Seedance 2.0',
+                  models: ['seedance-2.0'],
+                  description:
+                    '<!-- lang:zh -->\n字节跳动 Seedance 2.0 视频模型\n' +
+                    '<!-- lang:zh-TW -->\n字節跳動 Seedance 2.0 影片模型\n' +
+                    '<!-- lang:en -->\nSeedance 2.0 video models',
+                },
+              ],
+            },
+          }
+        })
+        const queryClient = new QueryClient({
+          defaultOptions: { queries: { retry: false } },
+        })
+        const wrapper = (props: { children: ReactNode }) => (
+          <QueryClientProvider client={queryClient}>
+            {props.children}
+          </QueryClientProvider>
+        )
+
+        const { result } = renderHook(() => usePricingData(), { wrapper })
+
+        await waitFor(() =>
+          expect(result.current.categories[0]?.description).toBe(expected)
+        )
+      }
+    )
   })
 })

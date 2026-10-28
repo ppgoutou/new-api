@@ -15,7 +15,7 @@ const (
 	pricingCategoriesMax            = 50
 	pricingCategoryModelsMax        = 200
 	pricingCategoryNameMaxRunes     = 40
-	pricingCategoryDescMaxRunes     = 300
+	pricingCategoryDescMaxRunes     = 3000
 	pricingCategoryIDMaxLength      = 64
 	pricingCategoryModelNameMaxSize = 255
 )
