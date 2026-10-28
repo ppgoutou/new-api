@@ -21,7 +21,9 @@ import { render, screen, waitFor, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 
+import { pricingOptions } from '@/features/model-pricing/pricing'
 import { api } from '@/lib/api'
+import { useAuthStore } from '@/stores/auth-store'
 
 import { OnboardingSection } from '../components/onboarding/onboarding-section'
 
@@ -33,14 +35,23 @@ const overview = {
     {
       model_name: 'gpt-new',
       pending_channels: [alpha, beta],
+      removed_channels: [],
       channels: [],
       metadata_id: 0,
     },
     {
       model_name: 'gpt-done',
       pending_channels: [],
+      removed_channels: [],
       channels: [alpha],
       metadata_id: 3,
+    },
+    {
+      model_name: 'gpt-gone',
+      pending_channels: [],
+      removed_channels: [alpha, beta],
+      channels: [alpha, beta],
+      metadata_id: 4,
     },
   ],
   tags: ['chat'],
@@ -50,8 +61,60 @@ const categories = [
   { id: 'chat', name: 'Chat', description: '', models: ['gpt-done'] },
 ]
 
+const upstreamReport = {
+  channels: [
+    {
+      id: 1,
+      name: 'alpha',
+      base_url: 'https://supplier.test',
+      has_token: true,
+      baseline_time: 1,
+      latest_time: 2,
+    },
+  ],
+  changes: [
+    {
+      channel_id: 1,
+      channel_name: 'alpha',
+      model_name: 'gpt-done',
+      kind: 'changed',
+      fields: [{ field: 'model_ratio', previous: 1, current: 1.5 }],
+    },
+    {
+      channel_id: 1,
+      channel_name: 'alpha',
+      model_name: '',
+      kind: 'group_ratio',
+      fields: [{ field: 'vip', previous: 1.2, current: 1 }],
+    },
+  ],
+}
+
 function mockApi() {
   vi.spyOn(api, 'get').mockImplementation(async (url: string) => {
+    if (url === '/api/models/onboarding/upstream_prices') {
+      return { data: { success: true, data: upstreamReport } }
+    }
+    if (url === '/api/option/model_pricing') {
+      const effective = { ModelRatio: 1 }
+      return {
+        data: {
+          success: true,
+          data: {
+            entries: [
+              {
+                model_name: 'gpt-done',
+                version: 'v1',
+                configured: effective,
+                effective,
+              },
+            ],
+            options: pricingOptions({}),
+            empty_version: 'empty',
+          },
+        },
+      }
+    }
     if (url === '/api/models/onboarding') {
       return { data: { success: true, data: overview } }
     }
@@ -96,10 +159,43 @@ function renderSection() {
 }
 
 afterEach(() => {
+  useAuthStore.getState().auth.setUser(null)
   vi.restoreAllMocks()
 })
 
 describe('model onboarding workbench', () => {
+  it('removes a delisted model only from the checked channels after confirmation', async () => {
+    const user = userEvent.setup()
+    const { post } = mockApi()
+    renderSection()
+
+    await user.click(
+      await screen.findByRole('tab', { name: /Delisted upstream/ })
+    )
+    await user.click(screen.getByRole('button', { name: /gpt-gone/ }))
+    const delisted = screen
+      .getByRole('heading', { name: 'Delisted upstream' })
+      .closest('section') as HTMLElement
+    await user.click(within(delisted).getAllByRole('checkbox')[1])
+    await user.click(
+      within(delisted).getByRole('button', {
+        name: 'Remove from selected channels',
+      })
+    )
+    expect(post).not.toHaveBeenCalled()
+    await user.click(
+      within(await screen.findByRole('alertdialog')).getByRole('button', {
+        name: 'Remove',
+      })
+    )
+
+    await waitFor(() => expect(post).toHaveBeenCalledOnce())
+    expect(post).toHaveBeenCalledWith('/api/channel/upstream_updates/apply', {
+      id: 1,
+      remove_models: ['gpt-gone'],
+    })
+  })
+
   it('lists unfinished models under To do and every model under All', async () => {
     const user = userEvent.setup()
     mockApi()
@@ -160,6 +256,36 @@ describe('model onboarding workbench', () => {
           name_rule: 0,
         }),
         expect.anything()
+      )
+    )
+  })
+
+  it('shows a supplier price change on the model and marks it handled', async () => {
+    useAuthStore
+      .getState()
+      .auth.setUser({ id: 1, username: 'administrator', role: 100 })
+    const user = userEvent.setup()
+    const { post } = mockApi()
+    post.mockResolvedValue({
+      data: { success: true, data: { ...upstreamReport, changes: [] } },
+    })
+    renderSection()
+
+    expect(await screen.findByText('Group ratio changed')).toBeVisible()
+    await user.click(
+      await screen.findByRole('tab', { name: /Upstream repriced \(1\)/ })
+    )
+    await user.click(screen.getByRole('button', { name: /gpt-done/ }))
+    const card = (await screen.findByText('Upstream price changes')).closest(
+      '[data-slot=card]'
+    ) as HTMLElement
+    expect(within(card).getByText('1 → 1.5')).toBeVisible()
+    await user.click(within(card).getByRole('button', { name: 'Mark handled' }))
+
+    await waitFor(() =>
+      expect(post).toHaveBeenCalledWith(
+        '/api/models/onboarding/upstream_prices/acknowledge',
+        { channel_id: 1, model_names: ['gpt-done'] }
       )
     )
   })

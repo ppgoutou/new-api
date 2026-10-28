@@ -416,6 +416,14 @@ func SetApiRouter(router *gin.Engine) {
 			modelsRoute.POST("/delete", controller.BatchDeleteModelMeta)
 			modelsRoute.GET("/missing", controller.GetMissingModels)
 			modelsRoute.GET("/onboarding", controller.GetModelOnboarding)
+			upstreamPricesRoute := modelsRoute.Group("/onboarding/upstream_prices")
+			upstreamPricesRoute.Use(middleware.RootAuth())
+			{
+				upstreamPricesRoute.GET("", controller.GetOnboardingUpstreamPrices)
+				upstreamPricesRoute.POST("/check", controller.CheckOnboardingUpstreamPrices)
+				upstreamPricesRoute.POST("/acknowledge", controller.AcknowledgeOnboardingUpstreamPrices)
+				upstreamPricesRoute.PUT("/token", controller.SetOnboardingUpstreamPricingToken)
+			}
 			modelsRoute.GET("/", controller.GetAllModelsMeta)
 			modelsRoute.GET("/search", controller.SearchModelsMeta)
 			modelsRoute.GET("/:id", controller.GetModelMeta)

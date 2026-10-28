@@ -31,6 +31,7 @@ import type {
   PreviewUpstreamDiffResponse,
   MissingModelsResponse,
   OnboardingOverviewResponse,
+  UpstreamPriceReportResponse,
   PrefillGroupsResponse,
   SyncLocale,
   SyncSource,
@@ -250,14 +251,60 @@ export async function getModelOnboarding(): Promise<OnboardingOverviewResponse> 
 }
 
 /**
- * Add or ignore pending upstream models on one channel
+ * Add, ignore or remove upstream-changed models on one channel
  */
 export async function applyChannelUpstreamModels(request: {
   id: number
   add_models?: string[]
   ignore_models?: string[]
+  remove_models?: string[]
 }): Promise<{ success: boolean; message?: string }> {
   const res = await api.post('/api/channel/upstream_updates/apply', request)
+  return res.data
+}
+
+/**
+ * Last upstream pricing check, without fetching again
+ */
+export async function getUpstreamPrices(): Promise<UpstreamPriceReportResponse> {
+  const res = await api.get('/api/models/onboarding/upstream_prices')
+  return res.data
+}
+
+/**
+ * Fetch every watched channel's upstream pricing and diff it with the baseline
+ */
+export async function checkUpstreamPrices(): Promise<UpstreamPriceReportResponse> {
+  const res = await api.post('/api/models/onboarding/upstream_prices/check')
+  return res.data
+}
+
+/**
+ * Accept the latest upstream prices as the new baseline
+ */
+export async function acknowledgeUpstreamPrices(request: {
+  channel_id: number
+  model_names?: string[]
+  group_ratio?: boolean
+}): Promise<UpstreamPriceReportResponse> {
+  const res = await api.post(
+    '/api/models/onboarding/upstream_prices/acknowledge',
+    request
+  )
+  return res.data
+}
+
+/**
+ * Store or clear (empty token) the supplier access token of one channel
+ */
+export async function setUpstreamPricingToken(request: {
+  channel_id: number
+  token: string
+}): Promise<{ success: boolean; message?: string }> {
+  const res = await api.put(
+    '/api/models/onboarding/upstream_prices/token',
+    request
+  )
   return res.data
 }
 

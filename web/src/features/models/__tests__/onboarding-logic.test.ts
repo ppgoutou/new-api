@@ -36,6 +36,7 @@ function item(overrides: Partial<OnboardingModel>): OnboardingModel {
   return {
     model_name: 'gpt-new',
     pending_channels: [],
+    removed_channels: [],
     channels: [channel],
     metadata_id: 1,
     ...overrides,
@@ -82,6 +83,19 @@ describe('onboarding status', () => {
     expect(status.hasMetadata).toBe(true)
     expect(status.hasPrice).toBeUndefined()
     expect(matchesOnboardingFilter(status, 'todo')).toBe(false)
+  })
+
+  it('lists a model its upstream delisted under to-do and delisted upstream', () => {
+    const status = onboardingStatus(
+      item({ removed_channels: [channel] }),
+      new Set(['gpt-new']),
+      new Map()
+    )
+
+    expect(status.removed).toBe(true)
+    expect(matchesOnboardingFilter(status, 'todo')).toBe(true)
+    expect(matchesOnboardingFilter(status, 'removed')).toBe(true)
+    expect(matchesOnboardingFilter(status, 'pending')).toBe(false)
   })
 })
 

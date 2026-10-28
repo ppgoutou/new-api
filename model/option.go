@@ -79,6 +79,8 @@ func InitOptionMap() {
 	common.OptionMap["HomePageContent"] = ""
 	common.OptionMap["HomeShowcase"] = ""
 	common.OptionMap["PricingCategories"] = ""
+	common.OptionMap["OnboardingUpstreamPricingToken"] = ""
+	common.OptionMap["OnboardingUpstreamPriceSnapshot"] = ""
 	common.OptionMap["Footer"] = common.Footer
 	common.OptionMap["SystemName"] = common.SystemName
 	common.OptionMap["Logo"] = common.Logo

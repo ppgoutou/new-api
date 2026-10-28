@@ -40,10 +40,14 @@ import {
 } from '@/lib/server-error-message'
 
 import {
+  acknowledgeUpstreamPrices,
   applyChannelUpstreamModels,
+  checkUpstreamPrices,
   detectAllChannelUpstreamModels,
   getModelOnboarding,
+  getUpstreamPrices,
   getVendors,
+  setUpstreamPricingToken,
 } from '../../api'
 import { modelsQueryKeys, vendorsQueryKeys } from '../../lib'
 import {
@@ -59,6 +63,10 @@ import {
 } from '../../lib/pricing-categories'
 import { OnboardingEditor } from './onboarding-editor'
 import { OnboardingList, type OnboardingRow } from './onboarding-list'
+import {
+  UpstreamPricePanel,
+  type AcknowledgeRequest,
+} from './onboarding-upstream-prices'
 
 export function OnboardingSection() {
   const { t } = useTranslation()
@@ -77,6 +85,11 @@ export function OnboardingSection() {
   const canEditPricing = useCanEditModelPricing()
   const pricing = useModelPricing([], canEditPricing)
   const options = useSystemOptions()
+  const upstreamPrices = useQuery({
+    queryKey: modelsQueryKeys.upstreamPrices(),
+    queryFn: async () => requireServerSuccess(await getUpstreamPrices()).data,
+    enabled: canEditPricing,
+  })
   const vendors = useQuery({
     queryKey: vendorsQueryKeys.list(),
     queryFn: async () =>
@@ -101,23 +114,39 @@ export function OnboardingSection() {
     )
   }, [pricing.data])
 
+  const priceChanges = useMemo(
+    () =>
+      (upstreamPrices.data?.changes ?? []).filter(
+        (change) => change.kind !== 'group_ratio'
+      ),
+    [upstreamPrices.data]
+  )
   const allRows = useMemo<OnboardingRow[]>(() => {
     const owners = pricingCategoryOwners(categories)
+    const repriced = new Set(priceChanges.map((change) => change.model_name))
     return (overview.data?.items ?? []).map((item) => ({
       item,
-      status: onboardingStatus(item, priced, owners),
+      status: onboardingStatus(item, priced, owners, repriced),
     }))
-  }, [overview.data, priced, categories])
+  }, [overview.data, priced, categories, priceChanges])
+  const workbenchModels = useMemo(
+    () => new Set(allRows.map((row) => row.item.model_name)),
+    [allRows]
+  )
 
   const counts = useMemo(() => {
     const result: Record<OnboardingFilter, number> = {
       todo: 0,
       pending: 0,
+      removed: 0,
+      priced: 0,
       all: allRows.length,
     }
     for (const row of allRows) {
       if (matchesOnboardingFilter(row.status, 'todo')) result.todo++
       if (row.status.pending) result.pending++
+      if (row.status.removed) result.removed++
+      if (row.status.priceChanged) result.priced++
     }
     return result
   }, [allRows])
@@ -151,6 +180,38 @@ export function OnboardingSection() {
       queryClient.invalidateQueries({ queryKey: ['pricing'] }),
     ])
     toast.success(t('Categories saved'))
+  }
+
+  const checkPrices = useMutation({
+    mutationFn: async () =>
+      requireServerSuccess(await checkUpstreamPrices()).data,
+    onSuccess: (report) => {
+      queryClient.setQueryData(modelsQueryKeys.upstreamPrices(), report)
+      toast.success(t('Upstream prices checked'))
+    },
+  })
+
+  const acknowledge = useMutation({
+    mutationFn: async (request: AcknowledgeRequest) =>
+      requireServerSuccess(await acknowledgeUpstreamPrices(request)).data,
+    onSuccess: (report) =>
+      queryClient.setQueryData(modelsQueryKeys.upstreamPrices(), report),
+  })
+
+  const saveUpstreamToken = async (channelId: number, token: string) => {
+    const response = await setUpstreamPricingToken({
+      channel_id: channelId,
+      token,
+    })
+    if (!response.success) {
+      throw createServerError(response, t('Operation failed'))
+    }
+    await queryClient.invalidateQueries({
+      queryKey: modelsQueryKeys.upstreamPrices(),
+    })
+    toast.success(
+      token ? t('Supplier token saved') : t('Supplier token cleared')
+    )
   }
 
   const detectAll = useMutation({
@@ -260,6 +321,17 @@ export function OnboardingSection() {
           </Button>
         </div>
       </div>
+      {canEditPricing && (
+        <UpstreamPricePanel
+          report={upstreamPrices.data}
+          workbenchModels={workbenchModels}
+          checking={checkPrices.isPending}
+          acknowledging={acknowledge.isPending}
+          onCheck={() => checkPrices.mutate()}
+          onAcknowledge={(request) => acknowledge.mutate(request)}
+          onSaveToken={saveUpstreamToken}
+        />
+      )}
       <div className='grid gap-4 lg:min-h-0 lg:flex-1 lg:grid-cols-[minmax(280px,360px)_minmax(0,1fr)]'>
         <OnboardingList
           rows={rows}
@@ -283,6 +355,11 @@ export function OnboardingSection() {
             onSaveCategories={saveCategories}
             onChanged={refresh}
             onDirtyChange={setEditorDirty}
+            priceChanges={priceChanges.filter(
+              (change) => change.model_name === current.item.model_name
+            )}
+            acknowledging={acknowledge.isPending}
+            onAcknowledge={(request) => acknowledge.mutate(request)}
           />
         ) : (
           <EmptyState
