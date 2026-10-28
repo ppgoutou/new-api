@@ -17,9 +17,16 @@ along with this program. If not, see <https://www.gnu.org/licenses/>.
 For commercial licensing, please contact support@quantumnous.com
 */
 import { createFileRoute } from '@tanstack/react-router'
+import z from 'zod'
 
 import { VideoStudio } from '@/features/video-studio'
 
+const videoStudioSearchSchema = z.object({
+  /** Model preselected in the composer, such as from a pricing card. */
+  model: z.string().optional().catch(undefined),
+})
+
 export const Route = createFileRoute('/_authenticated/video-studio/')({
+  validateSearch: videoStudioSearchSchema,
   component: VideoStudio,
 })

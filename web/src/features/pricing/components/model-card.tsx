@@ -16,13 +16,13 @@ along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 For commercial licensing, please contact support@quantumnous.com
 */
-import { ChevronRight } from 'lucide-react'
+import { ChevronRight, Play } from 'lucide-react'
 import { memo, useMemo, type ReactNode } from 'react'
 import { useTranslation } from 'react-i18next'
 
-import { CopyButton } from '@/components/copy-button'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardFooter, CardHeader } from '@/components/ui/card'
+import { studioModelsFromPricing } from '@/features/video-studio/lib/draft'
 import { getLobeIcon } from '@/lib/lobe-icon'
 import { cn } from '@/lib/utils'
 import { useSystemConfigStore } from '@/stores/system-config-store'
@@ -68,6 +68,8 @@ const CARD_ACCENT_CLASS = 'bg-[#ffd23f] text-neutral-950'
 export interface ModelCardProps {
   model: PricingModel
   onClick: (modelName: string) => void
+  /** Opens the video studio with this model; only video models offer it. */
+  onTry?: (modelName: string) => void
   priceRate?: number
   usdExchangeRate?: number
   tokenUnit?: TokenUnit
@@ -136,6 +138,10 @@ export const ModelCard = memo(function ModelCard(props: ModelCardProps) {
   )
   const videoPricing = useMemo(
     () => getVideoPricing(props.model) ?? getTokenVideoPricing(props.model),
+    [props.model]
+  )
+  const canTry = useMemo(
+    () => studioModelsFromPricing([props.model]).length > 0,
     [props.model]
   )
   let priceSummary: ReactNode
@@ -398,24 +404,6 @@ export const ModelCard = memo(function ModelCard(props: ModelCardProps) {
           >
             {props.model.model_name}
           </h3>
-          {props.badges && props.badges.length > 0 && (
-            <ul
-              aria-label={t('Highlights')}
-              className='mt-1.5 flex flex-wrap gap-1'
-            >
-              {props.badges.map((badge) => (
-                <li
-                  key={badge}
-                  className={cn(
-                    'border-foreground rounded-md border-[1.5px] px-1.5 py-px text-[11px] leading-4 font-bold tracking-wide',
-                    MODEL_BADGE_CLASSES[badge]
-                  )}
-                >
-                  {modelBadgeLabel(badge, t)}
-                </li>
-              ))}
-            </ul>
-          )}
           {props.model.vendor_name && (
             <p
               className='text-muted-foreground mt-1 truncate text-xs'
@@ -425,12 +413,24 @@ export const ModelCard = memo(function ModelCard(props: ModelCardProps) {
             </p>
           )}
         </div>
-        <CopyButton
-          value={props.model.model_name}
-          tooltip={t('Copy model name')}
-          className='border-foreground size-8 rounded-lg border-2'
-          iconClassName='size-3.5'
-        />
+        {props.badges && props.badges.length > 0 && (
+          <ul
+            aria-label={t('Highlights')}
+            className='flex shrink-0 flex-wrap justify-end gap-1 self-start'
+          >
+            {props.badges.map((badge) => (
+              <li
+                key={badge}
+                className={cn(
+                  'border-foreground rounded-md border-[1.5px] px-1.5 py-px text-[11px] leading-4 font-bold tracking-wide',
+                  MODEL_BADGE_CLASSES[badge]
+                )}
+              >
+                {modelBadgeLabel(badge, t)}
+              </li>
+            ))}
+          </ul>
+        )}
       </CardHeader>
       <CardContent className='flex flex-1 flex-col gap-3'>
         <div className='flex min-w-0 flex-col gap-1.5'>
@@ -526,6 +526,16 @@ export const ModelCard = memo(function ModelCard(props: ModelCardProps) {
       </CardContent>
       <CardFooter className='border-foreground mt-auto rounded-none border-t-2 bg-transparent p-0'>
         <ModelPerfBadge perf={props.perf} className='items-stretch gap-0'>
+          {canTry && props.onTry && (
+            <Button
+              variant='ghost'
+              onClick={() => props.onTry?.(props.model.model_name || '')}
+              className='border-foreground hover:bg-muted h-auto shrink-0 self-stretch rounded-none border-l-2 px-4 font-bold'
+            >
+              <Play aria-hidden className='size-4' />
+              {t('Try')}
+            </Button>
+          )}
           <Button
             variant='ghost'
             onClick={() => props.onClick(props.model.model_name || '')}

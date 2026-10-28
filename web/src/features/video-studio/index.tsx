@@ -17,6 +17,7 @@ along with this program. If not, see <https://www.gnu.org/licenses/>.
 For commercial licensing, please contact support@quantumnous.com
 */
 import { useQueryClient } from '@tanstack/react-query'
+import { useSearch } from '@tanstack/react-router'
 import { useTranslation } from 'react-i18next'
 
 import { Main } from '@/components/layout'
@@ -29,6 +30,7 @@ import { STUDIO_WORKS_QUERY_KEY } from './constants'
 export function VideoStudio() {
   const { t } = useTranslation()
   const queryClient = useQueryClient()
+  const search = useSearch({ from: '/_authenticated/video-studio/' })
 
   return (
     <Main>
@@ -38,6 +40,7 @@ export function VideoStudio() {
             {t('Create a video, bring your ideas to life')}
           </h1>
           <Composer
+            initialModel={search.model}
             onSubmitted={() =>
               queryClient.invalidateQueries({
                 queryKey: STUDIO_WORKS_QUERY_KEY,

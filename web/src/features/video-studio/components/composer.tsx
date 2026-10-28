@@ -48,12 +48,14 @@ import { FramePanel, ReferencePanel } from './reference-panel'
 interface ComposerProps {
   /** Called after tasks are created, so the works list can refresh. */
   onSubmitted: () => void
+  /** Model picked on entry, such as from a pricing card's try button. */
+  initialModel?: string
 }
 
 /** Prompt box with references, mode, model and output settings. */
 export function Composer(props: ComposerProps) {
   const { t } = useTranslation()
-  const studio = useStudioDraft()
+  const studio = useStudioDraft(props.initialModel)
   const models = useStudioModels()
   const draft = fitDraftToModel(studio.draft, models)
   const model = findStudioModel(models, draft.model)

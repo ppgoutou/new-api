@@ -179,6 +179,20 @@ describe('Composer', () => {
     })
   })
 
+  it('preselects the model it was opened with', () => {
+    render(<Composer onSubmitted={vi.fn()} initialModel='seedance2.0-720p-P' />)
+    expect(
+      screen.getByRole('button', { name: 'Model: seedance2.0-720p-P' })
+    ).toBeInTheDocument()
+  })
+
+  it('falls back to the first model when opened with an unavailable one', () => {
+    render(<Composer onSubmitted={vi.fn()} initialModel='retired-model' />)
+    expect(
+      screen.getByRole('button', { name: 'Model: seedance-2.0' })
+    ).toBeInTheDocument()
+  })
+
   it('keeps each model name of the model menu on a single line', async () => {
     studioModels.current = [
       {
