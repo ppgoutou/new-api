@@ -31,12 +31,14 @@ import {
   sideDrawerHeaderClassName,
 } from '@/components/drawer-layout'
 import { ErrorState } from '@/components/error-state'
+import { LanguageBlocksTextarea } from '@/components/language-blocks-textarea'
 import { LoadingState } from '@/components/loading-state'
 import { LobeIconField } from '@/components/lobe-icon-field'
 import { Button } from '@/components/ui/button'
 import {
   Form,
   FormControl,
+  FormDescription,
   FormField,
   FormItem,
   FormLabel,
@@ -52,8 +54,8 @@ import {
   SheetTitle,
 } from '@/components/ui/sheet'
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs'
-import { Textarea } from '@/components/ui/textarea'
 import { formatTimestampToDate } from '@/lib/format'
+import { LANGUAGE_BLOCKS_HINT } from '@/lib/language-blocks'
 import { createServerError } from '@/lib/server-error-message'
 
 import { createVendor, getVendor, updateVendor } from '../../api'
@@ -205,8 +207,11 @@ export function VendorMutateDialog(props: {
                           <FormItem>
                             <FormLabel>{t('Description')}</FormLabel>
                             <FormControl>
-                              <Textarea rows={4} {...field} />
+                              <LanguageBlocksTextarea rows={4} {...field} />
                             </FormControl>
+                            <FormDescription>
+                              {t(LANGUAGE_BLOCKS_HINT)}
+                            </FormDescription>
                             <FormMessage />
                           </FormItem>
                         )}

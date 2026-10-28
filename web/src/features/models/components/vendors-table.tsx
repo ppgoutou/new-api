@@ -39,6 +39,10 @@ import {
 } from '@/components/ui/dropdown-menu'
 import { useTableUrlState } from '@/hooks/use-table-url-state'
 import { formatTimestampToDate } from '@/lib/format'
+import {
+  ADMIN_PREVIEW_LANGUAGE,
+  selectLanguageBlock,
+} from '@/lib/language-blocks'
 import { getLobeIcon } from '@/lib/lobe-icon'
 import { createServerError } from '@/lib/server-error-message'
 
@@ -146,9 +150,15 @@ export function VendorsTable() {
       cell: ({ row }) => (
         <p
           className='text-muted-foreground line-clamp-2 max-w-lg break-words whitespace-normal'
-          title={row.original.description}
+          title={selectLanguageBlock(
+            row.original.description ?? '',
+            ADMIN_PREVIEW_LANGUAGE
+          )}
         >
-          {row.original.description || '—'}
+          {selectLanguageBlock(
+            row.original.description ?? '',
+            ADMIN_PREVIEW_LANGUAGE
+          ) || '—'}
         </p>
       ),
     },
