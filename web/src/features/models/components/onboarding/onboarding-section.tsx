@@ -42,6 +42,7 @@ import {
 import {
   acknowledgeUpstreamPrices,
   applyChannelUpstreamModels,
+  applyUpstreamPrice,
   checkUpstreamPrices,
   detectAllChannelUpstreamModels,
   getModelOnboarding,
@@ -185,8 +186,12 @@ export function OnboardingSection() {
   const checkPrices = useMutation({
     mutationFn: async () =>
       requireServerSuccess(await checkUpstreamPrices()).data,
-    onSuccess: (report) => {
+    onSuccess: async (report) => {
       queryClient.setQueryData(modelsQueryKeys.upstreamPrices(), report)
+      // A check also prices served models that had no price yet.
+      await queryClient.invalidateQueries({
+        queryKey: ['model-pricing-config'],
+      })
       toast.success(t('Upstream prices checked'))
     },
   })
@@ -196,6 +201,17 @@ export function OnboardingSection() {
       requireServerSuccess(await acknowledgeUpstreamPrices(request)).data,
     onSuccess: (report) =>
       queryClient.setQueryData(modelsQueryKeys.upstreamPrices(), report),
+  })
+
+  const applyPrice = useMutation({
+    mutationFn: async (modelName: string) =>
+      requireServerSuccess(await applyUpstreamPrice({ model_name: modelName }))
+        .data,
+    onSuccess: async (report) => {
+      queryClient.setQueryData(modelsQueryKeys.upstreamPrices(), report)
+      await refresh()
+      toast.success(t('Model pricing saved'))
+    },
   })
 
   const saveUpstreamToken = async (channelId: number, token: string) => {
@@ -285,7 +301,7 @@ export function OnboardingSection() {
       <div className='flex flex-wrap items-center justify-between gap-2'>
         <p className='text-muted-foreground text-sm'>
           {t(
-            'Pick a model to add it to channels, write its description, tags and category, and set its price.'
+            'Pick a model to write its description, icon and category. Prices follow the upstream.'
           )}
         </p>
         <div className='flex flex-wrap gap-2'>
@@ -355,18 +371,20 @@ export function OnboardingSection() {
             onSaveCategories={saveCategories}
             onChanged={refresh}
             onDirtyChange={setEditorDirty}
-            priceChanges={priceChanges.filter(
-              (change) => change.model_name === current.item.model_name
-            )}
-            acknowledging={acknowledge.isPending}
-            onAcknowledge={(request) => acknowledge.mutate(request)}
+            upstreamPrice={
+              upstreamPrices.data?.models?.[current.item.model_name]
+            }
+            applyingUpstreamPrice={applyPrice.isPending}
+            onApplyUpstreamPrice={() =>
+              applyPrice.mutate(current.item.model_name)
+            }
           />
         ) : (
           <EmptyState
             bordered
             title={t('Select a model')}
             description={t(
-              'Its channels, description, tags, category and price open here.'
+              'Its description, icon, category and price open here.'
             )}
           />
         )}

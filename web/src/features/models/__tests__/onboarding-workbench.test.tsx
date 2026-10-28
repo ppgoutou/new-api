@@ -88,12 +88,26 @@ const upstreamReport = {
       fields: [{ field: 'vip', previous: 1.2, current: 1 }],
     },
   ],
+  models: {
+    'gpt-done': {
+      channel_id: 1,
+      channel_name: 'alpha',
+      pricing: { ModelRatio: 1.5 },
+      in_sync: false,
+    },
+  },
 }
 
-function mockApi() {
+function signInAsRoot() {
+  useAuthStore
+    .getState()
+    .auth.setUser({ id: 1, username: 'administrator', role: 100 })
+}
+
+function mockApi(report = upstreamReport) {
   vi.spyOn(api, 'get').mockImplementation(async (url: string) => {
     if (url === '/api/models/onboarding/upstream_prices') {
-      return { data: { success: true, data: upstreamReport } }
+      return { data: { success: true, data: report } }
     }
     if (url === '/api/option/model_pricing') {
       const effective = { ModelRatio: 1 }
@@ -232,7 +246,7 @@ describe('model onboarding workbench', () => {
     })
   })
 
-  it('creates metadata for a model that has none', async () => {
+  it('creates metadata for a model that has none from its description alone', async () => {
     const user = userEvent.setup()
     const { post } = mockApi()
     post.mockResolvedValue({ data: { success: true, data: { id: 9 } } })
@@ -241,9 +255,10 @@ describe('model onboarding workbench', () => {
     await user.click(await screen.findByRole('button', { name: /gpt-new/ }))
     const save = screen.getByRole('button', { name: 'Save metadata' })
     expect(save).toBeDisabled()
+    expect(screen.queryByText('Vendor')).toBeNull()
+    expect(screen.queryByText('Tags')).toBeNull()
 
     await user.type(screen.getByLabelText('Description'), 'Fast model')
-    await user.click(screen.getByRole('button', { name: 'chat' }))
     await user.click(save)
 
     await waitFor(() =>
@@ -252,7 +267,6 @@ describe('model onboarding workbench', () => {
         expect.objectContaining({
           model_name: 'gpt-new',
           description: '<!-- lang:zh -->\nFast model',
-          tags: 'chat',
           name_rule: 0,
         }),
         expect.anything()
@@ -260,10 +274,8 @@ describe('model onboarding workbench', () => {
     )
   })
 
-  it('shows a supplier price change on the model and marks it handled', async () => {
-    useAuthStore
-      .getState()
-      .auth.setUser({ id: 1, username: 'administrator', role: 100 })
+  it('copies the upstream price over a repriced model with one click', async () => {
+    signInAsRoot()
     const user = userEvent.setup()
     const { post } = mockApi()
     post.mockResolvedValue({
@@ -276,18 +288,39 @@ describe('model onboarding workbench', () => {
       await screen.findByRole('tab', { name: /Upstream repriced \(1\)/ })
     )
     await user.click(screen.getByRole('button', { name: /gpt-done/ }))
-    const card = (await screen.findByText('Upstream price changes')).closest(
-      '[data-slot=card]'
-    ) as HTMLElement
-    expect(within(card).getByText('1 → 1.5')).toBeVisible()
-    await user.click(within(card).getByRole('button', { name: 'Mark handled' }))
+    expect(
+      await screen.findByText('Differs from the upstream price of alpha')
+    ).toBeVisible()
+    await user.click(screen.getByRole('button', { name: 'Use upstream price' }))
 
     await waitFor(() =>
       expect(post).toHaveBeenCalledWith(
-        '/api/models/onboarding/upstream_prices/acknowledge',
-        { channel_id: 1, model_names: ['gpt-done'] }
+        '/api/models/onboarding/upstream_prices/apply',
+        { model_name: 'gpt-done' }
       )
     )
+  })
+
+  it('shows a served model price read-only without the channel card once it matches upstream', async () => {
+    signInAsRoot()
+    const user = userEvent.setup()
+    mockApi({
+      ...upstreamReport,
+      models: {
+        'gpt-done': { ...upstreamReport.models['gpt-done'], in_sync: true },
+      },
+    })
+    renderSection()
+
+    await user.click(await screen.findByRole('tab', { name: /All/ }))
+    await user.click(screen.getByRole('button', { name: /gpt-done/ }))
+
+    expect(
+      await screen.findByText('Matches the upstream price of alpha')
+    ).toBeVisible()
+    expect(screen.queryByRole('button', { name: 'Use upstream price' })).toBeNull()
+    expect(screen.queryByRole('button', { name: 'Save model prices' })).toBeNull()
+    expect(screen.queryByText('Channels and groups')).toBeNull()
   })
 
   it('takes supplier tokens in masked text fields that browsers do not fill with saved passwords', async () => {

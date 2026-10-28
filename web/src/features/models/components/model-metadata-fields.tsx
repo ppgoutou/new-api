@@ -52,6 +52,8 @@ export function ModelMetadataFields(props: {
   /** Existing tags offered as one-click additions. */
   tagSuggestions?: string[]
   descriptionRows?: number
+  /** False leaves out the vendor and tag fields; their stored values stay. */
+  showVendorAndTags?: boolean
 }) {
   const { t } = useTranslation()
   const selectedVendor = props.vendors.find(
@@ -104,73 +106,77 @@ export function ModelMetadataFields(props: {
         )}
       />
 
-      <FormField
-        control={props.form.control}
-        name='vendor_id'
-        render={({ field }) => (
-          <FormItem>
-            <FormLabel>{t('Vendor')}</FormLabel>
-            <FormControl>
-              <Combobox
-                options={props.vendors.map((vendor) => ({
-                  value: String(vendor.id),
-                  label: vendor.name,
-                }))}
-                onValueChange={(value) =>
-                  field.onChange(value ? Number.parseInt(value) : undefined)
-                }
-                value={field.value ? String(field.value) : null}
-                className='w-full'
-                placeholder={t('Select vendor')}
-              />
-            </FormControl>
-            <FormMessage />
-          </FormItem>
-        )}
-      />
-
-      <FormField
-        control={props.form.control}
-        name='tags'
-        render={({ field }) => (
-          <FormItem>
-            <FormLabel>{t('Tags')}</FormLabel>
-            <FormControl>
-              <TagInput
-                value={field.value || []}
-                onChange={field.onChange}
-                placeholder={t('Add tags...')}
-              />
-            </FormControl>
-            <FormDescription>
-              {t('Press Enter or comma to add tags')}
-            </FormDescription>
-            {suggestions.length > 0 && (
-              <div
-                className='flex flex-wrap gap-1.5'
-                role='group'
-                aria-label={t('Existing tags')}
-              >
-                {suggestions.map((tag) => (
-                  <Button
-                    key={tag}
-                    type='button'
-                    variant='outline'
-                    size='xs'
-                    onClick={() =>
-                      field.onChange([...(field.value ?? []), tag])
+      {props.showVendorAndTags !== false && (
+        <>
+          <FormField
+            control={props.form.control}
+            name='vendor_id'
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>{t('Vendor')}</FormLabel>
+                <FormControl>
+                  <Combobox
+                    options={props.vendors.map((vendor) => ({
+                      value: String(vendor.id),
+                      label: vendor.name,
+                    }))}
+                    onValueChange={(value) =>
+                      field.onChange(value ? Number.parseInt(value) : undefined)
                     }
-                  >
-                    <Plus aria-hidden className='size-3' />
-                    {tag}
-                  </Button>
-                ))}
-              </div>
+                    value={field.value ? String(field.value) : null}
+                    className='w-full'
+                    placeholder={t('Select vendor')}
+                  />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
             )}
-            <FormMessage />
-          </FormItem>
-        )}
-      />
+          />
+
+          <FormField
+            control={props.form.control}
+            name='tags'
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>{t('Tags')}</FormLabel>
+                <FormControl>
+                  <TagInput
+                    value={field.value || []}
+                    onChange={field.onChange}
+                    placeholder={t('Add tags...')}
+                  />
+                </FormControl>
+                <FormDescription>
+                  {t('Press Enter or comma to add tags')}
+                </FormDescription>
+                {suggestions.length > 0 && (
+                  <div
+                    className='flex flex-wrap gap-1.5'
+                    role='group'
+                    aria-label={t('Existing tags')}
+                  >
+                    {suggestions.map((tag) => (
+                      <Button
+                        key={tag}
+                        type='button'
+                        variant='outline'
+                        size='xs'
+                        onClick={() =>
+                          field.onChange([...(field.value ?? []), tag])
+                        }
+                      >
+                        <Plus aria-hidden className='size-3' />
+                        {tag}
+                      </Button>
+                    ))}
+                  </div>
+                )}
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+        </>
+      )}
     </>
   )
 }
