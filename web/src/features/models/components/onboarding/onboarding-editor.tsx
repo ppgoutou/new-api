@@ -18,7 +18,7 @@ For commercial licensing, please contact support@quantumnous.com
 */
 import { useMutation } from '@tanstack/react-query'
 import { Check } from 'lucide-react'
-import { useEffect, useState } from 'react'
+import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { toast } from 'sonner'
 
@@ -29,8 +29,6 @@ import { Checkbox } from '@/components/ui/checkbox'
 import { Combobox } from '@/components/ui/combobox'
 import { TitledCard } from '@/components/ui/titled-card'
 import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group'
-import { useCanEditModelPricing } from '@/features/model-pricing/api'
-import { ModelPricingPanel } from '@/features/model-pricing/model-pricing-panel'
 import {
   modelBadgeLabel,
   PRICING_MODEL_BADGES,
@@ -48,14 +46,11 @@ import { PRESSED_BADGE_CLASSES } from '../../lib/pricing-categories'
 import type {
   OnboardingChannel,
   OnboardingModel,
-  UpstreamPriceChange,
+  UpstreamModelPrice,
   Vendor,
 } from '../../types'
 import { OnboardingMetadataCard } from './onboarding-metadata-card'
-import {
-  UpstreamPriceChangesCard,
-  type AcknowledgeRequest,
-} from './onboarding-upstream-prices'
+import { OnboardingPriceCard } from './onboarding-price-card'
 
 const NO_CATEGORY = '__none__'
 
@@ -67,17 +62,15 @@ export function OnboardingEditor(props: {
   onSaveCategories: (next: PricingCategory[]) => Promise<void>
   onChanged: () => Promise<void>
   onDirtyChange: (dirty: boolean) => void
-  priceChanges: UpstreamPriceChange[]
-  acknowledging: boolean
-  onAcknowledge: (request: AcknowledgeRequest) => void
+  upstreamPrice: UpstreamModelPrice | undefined
+  applyingUpstreamPrice: boolean
+  onApplyUpstreamPrice: () => void
 }) {
   const { t } = useTranslation()
-  const canEditPricing = useCanEditModelPricing()
-  const [metadataDirty, setMetadataDirty] = useState(false)
-  const [pricingDirty, setPricingDirty] = useState(false)
-  const { onDirtyChange } = props
-  const dirty = metadataDirty || pricingDirty
-  useEffect(() => onDirtyChange(dirty), [dirty, onDirtyChange])
+  const channelWork =
+    props.item.channels.length === 0 ||
+    props.item.pending_channels.length > 0 ||
+    props.item.removed_channels.length > 0
 
   return (
     <div className='space-y-4 pb-4 lg:min-h-0 lg:overflow-auto'>
@@ -91,17 +84,14 @@ export function OnboardingEditor(props: {
           )}
         </p>
       </div>
-      <UpstreamPriceChangesCard
-        changes={props.priceChanges}
-        acknowledging={props.acknowledging}
-        onAcknowledge={props.onAcknowledge}
-      />
-      <OnboardingChannelsCard item={props.item} onChanged={props.onChanged} />
+      {channelWork && (
+        <OnboardingChannelsCard item={props.item} onChanged={props.onChanged} />
+      )}
       <OnboardingMetadataCard
         item={props.item}
         vendors={props.vendors}
         tags={props.tags}
-        onDirtyChange={setMetadataDirty}
+        onDirtyChange={props.onDirtyChange}
         onSaved={props.onChanged}
       />
       <OnboardingCategoryCard
@@ -109,22 +99,12 @@ export function OnboardingEditor(props: {
         categories={props.categories}
         onSave={props.onSaveCategories}
       />
-      <TitledCard
-        title={t('Pricing')}
-        description={t('Users can only call a model after it has a price.')}
-        contentClassName='flex min-h-[320px] flex-col p-0'
-      >
-        {canEditPricing ? (
-          <ModelPricingPanel
-            modelName={props.item.model_name}
-            onDirtyChange={setPricingDirty}
-          />
-        ) : (
-          <p className='text-muted-foreground p-4 text-sm'>
-            {t('Only super administrators can edit pricing.')}
-          </p>
-        )}
-      </TitledCard>
+      <OnboardingPriceCard
+        modelName={props.item.model_name}
+        upstream={props.upstreamPrice}
+        applying={props.applyingUpstreamPrice}
+        onApply={props.onApplyUpstreamPrice}
+      />
     </div>
   )
 }

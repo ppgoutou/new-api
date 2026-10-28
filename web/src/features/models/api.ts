@@ -295,6 +295,19 @@ export async function acknowledgeUpstreamPrices(request: {
 }
 
 /**
+ * Set one model's price to its latest upstream price
+ */
+export async function applyUpstreamPrice(request: {
+  model_name: string
+}): Promise<UpstreamPriceReportResponse> {
+  const res = await api.post(
+    '/api/models/onboarding/upstream_prices/apply',
+    request
+  )
+  return res.data
+}
+
+/**
  * Store or clear (empty token) the supplier access token of one channel
  */
 export async function setUpstreamPricingToken(request: {

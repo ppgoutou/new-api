@@ -2,8 +2,10 @@ package controller
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"io"
+	"maps"
 	"net/http"
 	"reflect"
 	"slices"
@@ -15,6 +17,7 @@ import (
 	"github.com/QuantumNous/new-api/common"
 	"github.com/QuantumNous/new-api/model"
 	"github.com/QuantumNous/new-api/service"
+	"github.com/QuantumNous/new-api/setting/billing_setting"
 
 	"github.com/gin-gonic/gin"
 )
@@ -70,6 +73,31 @@ type upstreamPriceChannel struct {
 	LatestTime   int64  `json:"latest_time"`
 	Status       string `json:"status,omitempty"`
 	Error        string `json:"error,omitempty"`
+	models       []string
+}
+
+// upstreamModelPrice is the supplier's latest price for one served model,
+// already turned into the local pricing draft that charges the same.
+type upstreamModelPrice struct {
+	ChannelID   int                 `json:"channel_id"`
+	ChannelName string              `json:"channel_name"`
+	Pricing     model.PricingValues `json:"pricing,omitempty"`
+	Error       string              `json:"error,omitempty"`
+	InSync      bool                `json:"in_sync"`
+}
+
+// Supplier rows that cannot become a local draft. They are frontend locale keys.
+const (
+	upstreamPriceVariantsDiffer = "The supplier prices this model differently per plugin"
+	upstreamPriceUnusable       = "The supplier price list has no usable price for this model"
+)
+
+// upstreamRatioFields maps supplier per-token ratio fields to local options.
+var upstreamRatioFields = map[string]string{
+	"model_ratio": "ModelRatio", "completion_ratio": "CompletionRatio",
+	"cache_ratio": "CacheRatio", "create_cache_ratio": "CreateCacheRatio",
+	"image_ratio": "ImageRatio", "audio_ratio": "AudioRatio",
+	"audio_completion_ratio": "AudioCompletionRatio",
 }
 
 func readOnboardingOption[T any](key string) T {
@@ -188,6 +216,109 @@ func parseUpstreamPricing(body []byte) (map[string]map[string]any, map[string]an
 	return models, response.GroupRatio, nil
 }
 
+// upstreamModelPricing turns one supplier /api/pricing row into the local
+// pricing draft that charges the same: its expression, fixed price or ratios.
+func upstreamModelPricing(fields map[string]any) (model.PricingValues, error) {
+	expression, _ := fields["billing_expr"].(string)
+	if fields["billing_mode"] != billing_setting.BillingModeTieredExpr || strings.TrimSpace(expression) == "" {
+		expression = ""
+		variants, _ := fields["billing_plugin_variants"].(map[string]any)
+		for _, value := range variants {
+			variant, _ := value.(map[string]any)
+			variantExpr, _ := variant["billing_expr"].(string)
+			if variant["billing_mode"] != billing_setting.BillingModeTieredExpr || strings.TrimSpace(variantExpr) == "" {
+				continue
+			}
+			if expression != "" && expression != variantExpr {
+				return nil, errors.New(upstreamPriceVariantsDiffer)
+			}
+			expression = variantExpr
+		}
+	}
+	if expression != "" {
+		return model.PricingValues{
+			"billing_setting.billing_mode": billing_setting.BillingModeTieredExpr,
+			"billing_setting.billing_expr": expression,
+		}, nil
+	}
+	quotaType, _ := fields["quota_type"].(float64)
+	if quotaType == 1 {
+		price, ok := fields["model_price"].(float64)
+		if !ok {
+			return nil, errors.New(upstreamPriceUnusable)
+		}
+		return model.PricingValues{"ModelPrice": price}, nil
+	}
+	if _, ok := fields["model_ratio"].(float64); !ok {
+		return nil, errors.New(upstreamPriceUnusable)
+	}
+	pricing := model.PricingValues{}
+	for field, option := range upstreamRatioFields {
+		if value, ok := fields[field].(float64); ok {
+			pricing[option] = value
+		}
+	}
+	return pricing, nil
+}
+
+// chargedModelPricing drops the display-only official price from a stored
+// model configuration, leaving what users are charged.
+func chargedModelPricing(configured model.PricingValues) model.PricingValues {
+	charged := maps.Clone(configured)
+	delete(charged, billing_setting.OfficialPriceExprOption)
+	return charged
+}
+
+// upstreamModelPrices maps each model a watched channel serves to its latest
+// supplier price, taken from the lowest-id channel that lists it.
+func upstreamModelPrices(rows []upstreamPriceChannel, snapshots map[string]upstreamPriceSnapshot) map[string]upstreamModelPrice {
+	prices := make(map[string]upstreamModelPrice)
+	for _, row := range rows {
+		latest := snapshots[strconv.Itoa(row.ID)].Latest
+		for _, name := range row.models {
+			name = strings.TrimSpace(name)
+			fields, ok := latest[name]
+			if _, seen := prices[name]; seen || !ok {
+				continue
+			}
+			price := upstreamModelPrice{ChannelID: row.ID, ChannelName: row.Name}
+			pricing, err := upstreamModelPricing(fields)
+			if err != nil {
+				price.Error = err.Error()
+			} else {
+				price.Pricing = pricing
+			}
+			prices[name] = price
+		}
+	}
+	return prices
+}
+
+// applyUpstreamModelPrice replaces a model's charged price with the supplier
+// draft. The official price stays.
+func applyUpstreamModelPrice(name string, entry model.ModelPricingEntry, pricing model.PricingValues) error {
+	return model.UpdateModelPricing([]model.ModelPricingChange{{ModelName: name, ExpectedVersion: entry.Version, Pricing: pricing}})
+}
+
+// acceptUpstreamBaseline marks the latest supplier rows of the given models as
+// handled on every channel, so applied prices stop showing as changes.
+func acceptUpstreamBaseline(snapshots map[string]upstreamPriceSnapshot, names []string) {
+	for key, snapshot := range snapshots {
+		if snapshot.LatestTime == 0 {
+			continue
+		}
+		if snapshot.Baseline == nil {
+			snapshot.Baseline = map[string]map[string]any{}
+		}
+		for _, name := range names {
+			if latest, ok := snapshot.Latest[name]; ok {
+				snapshot.Baseline[name] = latest
+			}
+		}
+		snapshots[key] = snapshot
+	}
+}
+
 // pluginVariantPrices reduces plugin variants to plugin key → expression, so
 // schema or example edits upstream do not read as price changes.
 func pluginVariantPrices(value any) any {
@@ -232,7 +363,7 @@ func fetchUpstreamPricing(ctx context.Context, baseURL, token string) (map[strin
 
 func upstreamPriceChannels() ([]*model.Channel, error) {
 	var channels []*model.Channel
-	err := model.DB.Select("id", "name", "type", "base_url", "status").
+	err := model.DB.Select("id", "name", "type", "base_url", "status", "models").
 		Where("status = ?", common.ChannelStatusEnabled).
 		Order("id").
 		Find(&channels).Error
@@ -258,6 +389,7 @@ func upstreamPriceChannelRows(channels []*model.Channel) []upstreamPriceChannel 
 			HasToken:     strings.TrimSpace(tokens[key]) != "",
 			BaselineTime: snapshot.BaselineTime,
 			LatestTime:   snapshot.LatestTime,
+			models:       channel.GetModels(),
 		})
 	}
 	return rows
@@ -283,13 +415,37 @@ func snapshotChanges(channel upstreamPriceChannel, snapshot upstreamPriceSnapsho
 	return changes
 }
 
-func upstreamPriceReport(rows []upstreamPriceChannel) gin.H {
+func upstreamPriceReport(rows []upstreamPriceChannel) (gin.H, error) {
 	snapshots := readOnboardingOption[map[string]upstreamPriceSnapshot](onboardingPriceSnapshotOption)
 	changes := make([]upstreamPriceChange, 0)
 	for _, row := range rows {
 		changes = append(changes, snapshotChanges(row, snapshots[strconv.Itoa(row.ID)])...)
 	}
-	return gin.H{"channels": rows, "changes": changes}
+	prices := upstreamModelPrices(rows, snapshots)
+	if len(prices) > 0 {
+		local, err := model.GetModelPricingSnapshot(slices.Collect(maps.Keys(prices)))
+		if err != nil {
+			return nil, err
+		}
+		for _, entry := range local.Entries {
+			price := prices[entry.ModelName]
+			if price.Pricing == nil {
+				continue
+			}
+			price.InSync = model.ModelPricingVersion(chargedModelPricing(entry.Configured)) == model.ModelPricingVersion(price.Pricing)
+			prices[entry.ModelName] = price
+		}
+	}
+	return gin.H{"channels": rows, "changes": changes, "models": prices}, nil
+}
+
+func respondUpstreamPriceReport(c *gin.Context, rows []upstreamPriceChannel) {
+	report, err := upstreamPriceReport(rows)
+	if err != nil {
+		common.ApiError(c, err)
+		return
+	}
+	common.ApiSuccess(c, report)
 }
 
 // GetOnboardingUpstreamPrices returns the last check's changes without fetching.
@@ -299,7 +455,7 @@ func GetOnboardingUpstreamPrices(c *gin.Context) {
 		common.ApiError(c, err)
 		return
 	}
-	common.ApiSuccess(c, upstreamPriceReport(upstreamPriceChannelRows(channels)))
+	respondUpstreamPriceReport(c, upstreamPriceChannelRows(channels))
 }
 
 // SetOnboardingUpstreamPricingToken stores or clears the supplier dashboard
@@ -333,7 +489,8 @@ func SetOnboardingUpstreamPricingToken(c *gin.Context) {
 
 // CheckOnboardingUpstreamPrices fetches every tokened channel's upstream
 // pricing, keeps it as the latest snapshot and reports what differs from the
-// acknowledged baseline. A channel's first fetch becomes its baseline.
+// acknowledged baseline. A channel's first fetch becomes its baseline. Served
+// models without a charged price get the supplier's price.
 func CheckOnboardingUpstreamPrices(c *gin.Context) {
 	channels, err := upstreamPriceChannels()
 	if err != nil {
@@ -387,11 +544,73 @@ func CheckOnboardingUpstreamPrices(c *gin.Context) {
 		rows[i].BaselineTime, rows[i].LatestTime = snapshot.BaselineTime, snapshot.LatestTime
 		snapshots[key] = snapshot
 	}
+	prices := upstreamModelPrices(rows, snapshots)
+	if len(prices) > 0 {
+		local, err := model.GetModelPricingSnapshot(slices.Collect(maps.Keys(prices)))
+		if err != nil {
+			common.ApiError(c, err)
+			return
+		}
+		applied := make([]string, 0)
+		for _, entry := range local.Entries {
+			pricing := prices[entry.ModelName].Pricing
+			if pricing == nil || len(chargedModelPricing(entry.Configured)) > 0 {
+				continue
+			}
+			if err := applyUpstreamModelPrice(entry.ModelName, entry, pricing); err != nil {
+				common.SysError(common.LogText("failed to apply upstream price to model %s: %s", entry.ModelName, err.Error()))
+				continue
+			}
+			applied = append(applied, entry.ModelName)
+		}
+		acceptUpstreamBaseline(snapshots, applied)
+	}
 	if err := writeOnboardingOption(onboardingPriceSnapshotOption, snapshots); err != nil {
 		common.ApiError(c, err)
 		return
 	}
-	common.ApiSuccess(c, upstreamPriceReport(rows))
+	respondUpstreamPriceReport(c, rows)
+}
+
+// ApplyOnboardingUpstreamPrice sets one model's charged price to its latest
+// supplier price and accepts that supplier row as handled.
+func ApplyOnboardingUpstreamPrice(c *gin.Context) {
+	var request struct {
+		ModelName string `json:"model_name"`
+	}
+	if err := common.DecodeJson(c.Request.Body, &request); err != nil || strings.TrimSpace(request.ModelName) == "" {
+		common.ApiErrorStatus(c, http.StatusBadRequest, common.NewMessage("Invalid request parameter format"))
+		return
+	}
+	name := strings.TrimSpace(request.ModelName)
+	channels, err := upstreamPriceChannels()
+	if err != nil {
+		common.ApiError(c, err)
+		return
+	}
+	rows := upstreamPriceChannelRows(channels)
+	snapshots := readOnboardingOption[map[string]upstreamPriceSnapshot](onboardingPriceSnapshotOption)
+	price, ok := upstreamModelPrices(rows, snapshots)[name]
+	if !ok || price.Pricing == nil {
+		common.ApiErrorStatus(c, http.StatusBadRequest, common.NewMessage("No usable upstream price for this model. Check upstream prices first."))
+		return
+	}
+	local, err := model.GetModelPricingSnapshot([]string{name})
+	if err != nil {
+		common.ApiError(c, err)
+		return
+	}
+	if err := applyUpstreamModelPrice(name, local.Entries[0], price.Pricing); err != nil {
+		common.ApiError(c, err)
+		return
+	}
+	acceptUpstreamBaseline(snapshots, []string{name})
+	if err := writeOnboardingOption(onboardingPriceSnapshotOption, snapshots); err != nil {
+		common.ApiError(c, err)
+		return
+	}
+	recordManageAudit(c, "model.pricing.update", map[string]any{"models": []string{name}, "source": "upstream", "channel_id": price.ChannelID})
+	respondUpstreamPriceReport(c, rows)
 }
 
 // AcknowledgeOnboardingUpstreamPrices moves the latest upstream values into
@@ -441,5 +660,5 @@ func AcknowledgeOnboardingUpstreamPrices(c *gin.Context) {
 		common.ApiError(c, err)
 		return
 	}
-	common.ApiSuccess(c, upstreamPriceReport(upstreamPriceChannelRows(channels)))
+	respondUpstreamPriceReport(c, upstreamPriceChannelRows(channels))
 }

@@ -18,6 +18,8 @@ For commercial licensing, please contact support@quantumnous.com
 */
 import { z } from 'zod'
 
+import type { PricingValues } from '@/features/model-pricing/pricing'
+
 // ============================================================================
 // Model Types
 // ============================================================================
@@ -298,9 +300,22 @@ export type UpstreamPriceChange = {
   fields: Array<{ field: string; previous: unknown; current: unknown }>
 }
 
+/**
+ * The supplier's latest price for a served model as a local pricing draft;
+ * error is a locale key when the supplier row cannot become one
+ */
+export type UpstreamModelPrice = {
+  channel_id: number
+  channel_name: string
+  pricing?: PricingValues
+  error?: string
+  in_sync: boolean
+}
+
 export type UpstreamPriceReport = {
   channels: UpstreamPriceChannel[]
   changes: UpstreamPriceChange[]
+  models?: Record<string, UpstreamModelPrice>
 }
 
 export interface UpstreamPriceReportResponse {

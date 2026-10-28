@@ -422,6 +422,7 @@ func SetApiRouter(router *gin.Engine) {
 				upstreamPricesRoute.GET("", controller.GetOnboardingUpstreamPrices)
 				upstreamPricesRoute.POST("/check", controller.CheckOnboardingUpstreamPrices)
 				upstreamPricesRoute.POST("/acknowledge", controller.AcknowledgeOnboardingUpstreamPrices)
+				upstreamPricesRoute.POST("/apply", controller.ApplyOnboardingUpstreamPrice)
 				upstreamPricesRoute.PUT("/token", controller.SetOnboardingUpstreamPricingToken)
 			}
 			modelsRoute.GET("/", controller.GetAllModelsMeta)

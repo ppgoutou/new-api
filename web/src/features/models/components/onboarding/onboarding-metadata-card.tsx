@@ -186,6 +186,7 @@ export function OnboardingMetadataCard(props: {
           iconKey={props.item.model_name}
           tagSuggestions={props.tags}
           descriptionRows={5}
+          showVendorAndTags={false}
         />
         <div className='flex justify-end'>
           <Button type='submit' disabled={save.isPending || !dirty}>
@@ -208,7 +209,7 @@ export function OnboardingMetadataCard(props: {
 
   return (
     <TitledCard
-      title={t('Description, vendor and tags')}
+      title={t('Description and icon')}
       description={t(
         'Prefill from the official catalog, then polish the copy before saving.'
       )}
