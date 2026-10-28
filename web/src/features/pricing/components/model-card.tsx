@@ -81,6 +81,19 @@ export interface ModelCardProps {
   badges?: PricingModelBadge[]
 }
 
+// The footer stacks the actions under the metrics until the card is wide
+// enough for both on one row; the Try button needs the wider breakpoint.
+const FOOTER_LAYOUT = {
+  strip: '@[24rem]:flex-row',
+  actions: '@[24rem]:border-t-0 @[24rem]:border-l-2',
+  button: '@[24rem]:flex-none',
+}
+const FOOTER_LAYOUT_WITH_TRY = {
+  strip: '@[28rem]:flex-row',
+  actions: '@[28rem]:border-t-0 @[28rem]:border-l-2',
+  button: '@[28rem]:flex-none',
+}
+
 const MODEL_BADGE_CLASSES: Record<PricingModelBadge, string> = {
   recommended: 'bg-[#2f6bff] text-white',
   hot: 'bg-[#ff4d2e] text-white',
@@ -147,6 +160,8 @@ export const ModelCard = memo(function ModelCard(props: ModelCardProps) {
     if (studioImageModelsFromPricing([props.model]).length > 0) return 'image'
     return null
   }, [props.model])
+  const showTry = tryKind !== null && props.onTry !== undefined
+  const footerLayout = showTry ? FOOTER_LAYOUT_WITH_TRY : FOOTER_LAYOUT
   let priceSummary: ReactNode
   if (videoPricing) {
     const optionDefinition =
@@ -527,16 +542,30 @@ export const ModelCard = memo(function ModelCard(props: ModelCardProps) {
           </dl>
         )}
       </CardContent>
-      <CardFooter className='border-foreground mt-auto rounded-none border-t-2 bg-transparent p-0'>
-        <ModelPerfBadge perf={props.perf} className='items-stretch gap-0'>
-          <div className='flex shrink-0 self-stretch'>
-            {tryKind && props.onTry && (
+      <CardFooter className='border-foreground @container mt-auto w-full rounded-none border-t-2 bg-transparent p-0'>
+        <ModelPerfBadge
+          perf={props.perf}
+          className={cn('flex-col items-stretch gap-0', footerLayout.strip)}
+        >
+          <div
+            role='group'
+            aria-label={t('Actions')}
+            className={cn(
+              'border-foreground flex shrink-0 self-stretch border-t-2',
+              footerLayout.actions
+            )}
+          >
+            {showTry && (
               <Button
                 variant='ghost'
                 onClick={() =>
+                  tryKind &&
                   props.onTry?.(props.model.model_name || '', tryKind)
                 }
-                className='border-foreground hover:bg-muted h-auto shrink-0 self-stretch rounded-none border-l-2 px-4 font-bold'
+                className={cn(
+                  'hover:bg-muted h-auto min-h-11 flex-1 rounded-none px-4 font-bold',
+                  footerLayout.button
+                )}
               >
                 <Play aria-hidden className='size-4' />
                 {t('Try')}
@@ -546,7 +575,9 @@ export const ModelCard = memo(function ModelCard(props: ModelCardProps) {
               variant='ghost'
               onClick={() => props.onClick(props.model.model_name || '')}
               className={cn(
-                'border-foreground h-auto shrink-0 self-stretch rounded-none border-l-2 px-5 font-bold hover:bg-[#ffc400] hover:text-neutral-950',
+                'h-auto min-h-11 flex-1 rounded-none px-5 font-bold hover:bg-[#ffc400] hover:text-neutral-950',
+                showTry && 'border-foreground border-l-2',
+                footerLayout.button,
                 CARD_ACCENT_CLASS
               )}
             >

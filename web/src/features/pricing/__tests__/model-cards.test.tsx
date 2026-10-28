@@ -228,6 +228,36 @@ describe('model cards', () => {
     expect(tryButton.parentElement?.children).toHaveLength(2)
   })
 
+  it('stacks the card actions under the metrics until the card is wide enough', () => {
+    render(
+      <ModelCard
+        model={pricingModel({
+          model_name: 'seedream-5.0',
+          supported_endpoint_types: ['openai', 'image-generation'],
+        })}
+        onClick={vi.fn()}
+        onTry={vi.fn()}
+      />
+    )
+
+    const strip = screen.getByLabelText(
+      'Performance metrics for the last 24 hours'
+    )
+    const actions = screen.getByRole('group', { name: 'Actions' })
+    expect(strip.parentElement).toHaveClass('@container')
+    expect(strip).toHaveClass('flex-col', '@[28rem]:flex-row')
+    expect(actions).toHaveClass('border-t-2', '@[28rem]:border-l-2')
+  })
+
+  it('lets a card without a try button keep its actions inline sooner', () => {
+    render(<ModelCard model={pricingModel()} onClick={vi.fn()} />)
+
+    const strip = screen.getByLabelText(
+      'Performance metrics for the last 24 hours'
+    )
+    expect(strip).toHaveClass('flex-col', '@[24rem]:flex-row')
+  })
+
   it('opens the image studio with an image generation model', async () => {
     const user = userEvent.setup()
     const onTry = vi.fn()
