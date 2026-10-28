@@ -147,6 +147,31 @@ describe('studioModelsFromPricing', () => {
     ])
   })
 
+  it('offers a model billed per video token with its resolutions', () => {
+    const models = studioModelsFromPricing([
+      pricingModel('seedance-2-0-pro-NSFW', {
+        billing_mode: 'tiered_expr',
+        billing_expr:
+          'u("resolution") == "720p" && u("video_input") == "video" ? tier("720p·video", u("tokens") * 6.708 / 1000000) : ' +
+          'u("resolution") == "720p" && u("video_input") == "none" ? tier("720p·none", u("tokens") * 10.92 / 1000000) : ' +
+          'u("resolution") == "1080p" && u("video_input") == "video" ? tier("1080p·video", u("tokens") * 7.332 / 1000000) : ' +
+          'tier("1080p·none", u("tokens") * 12.012 / 1000000)',
+        billing_usage_schema: {
+          resolution: { enum: ['720p', '1080p'] },
+          tokens: { type: 'number', unit: 'token' },
+          video_input: { enum: ['none', 'video'] },
+        },
+      }),
+    ])
+    expect(models).toEqual([
+      {
+        name: 'seedance-2-0-pro-NSFW',
+        resolutions: ['720p', '1080p'],
+        duration: [4, 15],
+      },
+    ])
+  })
+
   it('uses 4 to 15 seconds for a video model without a known duration range', () => {
     const [model] = studioModelsFromPricing([
       videoModel('seedance-2-0-fast-NSFW', ['480p', '720p']),

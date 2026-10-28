@@ -18,6 +18,7 @@ For commercial licensing, please contact support@quantumnous.com
 */
 import {
   getPerVideoPricing,
+  getTokenVideoPricing,
   getVideoPricing,
 } from '@/features/pricing/lib/video-pricing'
 import type { PricingModel } from '@/features/pricing/types'
@@ -37,13 +38,17 @@ import type {
 
 /**
  * Models of the public pricing list that the canvas can submit: video models
- * priced per output second or per video by resolution, in pricing list order.
+ * priced per output second, per video or per video token by resolution, in
+ * pricing list order.
  */
 export function studioModelsFromPricing(
   models: readonly PricingModel[]
 ): StudioModel[] {
   return models.flatMap((model) => {
-    const pricing = getVideoPricing(model) ?? getPerVideoPricing(model)
+    const pricing =
+      getVideoPricing(model) ??
+      getPerVideoPricing(model) ??
+      getTokenVideoPricing(model)
     if (!pricing || pricing.optionField !== 'resolution') return []
     return [
       {
