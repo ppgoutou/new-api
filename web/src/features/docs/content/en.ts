@@ -311,8 +311,10 @@ The download link is temporary. Download and save the video soon after the task 
       blocks: [
         {
           type: 'markdown',
-          text: `- International customers: Telegram [@APIFinder_Support](https://t.me/APIFinder_Support)
-- Mainland China customers: QQ **3895235714**
+          text: `Reach us on whichever app is convenient for you:
+
+- QQ: **3895235714**
+- Telegram: [@APIFinder_Support](https://t.me/APIFinder_Support)
 
 Include the task ID and request time when you report a problem. Our staff never message you first and never ask for your password or API key.`,
         },

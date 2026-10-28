@@ -299,8 +299,10 @@ export const ZH_DOCS: DocContent = {
       blocks: [
         {
           type: 'markdown',
-          text: `- 中国大陆客户：QQ **3895235714**
-- 海外客户：Telegram [@APIFinder_Support](https://t.me/APIFinder_Support)
+          text: `以下两种方式任选其一，选您方便的即可：
+
+- QQ：**3895235714**
+- Telegram：[@APIFinder_Support](https://t.me/APIFinder_Support)
 
 反馈问题时请附上任务 ID 和请求时间，便于排查。官方人员不会主动私聊，也不会索要您的账号密码或 API 密钥。`,
         },

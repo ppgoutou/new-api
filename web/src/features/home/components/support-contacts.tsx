@@ -19,52 +19,41 @@ For commercial licensing, please contact support@quantumnous.com
 import { useTranslation } from 'react-i18next'
 
 import { CopyButton } from '@/components/copy-button'
-import { normalizeInterfaceLanguage } from '@/i18n/languages'
 
 import { SUPPORT_QQ, SUPPORT_TELEGRAM } from '../lib/video-home'
 
-/**
- * Support channels: QQ for mainland China customers, Telegram for everyone
- * else. Chinese interfaces list QQ first; other languages list Telegram first.
- */
+/** Support channels: QQ and Telegram, open to every customer. */
 export function SupportContacts() {
-  const { t, i18n } = useTranslation()
-  const language = normalizeInterfaceLanguage(
-    i18n.resolvedLanguage || i18n.language
-  )
-  const chineseFirst = language === 'zhCN' || language === 'zhTW'
-
-  const qq = (
-    <li key='qq' className='flex flex-wrap items-center gap-x-2'>
-      <span>{t('Mainland China customers — QQ:')}</span>
-      <span className='text-foreground font-mono font-semibold'>
-        {SUPPORT_QQ}
-      </span>
-      <CopyButton
-        value={SUPPORT_QQ}
-        size='sm'
-        className='size-7'
-        aria-label={t('Copy QQ number')}
-      />
-    </li>
-  )
-  const telegram = (
-    <li key='telegram' className='flex flex-wrap items-center gap-x-2'>
-      <span>{t('International customers — Telegram:')}</span>
-      <a
-        href={`https://t.me/${SUPPORT_TELEGRAM}`}
-        target='_blank'
-        rel='noopener noreferrer'
-        className='text-foreground font-semibold'
-      >
-        @{SUPPORT_TELEGRAM}
-      </a>
-    </li>
-  )
+  const { t } = useTranslation()
 
   return (
-    <ul className='flex flex-col gap-1.5'>
-      {chineseFirst ? [qq, telegram] : [telegram, qq]}
-    </ul>
+    <div className='flex flex-col gap-1.5'>
+      <p>{t('Contact us on whichever app is convenient for you:')}</p>
+      <ul className='flex flex-col gap-1.5'>
+        <li className='flex flex-wrap items-center gap-x-2'>
+          <span>QQ:</span>
+          <span className='text-foreground font-mono font-semibold'>
+            {SUPPORT_QQ}
+          </span>
+          <CopyButton
+            value={SUPPORT_QQ}
+            size='sm'
+            className='size-7'
+            aria-label={t('Copy QQ number')}
+          />
+        </li>
+        <li className='flex flex-wrap items-center gap-x-2'>
+          <span>Telegram:</span>
+          <a
+            href={`https://t.me/${SUPPORT_TELEGRAM}`}
+            target='_blank'
+            rel='noopener noreferrer'
+            className='text-foreground font-semibold'
+          >
+            @{SUPPORT_TELEGRAM}
+          </a>
+        </li>
+      </ul>
+    </div>
   )
 }

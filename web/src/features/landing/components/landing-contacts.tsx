@@ -31,24 +31,24 @@ export function LandingContacts() {
 
   const contacts = [
     {
-      key: 'telegram',
-      label: t('International · Telegram'),
-      value: `@${SUPPORT_TELEGRAM}`,
-      href: `https://t.me/${SUPPORT_TELEGRAM}`,
-      external: true,
-      icon: Send,
-      tone: 'border-blue-400/35 hover:border-blue-400/70',
-      iconTone: 'bg-blue-600/20 text-blue-400',
-    },
-    {
       key: 'qq',
-      label: t('Mainland China · QQ'),
+      label: 'QQ',
       value: SUPPORT_QQ,
       href: getSupportQqChatUrl(navigator.userAgent),
       external: false,
       icon: MessageCircle,
       tone: 'border-violet-400/35 hover:border-violet-400/70',
       iconTone: 'bg-violet-600/20 text-violet-400',
+    },
+    {
+      key: 'telegram',
+      label: 'Telegram',
+      value: `@${SUPPORT_TELEGRAM}`,
+      href: `https://t.me/${SUPPORT_TELEGRAM}`,
+      external: true,
+      icon: Send,
+      tone: 'border-blue-400/35 hover:border-blue-400/70',
+      iconTone: 'bg-blue-600/20 text-blue-400',
     },
   ]
 
@@ -57,7 +57,7 @@ export function LandingContacts() {
       <h2 className='text-2xl font-bold text-white'>{t('Contact us')}</h2>
       <p className='text-sm leading-relaxed text-slate-400'>
         {t(
-          'Questions about pricing, volume, top-ups or integration? Reach us directly.'
+          'Questions about pricing, volume, top-ups or integration? Reach us on whichever app is convenient for you.'
         )}
       </p>
       <ul className='mt-1 flex flex-col gap-3'>
