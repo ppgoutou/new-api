@@ -123,7 +123,7 @@ export function LanguageBlocksTextarea({
   return (
     <div className='flex min-w-0 flex-col gap-2'>
       <Tabs value={active} onValueChange={(tab) => setPicked(String(tab))}>
-        <TabsList className='max-w-full flex-wrap justify-start group-data-horizontal/tabs:h-auto'>
+        <TabsList className='no-scrollbar w-full justify-start overflow-x-auto'>
           {tabs.map((tab) => (
             <TabsTrigger key={tab} value={tab} className='flex-none px-2'>
               {tab === SHARED_TAB
