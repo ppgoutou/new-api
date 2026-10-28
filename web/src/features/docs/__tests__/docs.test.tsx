@@ -46,6 +46,13 @@ describe('Docs', () => {
     )
   })
 
+  it.each([
+    ['English', EN_DOCS],
+    ['Chinese', ZH_DOCS],
+  ])('keeps NSFW models out of the %s docs', (_language, docs) => {
+    expect(JSON.stringify(docs)).not.toMatch(/nsfw|720p-P/i)
+  })
+
   it('shows the English docs with the site address for non-Chinese interfaces', () => {
     render(<Docs />)
 
