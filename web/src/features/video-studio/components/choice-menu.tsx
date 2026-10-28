@@ -58,7 +58,7 @@ export function ChoiceMenu<T extends string>(props: ChoiceMenuProps<T>) {
         {selected?.label ?? props.value}
         <ChevronDown className='size-3.5 opacity-60' aria-hidden />
       </DropdownMenuTrigger>
-      <DropdownMenuContent align='start' className='w-48'>
+      <DropdownMenuContent align='start' className='w-auto min-w-48'>
         <DropdownMenuGroup>
           <DropdownMenuLabel>{props.label}</DropdownMenuLabel>
           <DropdownMenuRadioGroup
@@ -66,7 +66,11 @@ export function ChoiceMenu<T extends string>(props: ChoiceMenuProps<T>) {
             onValueChange={(value) => props.onChange(value as T)}
           >
             {props.options.map((option) => (
-              <DropdownMenuRadioItem key={option.value} value={option.value}>
+              <DropdownMenuRadioItem
+                key={option.value}
+                value={option.value}
+                className='whitespace-nowrap'
+              >
                 {option.icon}
                 {option.label}
               </DropdownMenuRadioItem>

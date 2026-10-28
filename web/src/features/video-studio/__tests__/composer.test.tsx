@@ -179,6 +179,27 @@ describe('Composer', () => {
     })
   })
 
+  it('keeps each model name of the model menu on a single line', async () => {
+    studioModels.current = [
+      {
+        name: 'seedance-2.5-g4-m1-官转',
+        resolutions: ['720p'],
+        duration: [4, 15],
+      },
+    ]
+    const user = userEvent.setup()
+    render(<Composer onSubmitted={vi.fn()} />)
+
+    await user.click(
+      screen.getByRole('button', { name: 'Model: seedance-2.5-g4-m1-官转' })
+    )
+
+    const item = screen.getByRole('menuitemradio', {
+      name: 'seedance-2.5-g4-m1-官转',
+    })
+    expect(item).toHaveClass('whitespace-nowrap')
+  })
+
   it('hides the model menu and does not submit while no model is available', async () => {
     studioModels.current = []
     const user = userEvent.setup()

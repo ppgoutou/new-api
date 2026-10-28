@@ -23,9 +23,12 @@ import { usePricingData } from '@/features/pricing/hooks/use-pricing-data'
 import type { StudioModel } from '../constants'
 import { studioModelsFromPricing } from '../lib/draft'
 
-/** Video models offered on the canvas, empty while prices are loading. */
+/**
+ * Video models offered on the canvas, empty while prices are loading. Kept
+ * live so the menu follows the models currently available to the user.
+ */
 export function useStudioModels(): StudioModel[] {
-  const pricing = usePricingData()
+  const pricing = usePricingData(true, true)
   return useMemo(
     () => studioModelsFromPricing(pricing.models),
     [pricing.models]
