@@ -27,6 +27,10 @@ import { LoadingState } from '@/components/loading-state'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { useDebounce } from '@/hooks/use-debounce'
+import {
+  ADMIN_PREVIEW_LANGUAGE,
+  selectLanguageBlock,
+} from '@/lib/language-blocks'
 import { createServerError } from '@/lib/server-error-message'
 
 import { searchVendors } from '../../api'
@@ -112,7 +116,10 @@ export function VendorsManagementDialog(props: {
                   header: t('Description'),
                   cell: (item) => (
                     <span className='line-clamp-2'>
-                      {item.description || '—'}
+                      {selectLanguageBlock(
+                        item.description ?? '',
+                        ADMIN_PREVIEW_LANGUAGE
+                      ) || '—'}
                     </span>
                   ),
                 },

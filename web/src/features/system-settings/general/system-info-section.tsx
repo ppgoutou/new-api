@@ -21,6 +21,7 @@ import type { Resolver } from 'react-hook-form'
 import { useTranslation } from 'react-i18next'
 import * as z from 'zod'
 
+import { LanguageBlocksTextarea } from '@/components/language-blocks-textarea'
 import {
   Form,
   FormControl,
@@ -31,7 +32,6 @@ import {
   FormMessage,
 } from '@/components/ui/form'
 import { Input } from '@/components/ui/input'
-import { Textarea } from '@/components/ui/textarea'
 import { LANGUAGE_BLOCKS_HINT } from '@/lib/language-blocks'
 
 import { FormDirtyIndicator } from '../components/form-dirty-indicator'
@@ -265,7 +265,7 @@ export function SystemInfoSection({ defaultValues }: SystemInfoSectionProps) {
                   <FormItem>
                     <FormLabel>{t('Footer')}</FormLabel>
                     <FormControl>
-                      <Textarea
+                      <LanguageBlocksTextarea
                         placeholder={t(
                           '© 2025 Your Company. All rights reserved.'
                         )}
@@ -289,7 +289,7 @@ export function SystemInfoSection({ defaultValues }: SystemInfoSectionProps) {
                   <FormItem>
                     <FormLabel>{t('About')}</FormLabel>
                     <FormControl>
-                      <Textarea
+                      <LanguageBlocksTextarea
                         placeholder={t(
                           'Enter HTML code (e.g., <p>About us...</p>) or a URL (e.g., https://example.com) to embed as iframe'
                         )}
@@ -316,7 +316,7 @@ export function SystemInfoSection({ defaultValues }: SystemInfoSectionProps) {
                     <FormItem>
                       <FormLabel>{t('Home Page Content')}</FormLabel>
                       <FormControl>
-                        <Textarea
+                        <LanguageBlocksTextarea
                           placeholder={t('Welcome to our New API...')}
                           rows={6}
                           {...field}
@@ -341,7 +341,7 @@ export function SystemInfoSection({ defaultValues }: SystemInfoSectionProps) {
                   <FormItem>
                     <FormLabel>{t('User Agreement')}</FormLabel>
                     <FormControl>
-                      <Textarea
+                      <LanguageBlocksTextarea
                         placeholder={t(
                           'Provide Markdown, HTML, or an external URL for the user agreement'
                         )}
@@ -367,7 +367,7 @@ export function SystemInfoSection({ defaultValues }: SystemInfoSectionProps) {
                   <FormItem>
                     <FormLabel>{t('Privacy Policy')}</FormLabel>
                     <FormControl>
-                      <Textarea
+                      <LanguageBlocksTextarea
                         placeholder={t(
                           'Provide Markdown, HTML, or an external URL for the privacy policy'
                         )}
@@ -393,7 +393,7 @@ export function SystemInfoSection({ defaultValues }: SystemInfoSectionProps) {
                   <FormItem>
                     <FormLabel>{t('Refund Policy')}</FormLabel>
                     <FormControl>
-                      <Textarea
+                      <LanguageBlocksTextarea
                         placeholder={t(
                           'Provide Markdown, HTML, or an external URL for the refund policy'
                         )}

@@ -23,6 +23,7 @@ import { useForm } from 'react-hook-form'
 import { useTranslation } from 'react-i18next'
 
 import { Dialog } from '@/components/dialog'
+import { LanguageBlocksTextarea } from '@/components/language-blocks-textarea'
 import { MultiSelect } from '@/components/multi-select'
 import { Button } from '@/components/ui/button'
 import {
@@ -35,7 +36,6 @@ import {
   FormMessage,
 } from '@/components/ui/form'
 import { Input } from '@/components/ui/input'
-import { Textarea } from '@/components/ui/textarea'
 import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group'
 import {
   modelBadgeLabel,
@@ -46,7 +46,6 @@ import { LANGUAGE_BLOCKS_HINT } from '@/lib/language-blocks'
 import { cn } from '@/lib/utils'
 
 import {
-  PRICING_CATEGORY_DESCRIPTION_MAX,
   PRICING_CATEGORY_NAME_MAX,
   moveOneStep,
   pricingCategoryFormSchema,
@@ -160,11 +159,7 @@ export function PricingCategoryDialog(props: {
               <FormItem>
                 <FormLabel>{t('Description')}</FormLabel>
                 <FormControl>
-                  <Textarea
-                    {...field}
-                    rows={3}
-                    maxLength={PRICING_CATEGORY_DESCRIPTION_MAX}
-                  />
+                  <LanguageBlocksTextarea {...field} rows={3} />
                 </FormControl>
                 <FormDescription>{t(LANGUAGE_BLOCKS_HINT)}</FormDescription>
                 <FormMessage />

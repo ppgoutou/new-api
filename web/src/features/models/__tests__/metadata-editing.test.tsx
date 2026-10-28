@@ -353,7 +353,7 @@ describe('metadata editing', () => {
         '/api/models/',
         expect.objectContaining({
           model_name: 'unique-model',
-          description: 'Keep this draft',
+          description: '<!-- lang:zh -->\nKeep this draft',
         }),
         { skipBusinessError: true, skipErrorHandler: true }
       )

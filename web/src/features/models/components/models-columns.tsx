@@ -37,6 +37,10 @@ import {
 import { modelPricingDisplay } from '@/features/model-pricing/pricing'
 import { ModelPriceCell } from '@/features/pricing/components/model-price-cell'
 import { formatTimestampToDate } from '@/lib/format'
+import {
+  ADMIN_PREVIEW_LANGUAGE,
+  selectLanguageBlock,
+} from '@/lib/language-blocks'
 import { getLobeIcon } from '@/lib/lobe-icon'
 
 import { getNameRuleConfig } from '../constants'
@@ -331,7 +335,10 @@ export function useModelsColumns(
         cell: ({ row }) => (
           <DescriptionCell
             modelName={row.original.model_name}
-            description={row.original.description ?? ''}
+            description={selectLanguageBlock(
+              row.original.description ?? '',
+              ADMIN_PREVIEW_LANGUAGE
+            )}
           />
         ),
         meta: { mobileHidden: true },

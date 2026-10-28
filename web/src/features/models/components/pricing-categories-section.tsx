@@ -40,6 +40,10 @@ import type { PricingCategory } from '@/features/pricing/types'
 import { updateSystemOption } from '@/features/system-settings/api'
 import { useSystemOptions } from '@/features/system-settings/hooks/use-system-options'
 import {
+  ADMIN_PREVIEW_LANGUAGE,
+  selectLanguageBlock,
+} from '@/lib/language-blocks'
+import {
   createServerError,
   requireServerSuccess,
 } from '@/lib/server-error-message'
@@ -168,7 +172,10 @@ export function PricingCategoriesSection() {
                   </div>
                   {category.description && (
                     <p className='text-muted-foreground text-sm'>
-                      {category.description}
+                      {selectLanguageBlock(
+                        category.description,
+                        ADMIN_PREVIEW_LANGUAGE
+                      )}
                     </p>
                   )}
                 </div>

@@ -22,6 +22,7 @@ import { useForm } from 'react-hook-form'
 import { useTranslation } from 'react-i18next'
 import * as z from 'zod'
 
+import { LanguageBlocksTextarea } from '@/components/language-blocks-textarea'
 import {
   Form,
   FormControl,
@@ -31,7 +32,6 @@ import {
   FormLabel,
   FormMessage,
 } from '@/components/ui/form'
-import { Textarea } from '@/components/ui/textarea'
 import { LANGUAGE_BLOCKS_HINT } from '@/lib/language-blocks'
 
 import { SettingsForm } from '../components/settings-form-layout'
@@ -90,7 +90,7 @@ export function NoticeSection({ defaultValue }: NoticeSectionProps) {
               <FormItem>
                 <FormLabel>{t('Announcement content')}</FormLabel>
                 <FormControl>
-                  <Textarea
+                  <LanguageBlocksTextarea
                     rows={8}
                     placeholder={t(
                       'Planned maintenance on Friday at 22:00 UTC...'

@@ -18,7 +18,11 @@ For commercial licensing, please contact support@quantumnous.com
 */
 import { describe, expect, it } from 'vitest'
 
-import { selectLanguageBlock } from '@/lib/language-blocks'
+import {
+  joinLanguageBlocks,
+  parseLanguageBlocks,
+  selectLanguageBlock,
+} from '@/lib/language-blocks'
 
 const BILINGUAL = `<style>.about { color: red }</style>
 <!-- lang:en -->
@@ -67,5 +71,56 @@ describe('selectLanguageBlock', () => {
     expect(
       selectLanguageBlock('<!-- lang:en -->Hello<!-- lang:zh -->  ', 'zhCN')
     ).toBe('Hello')
+  })
+})
+
+describe('parseLanguageBlocks and joinLanguageBlocks', () => {
+  it('splits the shared prefix from each language block', () => {
+    expect(parseLanguageBlocks(BILINGUAL)).toEqual({
+      shared: '<style>.about { color: red }</style>',
+      blocks: [
+        { locale: 'en', text: '<h2>About us</h2>' },
+        { locale: 'zh', text: '<h2>关于我们</h2>' },
+      ],
+    })
+  })
+
+  it('treats unmarked content as shared text', () => {
+    expect(parseLanguageBlocks('Plain text')).toEqual({
+      shared: 'Plain text',
+      blocks: [],
+    })
+  })
+
+  it('writes Chinese first and drops empty blocks', () => {
+    expect(
+      joinLanguageBlocks({
+        shared: '',
+        blocks: [
+          { locale: 'en', text: 'Hello' },
+          { locale: 'ja', text: '  ' },
+          { locale: 'zh', text: '你好' },
+        ],
+      })
+    ).toBe('<!-- lang:zh -->\n你好\n<!-- lang:en -->\nHello')
+  })
+
+  it('returns plain shared text when no block has content', () => {
+    expect(
+      joinLanguageBlocks({
+        shared: 'Plain text',
+        blocks: [{ locale: 'en', text: '' }],
+      })
+    ).toBe('Plain text')
+  })
+
+  it('round-trips content that selectLanguageBlock reads the same way', () => {
+    const joined = joinLanguageBlocks(parseLanguageBlocks(BILINGUAL))
+    expect(selectLanguageBlock(joined, 'en')).toBe(
+      selectLanguageBlock(BILINGUAL, 'en')
+    )
+    expect(selectLanguageBlock(joined, 'zhCN')).toBe(
+      selectLanguageBlock(BILINGUAL, 'zhCN')
+    )
   })
 })

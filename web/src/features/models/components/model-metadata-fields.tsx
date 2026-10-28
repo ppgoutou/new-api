@@ -20,6 +20,7 @@ import { Plus } from 'lucide-react'
 import type { UseFormReturn } from 'react-hook-form'
 import { useTranslation } from 'react-i18next'
 
+import { LanguageBlocksTextarea } from '@/components/language-blocks-textarea'
 import { LobeIconField } from '@/components/lobe-icon-field'
 import { TagInput } from '@/components/tag-input'
 import { Button } from '@/components/ui/button'
@@ -32,7 +33,6 @@ import {
   FormLabel,
   FormMessage,
 } from '@/components/ui/form'
-import { Textarea } from '@/components/ui/textarea'
 import { LANGUAGE_BLOCKS_HINT } from '@/lib/language-blocks'
 
 import type { ModelFormInput, ModelFormValues } from '../lib/model-form'
@@ -71,7 +71,7 @@ export function ModelMetadataFields(props: {
           <FormItem>
             <FormLabel>{t('Description')}</FormLabel>
             <FormControl>
-              <Textarea
+              <LanguageBlocksTextarea
                 placeholder={t('Describe this model...')}
                 rows={props.descriptionRows ?? 3}
                 {...field}

@@ -251,7 +251,7 @@ describe('model onboarding workbench', () => {
         '/api/models/',
         expect.objectContaining({
           model_name: 'gpt-new',
-          description: 'Fast model',
+          description: '<!-- lang:zh -->\nFast model',
           tags: 'chat',
           name_rule: 0,
         }),

@@ -23,7 +23,7 @@ export const STATIC_I18N_KEYS = [
   'Sign-up event ID',
   'Top-up event ID',
   // LANGUAGE_BLOCKS_HINT in @/lib/language-blocks
-  'To add other languages, start each version with a line such as <!-- lang:en --> or <!-- lang:zh -->. Text before the first such line shows in every language.',
+  'Switch languages to edit each version. Visitors see the version for their interface language, falling back to English; text under All languages shows in every language.',
   'Task usage metadata is unavailable. Pricing details cannot be displayed.',
   'This expression cannot be expanded into a price table. View the original expression below.',
   'This operation is only supported for vLLM or SGLang channels',
