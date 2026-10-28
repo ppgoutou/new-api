@@ -204,6 +204,30 @@ describe('model cards', () => {
     expect(onClick).not.toHaveBeenCalled()
   })
 
+  it('keeps the try and details buttons side by side with no space between them', () => {
+    render(
+      <ModelCard
+        model={pricingModel({
+          model_name: 'seedance-2.0',
+          billing_mode: 'tiered_expr',
+          billing_expr:
+            'u("resolution") == "480p" ? tier("480p", u("seconds") * 0.04) : tier("720p", u("seconds") * 0.09)',
+          billing_usage_schema: {
+            resolution: { enum: ['480p', '720p'] },
+            seconds: { type: 'number', unit: 'second' },
+          },
+        })}
+        onClick={vi.fn()}
+        onTry={vi.fn()}
+      />
+    )
+
+    const tryButton = screen.getByRole('button', { name: 'Try' })
+    const detailsButton = screen.getByRole('button', { name: 'Details' })
+    expect(tryButton.nextElementSibling).toBe(detailsButton)
+    expect(tryButton.parentElement?.children).toHaveLength(2)
+  })
+
   it('offers no try button for a model the video studio cannot run', () => {
     render(
       <ModelCard model={pricingModel()} onClick={vi.fn()} onTry={vi.fn()} />
