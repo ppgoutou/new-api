@@ -83,8 +83,6 @@ export const DOC_SAMPLES = {
       status: 'queued',
       progress: 0,
       created_at: 1761000000,
-      seconds: '8',
-      metadata: { resolution: '1080p' },
     },
     null,
     2
@@ -99,10 +97,22 @@ export const DOC_SAMPLES = {
       progress: 100,
       created_at: 1761000000,
       completed_at: 1761000180,
-      seconds: '8',
-      metadata: {
-        resolution: '1080p',
-        url: '/v1/videos/video_abc123/content',
+    },
+    null,
+    2
+  ),
+
+  failedResponse: JSON.stringify(
+    {
+      id: 'video_abc123',
+      object: 'video',
+      model: 'seedance-2.0',
+      status: 'failed',
+      progress: 0,
+      created_at: 1761000000,
+      error: {
+        code: 'video_generation_failed',
+        message: 'The video generation task failed.',
       },
     },
     null,
