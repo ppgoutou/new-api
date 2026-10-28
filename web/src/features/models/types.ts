@@ -241,6 +241,37 @@ export interface PreviewUpstreamDiffResponse {
 }
 
 /**
+ * A channel that offers or already serves an onboarding model
+ */
+export type OnboardingChannel = {
+  id: number
+  name: string
+  type: number
+  group: string
+  status: number
+}
+
+/**
+ * A concrete model name in the onboarding workbench
+ */
+export type OnboardingModel = {
+  model_name: string
+  pending_channels: OnboardingChannel[]
+  channels: OnboardingChannel[]
+  metadata_id: number
+  metadata_rule?: string
+}
+
+export interface OnboardingOverviewResponse {
+  success: boolean
+  message?: string
+  data?: {
+    items: OnboardingModel[]
+    tags: string[]
+  }
+}
+
+/**
  * Missing models response
  */
 export interface MissingModelsResponse {
@@ -351,6 +382,7 @@ export type SyncSource = 'official'
  */
 export type ModelTabCategory =
   | 'metadata'
+  | 'onboarding'
   | 'vendors'
   | 'categories'
   | 'deployments'

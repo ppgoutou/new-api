@@ -35,6 +35,7 @@ import { ModelsDialogs } from './components/models-dialogs'
 import { ModelsPrimaryButtons } from './components/models-primary-buttons'
 import { ModelsProvider, useModels } from './components/models-provider'
 import { ModelsTable } from './components/models-table'
+import { OnboardingSection } from './components/onboarding/onboarding-section'
 import { PricingCategoriesSection } from './components/pricing-categories-section'
 import { VendorsTable } from './components/vendors-table'
 import { useModelDeploymentSettings } from './hooks/use-model-deployment-settings'
@@ -55,6 +56,7 @@ const SECTION_META: Record<
     titleKey: 'Model management',
     tabKey: 'Models',
   },
+  onboarding: { titleKey: 'Model onboarding', tabKey: 'Onboarding' },
   vendors: { titleKey: 'Vendor management', tabKey: 'Vendors' },
   categories: { titleKey: 'Pricing categories', tabKey: 'Categories' },
   deployments: {
@@ -110,6 +112,9 @@ function ModelsContent() {
       </Button>
     )
     content = <VendorsTable />
+  } else if (activeSection === 'onboarding') {
+    actions = null
+    content = <OnboardingSection />
   } else if (activeSection === 'categories') {
     actions = null
     content = <PricingCategoriesSection />

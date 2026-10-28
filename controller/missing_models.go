@@ -3,6 +3,7 @@ package controller
 import (
 	"net/http"
 
+	"github.com/QuantumNous/new-api/common"
 	"github.com/QuantumNous/new-api/model"
 
 	"github.com/gin-gonic/gin"
@@ -25,4 +26,15 @@ func GetMissingModels(c *gin.Context) {
 		"success": true,
 		"data":    missing,
 	})
+}
+
+// GetModelOnboarding lists pending upstream and configured models with their
+// metadata links for the model onboarding workbench.
+func GetModelOnboarding(c *gin.Context) {
+	overview, err := model.GetOnboardingOverview()
+	if err != nil {
+		common.ApiError(c, err)
+		return
+	}
+	common.ApiSuccess(c, overview)
 }

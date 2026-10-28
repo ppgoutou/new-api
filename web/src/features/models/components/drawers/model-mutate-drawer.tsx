@@ -35,8 +35,6 @@ import {
 import { ErrorState } from '@/components/error-state'
 import { JsonEditor } from '@/components/json-editor'
 import { LoadingState } from '@/components/loading-state'
-import { LobeIconField } from '@/components/lobe-icon-field'
-import { TagInput } from '@/components/tag-input'
 import { Alert, AlertDescription } from '@/components/ui/alert'
 import { Button } from '@/components/ui/button'
 import { Combobox } from '@/components/ui/combobox'
@@ -62,9 +60,7 @@ import {
 } from '@/components/ui/sheet'
 import { Switch } from '@/components/ui/switch'
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs'
-import { Textarea } from '@/components/ui/textarea'
 import { ModelPricingPanel } from '@/features/model-pricing/model-pricing-panel'
-import { LANGUAGE_BLOCKS_HINT } from '@/lib/language-blocks'
 import {
   requireServerSuccess,
   createServerError,
@@ -82,6 +78,7 @@ import {
 } from '../../lib/model-form'
 import type { Model } from '../../types'
 import { ModelConnections } from '../model-connections'
+import { ModelMetadataFields } from '../model-metadata-fields'
 
 export function ModelMutateDrawer(props: {
   open: boolean
@@ -130,9 +127,6 @@ export function ModelMutateDrawer(props: {
     enabled: props.open,
   })
   const vendors = vendorsQuery.data?.data?.items ?? []
-  const selectedVendor = vendors.find(
-    (vendor) => vendor.id === form.watch('vendor_id')
-  )
   const modelQuery = useQuery({
     queryKey: modelsQueryKeys.detail(currentRow?.id ?? 0),
     queryFn: async () => {
@@ -349,94 +343,10 @@ export function ModelMutateDrawer(props: {
                         )}
                       />
 
-                      <FormField
-                        control={form.control}
-                        name='description'
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>{t('Description')}</FormLabel>
-                            <FormControl>
-                              <Textarea
-                                placeholder={t('Describe this model...')}
-                                rows={3}
-                                {...field}
-                              />
-                            </FormControl>
-                            <FormDescription>
-                              {t(LANGUAGE_BLOCKS_HINT)}
-                            </FormDescription>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-
-                      <FormField
-                        control={form.control}
-                        name='icon'
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>{t('Icon')}</FormLabel>
-                            <FormControl>
-                              <LobeIconField
-                                key={`${currentRow?.id ?? 'new'}-${props.open}`}
-                                value={field.value ?? ''}
-                                onChange={field.onChange}
-                                allowInheritance
-                                inheritedIcon={selectedVendor?.icon}
-                                inheritedName={selectedVendor?.name}
-                              />
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-
-                      <FormField
-                        control={form.control}
-                        name='vendor_id'
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>{t('Vendor')}</FormLabel>
-                            <FormControl>
-                              <Combobox
-                                options={vendors.map((vendor) => ({
-                                  value: String(vendor.id),
-                                  label: vendor.name,
-                                }))}
-                                onValueChange={(value) =>
-                                  field.onChange(
-                                    value ? Number.parseInt(value) : undefined
-                                  )
-                                }
-                                value={field.value ? String(field.value) : null}
-                                className='w-full'
-                                placeholder={t('Select vendor')}
-                              />
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-
-                      <FormField
-                        control={form.control}
-                        name='tags'
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>{t('Tags')}</FormLabel>
-                            <FormControl>
-                              <TagInput
-                                value={field.value || []}
-                                onChange={field.onChange}
-                                placeholder={t('Add tags...')}
-                              />
-                            </FormControl>
-                            <FormDescription>
-                              {t('Press Enter or comma to add tags')}
-                            </FormDescription>
-                            <FormMessage />
-                          </FormItem>
-                        )}
+                      <ModelMetadataFields
+                        form={form}
+                        vendors={vendors}
+                        iconKey={`${currentRow?.id ?? 'new'}-${props.open}`}
                       />
                     </SideDrawerSection>
 
