@@ -19,7 +19,7 @@ func TestGetOnboardingOverview(t *testing.T) {
 
 	channels := []Channel{
 		{Id: 1, Name: "alpha", Key: "k1", Group: "default,vip", Status: common.ChannelStatusEnabled, Models: "gpt-a,claude-x",
-			OtherSettings: `{"upstream_model_update_last_detected_models":["gpt-new","gpt-a"]}`},
+			OtherSettings: `{"upstream_model_update_last_detected_models":["gpt-new","gpt-a"],"upstream_model_update_last_removed_models":["claude-x","gone-already"]}`},
 		{Id: 2, Name: "beta", Key: "k2", Group: "default", Status: common.ChannelStatusEnabled, Models: "gpt-a",
 			OtherSettings: `{"upstream_model_update_last_detected_models":["gpt-new"]}`},
 		{Id: 3, Name: "off", Key: "k3", Group: "default", Status: common.ChannelStatusManuallyDisabled, Models: "hidden-model",
@@ -52,7 +52,13 @@ func TestGetOnboardingOverview(t *testing.T) {
 	assert.Empty(t, configured.PendingChannels, "a pending name already on the channel is not pending")
 	assert.Equal(t, 10, configured.MetadataID)
 
+	assert.Empty(t, configured.RemovedChannels)
+
 	ruled := byName["claude-x"]
+	require.Len(t, ruled.RemovedChannels, 1, "a removed name still on the channel is listed")
+	assert.Equal(t, 1, ruled.RemovedChannels[0].Id)
+	_, listed := byName["gone-already"]
+	assert.False(t, listed, "a removed name no longer on the channel is not listed")
 	assert.Zero(t, ruled.MetadataID)
 	assert.Equal(t, "claude", ruled.MetadataRule)
 

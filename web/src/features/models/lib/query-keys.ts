@@ -29,6 +29,8 @@ export const modelsQueryKeys = {
   detail: (id: number) => [...modelsQueryKeys.all, 'detail', id] as const,
   missing: () => [...modelsQueryKeys.all, 'missing'] as const,
   onboarding: () => [...modelsQueryKeys.all, 'onboarding'] as const,
+  upstreamPrices: () =>
+    [...modelsQueryKeys.all, 'onboarding', 'upstream-prices'] as const,
 }
 
 /**

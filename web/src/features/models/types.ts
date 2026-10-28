@@ -257,6 +257,7 @@ export type OnboardingChannel = {
 export type OnboardingModel = {
   model_name: string
   pending_channels: OnboardingChannel[]
+  removed_channels: OnboardingChannel[]
   channels: OnboardingChannel[]
   metadata_id: number
   metadata_rule?: string
@@ -269,6 +270,43 @@ export interface OnboardingOverviewResponse {
     items: OnboardingModel[]
     tags: string[]
   }
+}
+
+/**
+ * A channel whose upstream new-api pricing can be watched
+ */
+export type UpstreamPriceChannel = {
+  id: number
+  name: string
+  base_url: string
+  has_token: boolean
+  baseline_time: number
+  latest_time: number
+  status?: 'ok' | 'baseline' | 'error'
+  error?: string
+}
+
+/**
+ * One upstream pricing difference since the acknowledged baseline; an empty
+ * model name with kind group_ratio is a supplier group ratio change
+ */
+export type UpstreamPriceChange = {
+  channel_id: number
+  channel_name: string
+  model_name: string
+  kind: 'added' | 'removed' | 'changed' | 'group_ratio'
+  fields: Array<{ field: string; previous: unknown; current: unknown }>
+}
+
+export type UpstreamPriceReport = {
+  channels: UpstreamPriceChannel[]
+  changes: UpstreamPriceChange[]
+}
+
+export interface UpstreamPriceReportResponse {
+  success: boolean
+  message?: string
+  data?: UpstreamPriceReport
 }
 
 /**

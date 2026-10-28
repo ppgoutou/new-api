@@ -22,6 +22,7 @@ import { useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { toast } from 'sonner'
 
+import { ConfirmDialog } from '@/components/confirm-dialog'
 import { GroupBadge } from '@/components/group-badge'
 import { Button } from '@/components/ui/button'
 import { Checkbox } from '@/components/ui/checkbox'
@@ -44,8 +45,17 @@ import { cn } from '@/lib/utils'
 import { applyChannelUpstreamModels } from '../../api'
 import { assignModelCategory, channelGroups } from '../../lib/onboarding'
 import { PRESSED_BADGE_CLASSES } from '../../lib/pricing-categories'
-import type { OnboardingChannel, OnboardingModel, Vendor } from '../../types'
+import type {
+  OnboardingChannel,
+  OnboardingModel,
+  UpstreamPriceChange,
+  Vendor,
+} from '../../types'
 import { OnboardingMetadataCard } from './onboarding-metadata-card'
+import {
+  UpstreamPriceChangesCard,
+  type AcknowledgeRequest,
+} from './onboarding-upstream-prices'
 
 const NO_CATEGORY = '__none__'
 
@@ -57,6 +67,9 @@ export function OnboardingEditor(props: {
   onSaveCategories: (next: PricingCategory[]) => Promise<void>
   onChanged: () => Promise<void>
   onDirtyChange: (dirty: boolean) => void
+  priceChanges: UpstreamPriceChange[]
+  acknowledging: boolean
+  onAcknowledge: (request: AcknowledgeRequest) => void
 }) {
   const { t } = useTranslation()
   const canEditPricing = useCanEditModelPricing()
@@ -78,6 +91,11 @@ export function OnboardingEditor(props: {
           )}
         </p>
       </div>
+      <UpstreamPriceChangesCard
+        changes={props.priceChanges}
+        acknowledging={props.acknowledging}
+        onAcknowledge={props.onAcknowledge}
+      />
       <OnboardingChannelsCard item={props.item} onChanged={props.onChanged} />
       <OnboardingMetadataCard
         item={props.item}
@@ -111,26 +129,44 @@ export function OnboardingEditor(props: {
   )
 }
 
+type ChannelAction = 'add' | 'ignore' | 'remove'
+
 function OnboardingChannelsCard(props: {
   item: OnboardingModel
   onChanged: () => Promise<void>
 }) {
   const { t } = useTranslation()
   const pending = props.item.pending_channels
-  const [selected, setSelected] = useState<Set<number>>(
+  const removed = props.item.removed_channels
+  const [selectedPending, setSelectedPending] = useState<Set<number>>(
     () => new Set(pending.map((channel) => channel.id))
   )
-  const chosen = pending.filter((channel) => selected.has(channel.id))
+  const [selectedRemoved, setSelectedRemoved] = useState<Set<number>>(
+    () => new Set(removed.map((channel) => channel.id))
+  )
+  const [confirmRemove, setConfirmRemove] = useState(false)
+  const chosenPending = pending.filter((channel) =>
+    selectedPending.has(channel.id)
+  )
+  const chosenRemoved = removed.filter((channel) =>
+    selectedRemoved.has(channel.id)
+  )
 
   const apply = useMutation({
-    mutationFn: async (mode: 'add' | 'ignore') => {
+    mutationFn: async (action: ChannelAction) => {
       const name = props.item.model_name
-      for (const channel of chosen) {
-        const response = await applyChannelUpstreamModels(
-          mode === 'add'
-            ? { id: channel.id, add_models: [name] }
-            : { id: channel.id, ignore_models: [name] }
-        )
+      const targets = action === 'remove' ? chosenRemoved : chosenPending
+      for (const channel of targets) {
+        let request: Parameters<typeof applyChannelUpstreamModels>[0] = {
+          id: channel.id,
+          add_models: [name],
+        }
+        if (action === 'ignore') {
+          request = { id: channel.id, ignore_models: [name] }
+        } else if (action === 'remove') {
+          request = { id: channel.id, remove_models: [name] }
+        }
+        const response = await applyChannelUpstreamModels(request)
         if (!response.success) {
           throw createServerError(
             response,
@@ -138,15 +174,22 @@ function OnboardingChannelsCard(props: {
           )
         }
       }
-      return mode
+      return { action, count: targets.length }
     },
     onSettled: () => props.onChanged(),
-    onSuccess: (mode) =>
-      toast.success(
-        mode === 'add'
-          ? t('Added to {{count}} channels', { count: chosen.length })
-          : t('Ignored on {{count}} channels', { count: chosen.length })
-      ),
+    onSuccess: (result) => {
+      if (result.action === 'add') {
+        toast.success(t('Added to {{count}} channels', { count: result.count }))
+      } else if (result.action === 'ignore') {
+        toast.success(
+          t('Ignored on {{count}} channels', { count: result.count })
+        )
+      } else {
+        toast.success(
+          t('Removed from {{count}} channels', { count: result.count })
+        )
+      }
+    },
   })
 
   return (
@@ -167,34 +210,48 @@ function OnboardingChannelsCard(props: {
             <ChannelRows channels={props.item.channels} />
           )}
         </section>
+        {removed.length > 0 && (
+          <section className='space-y-2'>
+            <h3 className='text-destructive text-sm font-medium'>
+              {t('Delisted upstream')}
+            </h3>
+            <p className='text-muted-foreground text-xs'>
+              {t(
+                'These channels still list the model, but their upstream no longer offers it. Calls through them will fail.'
+              )}
+            </p>
+            <ChannelChecklist
+              channels={removed}
+              selected={selectedRemoved}
+              onSelectedChange={setSelectedRemoved}
+            />
+            <div className='flex justify-end'>
+              <Button
+                type='button'
+                variant='destructive'
+                size='sm'
+                disabled={apply.isPending || chosenRemoved.length === 0}
+                onClick={() => setConfirmRemove(true)}
+              >
+                {t('Remove from selected channels')}
+              </Button>
+            </div>
+          </section>
+        )}
         {pending.length > 0 && (
           <section className='space-y-2'>
             <h3 className='text-sm font-medium'>{t('Offered by upstream')}</h3>
-            <ul className='space-y-2'>
-              {pending.map((channel) => (
-                <li key={channel.id}>
-                  <label className='flex items-start gap-2'>
-                    <Checkbox
-                      className='mt-0.5'
-                      checked={selected.has(channel.id)}
-                      onCheckedChange={(value) => {
-                        const next = new Set(selected)
-                        if (value) next.add(channel.id)
-                        else next.delete(channel.id)
-                        setSelected(next)
-                      }}
-                    />
-                    <ChannelLabel channel={channel} />
-                  </label>
-                </li>
-              ))}
-            </ul>
+            <ChannelChecklist
+              channels={pending}
+              selected={selectedPending}
+              onSelectedChange={setSelectedPending}
+            />
             <div className='flex flex-wrap justify-end gap-2'>
               <Button
                 type='button'
                 variant='outline'
                 size='sm'
-                disabled={apply.isPending || chosen.length === 0}
+                disabled={apply.isPending || chosenPending.length === 0}
                 onClick={() => apply.mutate('ignore')}
               >
                 {t('Ignore')}
@@ -202,7 +259,7 @@ function OnboardingChannelsCard(props: {
               <Button
                 type='button'
                 size='sm'
-                disabled={apply.isPending || chosen.length === 0}
+                disabled={apply.isPending || chosenPending.length === 0}
                 onClick={() => apply.mutate('add')}
               >
                 {t('Add to selected channels')}
@@ -211,7 +268,52 @@ function OnboardingChannelsCard(props: {
           </section>
         )}
       </div>
+      <ConfirmDialog
+        open={confirmRemove}
+        onOpenChange={setConfirmRemove}
+        destructive
+        title={t('Remove {{name}} from {{count}} channels?', {
+          name: props.item.model_name,
+          count: chosenRemoved.length,
+        })}
+        desc={t(
+          'The channels stop serving this model. Metadata, price and category stay.'
+        )}
+        confirmText={t('Remove')}
+        handleConfirm={() => {
+          setConfirmRemove(false)
+          apply.mutate('remove')
+        }}
+      />
     </TitledCard>
+  )
+}
+
+function ChannelChecklist(props: {
+  channels: OnboardingChannel[]
+  selected: Set<number>
+  onSelectedChange: (selected: Set<number>) => void
+}) {
+  return (
+    <ul className='space-y-2'>
+      {props.channels.map((channel) => (
+        <li key={channel.id}>
+          <label className='flex items-start gap-2'>
+            <Checkbox
+              className='mt-0.5'
+              checked={props.selected.has(channel.id)}
+              onCheckedChange={(value) => {
+                const next = new Set(props.selected)
+                if (value) next.add(channel.id)
+                else next.delete(channel.id)
+                props.onSelectedChange(next)
+              }}
+            />
+            <ChannelLabel channel={channel} />
+          </label>
+        </li>
+      ))}
+    </ul>
   )
 }
 

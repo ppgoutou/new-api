@@ -66,12 +66,18 @@ export function OnboardingList(props: {
           props.onFilterChange(value as OnboardingFilter)
         }
       >
-        <TabsList className='grid w-full grid-cols-3'>
+        <TabsList className='grid w-full grid-cols-3 group-data-horizontal/tabs:h-auto'>
           <TabsTrigger value='todo'>
             {t('To do')} ({props.counts.todo})
           </TabsTrigger>
           <TabsTrigger value='pending'>
             {t('New upstream')} ({props.counts.pending})
+          </TabsTrigger>
+          <TabsTrigger value='removed'>
+            {t('Delisted upstream')} ({props.counts.removed})
+          </TabsTrigger>
+          <TabsTrigger value='priced'>
+            {t('Upstream repriced')} ({props.counts.priced})
           </TabsTrigger>
           <TabsTrigger value='all'>
             {t('All')} ({props.counts.all})
@@ -162,6 +168,20 @@ function OnboardingStatusBadges(props: { status: OnboardingStatus }) {
     <span className='mt-1 flex flex-wrap gap-1'>
       {status.pending && (
         <StatusBadge size='sm' variant='warning' label={t('New upstream')} />
+      )}
+      {status.removed && (
+        <StatusBadge
+          size='sm'
+          variant='danger'
+          label={t('Delisted upstream')}
+        />
+      )}
+      {status.priceChanged && (
+        <StatusBadge
+          size='sm'
+          variant='warning'
+          label={t('Upstream repriced')}
+        />
       )}
       {!status.onChannel && (
         <StatusBadge size='sm' variant='danger' label={t('No channel')} />

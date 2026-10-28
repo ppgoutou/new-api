@@ -33,13 +33,15 @@ import { parseModelTags } from './model-utils'
 /** What still blocks a model from being sold; undefined means unknown. */
 export type OnboardingStatus = {
   pending: boolean
+  removed: boolean
+  priceChanged: boolean
   onChannel: boolean
   hasMetadata: boolean
   hasPrice: boolean | undefined
   category: string | undefined
 }
 
-export type OnboardingFilter = 'todo' | 'pending' | 'all'
+export type OnboardingFilter = 'todo' | 'pending' | 'removed' | 'priced' | 'all'
 
 /** A model counts as priced when any effective price other than the display-only official price exists. */
 export function hasEffectivePricing(entry: ModelPricingEntry): boolean {
@@ -54,10 +56,13 @@ export function hasEffectivePricing(entry: ModelPricingEntry): boolean {
 export function onboardingStatus(
   item: OnboardingModel,
   priced: Set<string> | undefined,
-  categoryOwners: Map<string, string>
+  categoryOwners: Map<string, string>,
+  repriced: Set<string> = new Set()
 ): OnboardingStatus {
   return {
+    priceChanged: repriced.has(item.model_name),
     pending: item.pending_channels.length > 0,
+    removed: item.removed_channels.length > 0,
     onChannel: item.channels.length > 0,
     hasMetadata: item.metadata_id > 0 || Boolean(item.metadata_rule),
     hasPrice: priced ? priced.has(item.model_name) : undefined,
@@ -65,10 +70,12 @@ export function onboardingStatus(
   }
 }
 
-/** Unfinished means it still waits on a channel, metadata, or a price. */
+/** Unfinished means it still waits on a channel, metadata, or a price, or its upstream dropped or repriced it. */
 export function isOnboardingUnfinished(status: OnboardingStatus): boolean {
   return (
     status.pending ||
+    status.removed ||
+    status.priceChanged ||
     !status.onChannel ||
     !status.hasMetadata ||
     status.hasPrice === false
@@ -80,6 +87,8 @@ export function matchesOnboardingFilter(
   filter: OnboardingFilter
 ): boolean {
   if (filter === 'pending') return status.pending
+  if (filter === 'removed') return status.removed
+  if (filter === 'priced') return status.priceChanged
   if (filter === 'todo') return isOnboardingUnfinished(status)
   return true
 }
@@ -158,4 +167,11 @@ export function officialMetadataValues(
     tags: parseModelTags(upstream.tags),
     vendorId: vendor?.id,
   }
+}
+
+/** Shows an upstream pricing value; objects (plugin prices) as compact JSON. */
+export function formatUpstreamPriceValue(value: unknown): string {
+  if (value === undefined || value === null || value === '') return '—'
+  if (typeof value === 'object') return JSON.stringify(value)
+  return String(value)
 }

@@ -17,10 +17,12 @@ type OnboardingChannel struct {
 }
 
 // OnboardingModel is one concrete model name that is either offered by an
-// upstream (pending add) or already configured on a channel.
+// upstream (pending add) or already configured on a channel, possibly one
+// whose upstream no longer lists it (removed).
 type OnboardingModel struct {
 	ModelName       string              `json:"model_name"`
 	PendingChannels []OnboardingChannel `json:"pending_channels"`
+	RemovedChannels []OnboardingChannel `json:"removed_channels"`
 	Channels        []OnboardingChannel `json:"channels"`
 	MetadataID      int                 `json:"metadata_id"`
 	MetadataRule    string              `json:"metadata_rule,omitempty"`
@@ -53,7 +55,7 @@ func GetOnboardingOverview() (*OnboardingOverview, error) {
 		if existing, ok := items[name]; ok {
 			return existing
 		}
-		created := &OnboardingModel{ModelName: name, PendingChannels: []OnboardingChannel{}, Channels: []OnboardingChannel{}}
+		created := &OnboardingModel{ModelName: name, PendingChannels: []OnboardingChannel{}, RemovedChannels: []OnboardingChannel{}, Channels: []OnboardingChannel{}}
 		items[name] = created
 		return created
 	}
@@ -76,6 +78,13 @@ func GetOnboardingOverview() (*OnboardingOverview, error) {
 			}
 			entry := item(name)
 			entry.PendingChannels = append(entry.PendingChannels, ref)
+		}
+		for _, name := range normalizeLookupValues(settings.UpstreamModelUpdateLastRemovedModels) {
+			if !slices.Contains(configured, name) {
+				continue
+			}
+			entry := item(name)
+			entry.RemovedChannels = append(entry.RemovedChannels, ref)
 		}
 	}
 
