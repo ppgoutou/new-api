@@ -26,7 +26,7 @@ import type {
 
 export const PRICING_CATEGORIES_OPTION_KEY = 'PricingCategories'
 export const PRICING_CATEGORY_NAME_MAX = 40
-export const PRICING_CATEGORY_DESCRIPTION_MAX = 300
+export const PRICING_CATEGORY_DESCRIPTION_MAX = 3000
 
 export const pricingCategoryFormSchema = z.object({
   name: z.string().trim().min(1).max(PRICING_CATEGORY_NAME_MAX),

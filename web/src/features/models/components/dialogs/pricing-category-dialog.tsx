@@ -45,6 +45,7 @@ import type {
   PricingCategory,
   PricingModelBadge,
 } from '@/features/pricing/types'
+import { LANGUAGE_BLOCKS_HINT } from '@/lib/language-blocks'
 import { cn } from '@/lib/utils'
 
 import {
@@ -175,6 +176,7 @@ export function PricingCategoryDialog(props: {
                     maxLength={PRICING_CATEGORY_DESCRIPTION_MAX}
                   />
                 </FormControl>
+                <FormDescription>{t(LANGUAGE_BLOCKS_HINT)}</FormDescription>
                 <FormMessage />
               </FormItem>
             )}

@@ -76,10 +76,20 @@ export function usePricingData(enabled = true) {
     })
   }, [data, language])
 
+  const categories = useMemo(() => {
+    if (!data?.categories) return EMPTY_CATEGORIES
+    return data.categories.map((category) => ({
+      ...category,
+      description: category.description
+        ? selectLanguageBlock(category.description, language)
+        : category.description,
+    }))
+  }, [data, language])
+
   return {
     models,
     vendors: data?.vendors ?? [],
-    categories: data?.categories ?? EMPTY_CATEGORIES,
+    categories,
     groupRatio: data?.group_ratio ?? {},
     usableGroup: data?.usable_group ?? {},
     endpointMap: data?.supported_endpoint ?? {},
