@@ -29,7 +29,15 @@ import type { PricingCategory } from '../types'
 
 const EMPTY_CATEGORIES: PricingCategory[] = []
 
-export function usePricingData(enabled = true) {
+/** How often a live caller polls, so channel changes show up without reload. */
+const LIVE_PRICING_INTERVAL = 30 * 1000
+
+/**
+ * Public pricing list. A live caller always refetches on mount and window
+ * focus and polls every 30 seconds, so models whose channels were enabled or
+ * disabled appear or disappear while the page stays open.
+ */
+export function usePricingData(enabled = true, live = false) {
   const { status } = useStatus()
   const { i18n } = useTranslation()
   const language = i18n.resolvedLanguage || i18n.language
@@ -37,7 +45,8 @@ export function usePricingData(enabled = true) {
   const { data, isLoading, error, refetch } = useQuery({
     queryKey: ['pricing'],
     queryFn: async () => requireServerSuccess(await getPricing()),
-    staleTime: 5 * 60 * 1000,
+    staleTime: live ? 0 : 5 * 60 * 1000,
+    refetchInterval: live ? LIVE_PRICING_INTERVAL : false,
     enabled,
   })
 
