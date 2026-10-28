@@ -200,7 +200,7 @@ describe('model cards', () => {
 
     await user.click(screen.getByRole('button', { name: 'Try' }))
 
-    expect(onTry).toHaveBeenCalledWith('seedance-2.0')
+    expect(onTry).toHaveBeenCalledWith('seedance-2.0', 'video')
     expect(onClick).not.toHaveBeenCalled()
   })
 
@@ -226,6 +226,25 @@ describe('model cards', () => {
     const detailsButton = screen.getByRole('button', { name: 'Details' })
     expect(tryButton.nextElementSibling).toBe(detailsButton)
     expect(tryButton.parentElement?.children).toHaveLength(2)
+  })
+
+  it('opens the image studio with an image generation model', async () => {
+    const user = userEvent.setup()
+    const onTry = vi.fn()
+    render(
+      <ModelCard
+        model={pricingModel({
+          model_name: 'seedream-5.0',
+          supported_endpoint_types: ['openai', 'image-generation'],
+        })}
+        onClick={vi.fn()}
+        onTry={onTry}
+      />
+    )
+
+    await user.click(screen.getByRole('button', { name: 'Try' }))
+
+    expect(onTry).toHaveBeenCalledWith('seedream-5.0', 'image')
   })
 
   it('offers no try button for a model the video studio cannot run', () => {

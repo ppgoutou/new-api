@@ -24,6 +24,8 @@ import { VideoStudio } from '@/features/video-studio'
 const videoStudioSearchSchema = z.object({
   /** Model preselected in the composer, such as from a pricing card. */
   model: z.string().optional().catch(undefined),
+  /** Whether the page opens on video or image generation. */
+  kind: z.enum(['video', 'image']).optional().catch(undefined),
 })
 
 export const Route = createFileRoute('/_authenticated/video-studio/')({

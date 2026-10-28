@@ -23,6 +23,7 @@ import { useTranslation } from 'react-i18next'
 
 import { Button } from '@/components/ui/button'
 import { getPerfMetricsSummary } from '@/features/performance-metrics/api'
+import type { StudioKind } from '@/features/video-studio/types'
 import { requireServerSuccess } from '@/lib/server-error-message'
 
 import { DEFAULT_PRICING_PAGE_SIZE, DEFAULT_TOKEN_UNIT } from '../constants'
@@ -33,8 +34,8 @@ import type { ModelPerfBadgeData } from './model-perf-badge'
 export interface ModelCardGridProps {
   models: PricingModel[]
   onModelClick: (modelName: string) => void
-  /** Opens the video studio with a video model. */
-  onModelTry?: (modelName: string) => void
+  /** Opens the studio with a video or image model. */
+  onModelTry?: (modelName: string, kind: StudioKind) => void
   priceRate?: number
   usdExchangeRate?: number
   tokenUnit?: TokenUnit

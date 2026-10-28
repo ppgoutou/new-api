@@ -178,30 +178,43 @@ func TestVideoAssetExpiresAfterRetention(t *testing.T) {
 	assert.Equal(t, http.StatusNotFound, serveVideoAsset("../"+fresh).Code)
 }
 
-func TestPreparePlaygroundVideoRewritesToNativeEndpointWithoutTokenQuota(t *testing.T) {
-	_, userID := setupVideoAssetTest(t, 1000)
-	var seenPath string
-	var seenTokenID int
-	var playground bool
+func TestPreparePlaygroundRewritesToNativeEndpointWithoutTokenQuota(t *testing.T) {
+	cases := []struct {
+		name       string
+		route      string
+		prepare    gin.HandlerFunc
+		nativePath string
+	}{
+		{"video", "/pg/videos", PreparePlaygroundVideo, PlaygroundVideoPath},
+		{"image", "/pg/images/generations", PreparePlaygroundImage, PlaygroundImagePath},
+	}
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			_, userID := setupVideoAssetTest(t, 1000)
+			var seenPath string
+			var seenTokenID int
+			var playground bool
 
-	recorder := httptest.NewRecorder()
-	context, engine := gin.CreateTestContext(recorder)
-	engine.POST("/pg/videos", func(c *gin.Context) {
-		c.Set("id", userID)
-		PreparePlaygroundVideo(c)
-	}, func(c *gin.Context) {
-		seenPath = c.Request.URL.Path
-		seenTokenID = c.GetInt("token_id")
-		playground = common.GetContextKeyBool(c, constant.ContextKeyPlayground)
-		c.Status(http.StatusNoContent)
-	})
-	context.Request = httptest.NewRequest(http.MethodPost, "/pg/videos", strings.NewReader(`{"model":"seedance-2.0"}`))
-	engine.HandleContext(context)
+			recorder := httptest.NewRecorder()
+			context, engine := gin.CreateTestContext(recorder)
+			engine.POST(tc.route, func(c *gin.Context) {
+				c.Set("id", userID)
+				tc.prepare(c)
+			}, func(c *gin.Context) {
+				seenPath = c.Request.URL.Path
+				seenTokenID = c.GetInt("token_id")
+				playground = common.GetContextKeyBool(c, constant.ContextKeyPlayground)
+				c.Status(http.StatusNoContent)
+			})
+			context.Request = httptest.NewRequest(http.MethodPost, tc.route, strings.NewReader(`{"model":"seedream-5.0"}`))
+			engine.HandleContext(context)
 
-	assert.Equal(t, http.StatusNoContent, recorder.Code)
-	assert.Equal(t, PlaygroundVideoPath, seenPath)
-	assert.Zero(t, seenTokenID, "the temporary token has no quota of its own")
-	assert.True(t, playground)
+			assert.Equal(t, http.StatusNoContent, recorder.Code)
+			assert.Equal(t, tc.nativePath, seenPath)
+			assert.Zero(t, seenTokenID, "the temporary token has no quota of its own")
+			assert.True(t, playground)
+		})
+	}
 }
 
 func TestPreparePlaygroundVideoRejectsAccessTokens(t *testing.T) {

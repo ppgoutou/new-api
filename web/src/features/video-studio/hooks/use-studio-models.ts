@@ -20,17 +20,34 @@ import { useMemo } from 'react'
 
 import { usePricingData } from '@/features/pricing/hooks/use-pricing-data'
 
-import type { StudioModel } from '../constants'
-import { studioModelsFromPricing } from '../lib/draft'
+import type { StudioImageModel, StudioModel } from '../constants'
+import { inPlazaOrder, studioModelsFromPricing } from '../lib/draft'
+import { studioImageModelsFromPricing } from '../lib/image-draft'
 
 /**
- * Video models offered on the canvas, empty while prices are loading. Kept
- * live so the menu follows the models currently available to the user.
+ * Video models offered on the canvas, empty while prices are loading, in the
+ * model plaza's category order. Kept live so the menu follows the models
+ * currently available to the user.
  */
 export function useStudioModels(): StudioModel[] {
   const pricing = usePricingData(true, true)
   return useMemo(
-    () => studioModelsFromPricing(pricing.models),
-    [pricing.models]
+    () =>
+      inPlazaOrder(pricing.models, pricing.categories, studioModelsFromPricing),
+    [pricing.models, pricing.categories]
+  )
+}
+
+/** Image generation models, in the same order and kept live the same way. */
+export function useStudioImageModels(): StudioImageModel[] {
+  const pricing = usePricingData(true, true)
+  return useMemo(
+    () =>
+      inPlazaOrder(
+        pricing.models,
+        pricing.categories,
+        studioImageModelsFromPricing
+      ),
+    [pricing.models, pricing.categories]
   )
 }

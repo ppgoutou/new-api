@@ -176,6 +176,7 @@ export function Composer(props: ComposerProps) {
               options={models.map((option) => ({
                 value: option.name,
                 label: option.name,
+                group: option.group,
                 icon: <Film className='size-3.5' aria-hidden />,
               }))}
               onChange={(name) => studio.update({ model: name })}

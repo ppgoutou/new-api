@@ -61,6 +61,38 @@ export interface StudioDraft {
   lastFrame?: StudioAsset
 }
 
+/** What the studio creates: a video task or a batch of images. */
+export type StudioKind = 'video' | 'image'
+
+/** Request body of POST /pg/images/generations. */
+export interface ImageGenerationRequest {
+  model: string
+  prompt: string
+  size: string
+  n: number
+  response_format: 'url'
+  /** Public URLs of reference images, for image-to-image models. */
+  image?: string[]
+}
+
+export interface ImageGenerationResponse {
+  data?:
+    | { url?: string; b64_json?: string }[]
+    | { url?: string; b64_json?: string }
+}
+
+/** A generated image kept in this browser's works list. */
+export interface StudioImage {
+  id: string
+  /** Upstream URL, which expires after a while, or an inline data URL. */
+  url: string
+  prompt: string
+  model: string
+  size: string
+  /** Unix seconds. */
+  createdAt: number
+}
+
 /** Request body of POST /pg/videos. */
 export interface VideoTaskRequest {
   model: string

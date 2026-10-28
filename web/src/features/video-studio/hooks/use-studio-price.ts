@@ -28,6 +28,7 @@ import {
 import { useSystemConfigStore } from '@/stores/system-config-store'
 
 import { estimateDraftCostUSD } from '../lib/draft'
+import { estimateImageCostUSD } from '../lib/image-draft'
 import type { StudioDraft } from '../types'
 
 /**
@@ -61,6 +62,34 @@ export function useStudioPrice(draft: StudioDraft): string | null {
     draft.count,
     hasReferenceVideo
   )
+  return formatTaskUsageUnitPrice(costUSD, {
+    tokenUnit: 'M',
+    showRechargePrice: false,
+    priceRate: pricing.priceRate,
+    usdExchangeRate: pricing.usdExchangeRate,
+    groupRatioMultiplier: getDisplayGroupRatio(model),
+    fractionDigits: VIDEO_PRICE_FRACTION_DIGITS,
+  })
+}
+
+/**
+ * Estimated charge of an image request in the site currency, after the
+ * viewer's group discount, or null while prices are loading or the model's
+ * price cannot be evaluated.
+ */
+export function useStudioImagePrice(
+  modelName: string,
+  size: string,
+  count: number
+): string | null {
+  const pricing = usePricingData()
+  useSystemConfigStore((state) => state.config.currency)
+
+  const model = pricing.models.find(
+    (candidate) => candidate.model_name === modelName
+  )
+  const costUSD = model ? estimateImageCostUSD(model, size, count) : null
+  if (!model || costUSD === null) return null
   return formatTaskUsageUnitPrice(costUSD, {
     tokenUnit: 'M',
     showRechargePrice: false,

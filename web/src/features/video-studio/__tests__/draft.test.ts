@@ -25,6 +25,7 @@ import {
   buildVideoRequest,
   estimateDraftCostUSD,
   fitDraftToModel,
+  inPlazaOrder,
   labelReferences,
   removeReferenceFromPrompt,
   studioModelsFromPricing,
@@ -345,5 +346,41 @@ describe('estimateDraftCostUSD', () => {
     expect(estimateDraftCostUSD(row, 5, 1, true)).toBeCloseTo(
       (9 * 21600 * 4) / 1_000_000
     )
+  })
+})
+
+describe('inPlazaOrder', () => {
+  it('orders models by plaza category with the category name, then the uncategorized ones by name', () => {
+    const models = inPlazaOrder(
+      [
+        videoModel('wan3.0', ['720p']),
+        videoModel('seedance-2.5', ['720p']),
+        videoModel('a-model', ['720p']),
+        videoModel('seedance-2.0', ['720p']),
+      ],
+      [
+        { id: 'sd25', name: 'Seedance 2.5', models: ['seedance-2.5'] },
+        { id: 'sd20', name: 'Seedance 2.0', models: ['seedance-2.0'] },
+      ],
+      studioModelsFromPricing
+    )
+    expect(models.map((model) => [model.name, model.group])).toEqual([
+      ['seedance-2.5', 'Seedance 2.5'],
+      ['seedance-2.0', 'Seedance 2.0'],
+      ['a-model', ''],
+      ['wan3.0', ''],
+    ])
+  })
+
+  it('sorts by name without groups when no category is configured', () => {
+    const models = inPlazaOrder(
+      [videoModel('wan3.0', ['720p']), videoModel('seedance-2.0', ['720p'])],
+      [],
+      studioModelsFromPricing
+    )
+    expect(models.map((model) => [model.name, model.group])).toEqual([
+      ['seedance-2.0', undefined],
+      ['wan3.0', undefined],
+    ])
   })
 })

@@ -22,6 +22,7 @@ import { useTranslation } from 'react-i18next'
 
 import { PublicLayout } from '@/components/layout'
 import { PageTransition } from '@/components/page-transition'
+import type { StudioKind } from '@/features/video-studio/types'
 
 import {
   LoadingSkeleton,
@@ -106,8 +107,8 @@ export function Pricing() {
 
   const navigate = useNavigate()
   const handleModelTry = useCallback(
-    (modelName: string) =>
-      navigate({ to: '/video-studio', search: { model: modelName } }),
+    (modelName: string, kind: StudioKind) =>
+      navigate({ to: '/video-studio', search: { model: modelName, kind } }),
     [navigate]
   )
 

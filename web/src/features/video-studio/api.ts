@@ -19,6 +19,8 @@ For commercial licensing, please contact support@quantumnous.com
 import { api } from '@/lib/api'
 
 import type {
+  ImageGenerationRequest,
+  ImageGenerationResponse,
   VideoAssetUploadResponse,
   VideoTaskRequest,
   VideoTaskResponse,
@@ -44,6 +46,29 @@ export async function uploadVideoAsset(
     }
   )
   return res.data
+}
+
+/**
+ * Generates images with the signed-in session, charged to the wallet.
+ * Returns each image as a URL, turning inline base64 images into data URLs.
+ */
+export async function generateImages(
+  body: ImageGenerationRequest
+): Promise<string[]> {
+  const res = await api.post<ImageGenerationResponse>(
+    '/pg/images/generations',
+    body,
+    { skipErrorHandler: true }
+  )
+  const data = res.data.data ?? []
+  const items = Array.isArray(data) ? data : [data]
+  const urls = items.flatMap((item) => {
+    if (item.url) return [item.url]
+    if (item.b64_json) return [`data:image/png;base64,${item.b64_json}`]
+    return []
+  })
+  if (urls.length === 0) throw new Error('Image generation failed')
+  return urls
 }
 
 /**

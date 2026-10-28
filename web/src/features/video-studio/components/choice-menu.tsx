@@ -34,13 +34,22 @@ interface ChoiceMenuProps<T extends string> {
   /** Menu heading and accessible name of the trigger. */
   label: string
   value: T
-  options: { value: T; label: string; icon?: ReactNode }[]
+  /** Consecutive options with the same non-empty group get a heading. */
+  options: { value: T; label: string; icon?: ReactNode; group?: string }[]
   onChange: (value: T) => void
 }
 
 /** Compact toolbar button that picks one value from a short list. */
 export function ChoiceMenu<T extends string>(props: ChoiceMenuProps<T>) {
   const selected = props.options.find((option) => option.value === props.value)
+  const sections: { group: string; options: ChoiceMenuProps<T>['options'] }[] =
+    []
+  for (const option of props.options) {
+    const group = option.group ?? ''
+    const last = sections.at(-1)
+    if (last && last.group === group) last.options.push(option)
+    else sections.push({ group, options: [option] })
+  }
   return (
     <DropdownMenu>
       <DropdownMenuTrigger
@@ -61,22 +70,31 @@ export function ChoiceMenu<T extends string>(props: ChoiceMenuProps<T>) {
       <DropdownMenuContent align='start' className='w-auto min-w-48'>
         <DropdownMenuGroup>
           <DropdownMenuLabel>{props.label}</DropdownMenuLabel>
-          <DropdownMenuRadioGroup
-            value={props.value}
-            onValueChange={(value) => props.onChange(value as T)}
-          >
-            {props.options.map((option) => (
-              <DropdownMenuRadioItem
-                key={option.value}
-                value={option.value}
-                className='whitespace-nowrap'
-              >
-                {option.icon}
-                {option.label}
-              </DropdownMenuRadioItem>
-            ))}
-          </DropdownMenuRadioGroup>
         </DropdownMenuGroup>
+        <DropdownMenuRadioGroup
+          value={props.value}
+          onValueChange={(value) => props.onChange(value as T)}
+        >
+          {sections.map((section) => (
+            <DropdownMenuGroup key={section.options[0].value}>
+              {section.group && (
+                <DropdownMenuLabel className='text-muted-foreground pt-2 text-[11px]'>
+                  {section.group}
+                </DropdownMenuLabel>
+              )}
+              {section.options.map((option) => (
+                <DropdownMenuRadioItem
+                  key={option.value}
+                  value={option.value}
+                  className='whitespace-nowrap'
+                >
+                  {option.icon}
+                  {option.label}
+                </DropdownMenuRadioItem>
+              ))}
+            </DropdownMenuGroup>
+          ))}
+        </DropdownMenuRadioGroup>
       </DropdownMenuContent>
     </DropdownMenu>
   )

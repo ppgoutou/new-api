@@ -20,6 +20,8 @@ import type { AssetKind, StudioDraft, StudioRatio } from './types'
 
 export interface StudioModel {
   name: string
+  /** Category name from the model plaza; empty for uncategorized models. */
+  group?: string
   resolutions: readonly string[]
   /** Shortest and longest output, in seconds. */
   duration: readonly [number, number]
@@ -87,6 +89,33 @@ export const DEFAULT_DRAFT: StudioDraft = {
   count: 1,
   references: [],
 }
+
+export interface StudioImageModel {
+  name: string
+  /** Category name from the model plaza; empty for uncategorized models. */
+  group?: string
+}
+
+/** Output sizes offered for image generation, as width x height. */
+export const STUDIO_IMAGE_SIZES: readonly { value: string; ratio: string }[] = [
+  { value: '2048x2048', ratio: '1:1' },
+  { value: '2304x1728', ratio: '4:3' },
+  { value: '1728x2304', ratio: '3:4' },
+  { value: '2560x1440', ratio: '16:9' },
+  { value: '1440x2560', ratio: '9:16' },
+  { value: '1024x1024', ratio: '1:1' },
+]
+
+export const DEFAULT_IMAGE_SIZE = '2048x2048'
+
+/** Most images one image request may ask for. */
+export const STUDIO_MAX_IMAGE_COUNT = 4
+
+/** localStorage key of the images generated in this browser. */
+export const STUDIO_IMAGE_WORKS_KEY = 'video-studio:image-works'
+
+/** Most generated images remembered in this browser. */
+export const STUDIO_IMAGE_WORKS_LIMIT = 60
 
 /** Query key of the user's latest video tasks. */
 export const STUDIO_WORKS_QUERY_KEY = ['video-studio', 'works'] as const

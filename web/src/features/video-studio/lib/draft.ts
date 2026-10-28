@@ -1,3 +1,4 @@
+import { groupModelsByCategory } from '@/features/pricing/lib/categories'
 /*
 Copyright (C) 2023-2026 QuantumNous
 
@@ -21,7 +22,7 @@ import {
   getTokenVideoPricing,
   getVideoPricing,
 } from '@/features/pricing/lib/video-pricing'
-import type { PricingModel } from '@/features/pricing/types'
+import type { PricingCategory, PricingModel } from '@/features/pricing/types'
 
 import {
   DEFAULT_STUDIO_DURATION,
@@ -58,6 +59,30 @@ export function studioModelsFromPricing(
       },
     ]
   })
+}
+
+/**
+ * Studio models in the model plaza's order: by administrator category, each
+ * tagged with its category name, then the uncategorized ones by name. The
+ * pricing list's own order is not stable between requests, so it is never
+ * used as is.
+ */
+export function inPlazaOrder<T extends { name: string; group?: string }>(
+  models: readonly PricingModel[],
+  categories: readonly PricingCategory[],
+  toStudioModels: (models: readonly PricingModel[]) => T[]
+): T[] {
+  const byName = [...models].sort((a, b) =>
+    a.model_name.localeCompare(b.model_name)
+  )
+  const sections = groupModelsByCategory(byName, [...categories])
+  if (sections.length === 0) return toStudioModels(byName)
+  return sections.flatMap((section) =>
+    toStudioModels(section.models).map((model) => ({
+      ...model,
+      group: section.name,
+    }))
+  )
 }
 
 /** The named model, else the first one; undefined when there are none. */

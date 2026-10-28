@@ -70,12 +70,14 @@ interface ReferencePanelProps {
   references: StudioAsset[]
   onAddFiles: (files: File[]) => void
   onRemove: (asset: StudioAsset) => void
+  /** File types the picker offers; images, videos and audio by default. */
+  accept?: string
 }
 
 /** Reference mode: images, videos and audio, each labeled with its token. */
 export function ReferencePanel(props: ReferencePanelProps) {
   const { t } = useTranslation()
-  const accept = Object.values(ASSET_ACCEPT).join(',')
+  const accept = props.accept ?? Object.values(ASSET_ACCEPT).join(',')
   return (
     <div className='flex gap-2 overflow-x-auto pb-1'>
       <AddTile
