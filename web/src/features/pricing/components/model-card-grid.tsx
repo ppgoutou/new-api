@@ -33,6 +33,8 @@ import type { ModelPerfBadgeData } from './model-perf-badge'
 export interface ModelCardGridProps {
   models: PricingModel[]
   onModelClick: (modelName: string) => void
+  /** Opens the video studio with a video model. */
+  onModelTry?: (modelName: string) => void
   priceRate?: number
   usdExchangeRate?: number
   tokenUnit?: TokenUnit
@@ -108,6 +110,7 @@ export const ModelCardGrid = memo(function ModelCardGrid(
             perf={perfMap.get(model.model_name || '')}
             badges={props.badges?.get(model.model_name || '')}
             onClick={props.onModelClick}
+            onTry={props.onModelTry}
           />
         ))}
       </div>

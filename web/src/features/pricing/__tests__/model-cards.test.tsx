@@ -88,7 +88,7 @@ afterEach(() => {
 })
 
 describe('model cards', () => {
-  it('lists the administrator badges under the model name in the given order', () => {
+  it('lists the administrator badges in the card header in the given order', () => {
     render(
       <ModelCard
         model={pricingModel({})}
@@ -161,7 +161,7 @@ describe('model cards', () => {
     expect(screen.getByText('$1.5')).toBeVisible()
   })
 
-  it('copies the complete long model name without opening details', async () => {
+  it('opens details with the complete long model name and offers no copy button', async () => {
     const user = userEvent.setup()
     const onClick = vi.fn()
     const name = 'provider/model-with-a-long-name-and-a-version-suffix-20260906'
@@ -169,12 +169,46 @@ describe('model cards', () => {
       <ModelCard model={pricingModel({ model_name: name })} onClick={onClick} />
     )
     expect(screen.getByRole('heading', { name })).toHaveAttribute('title', name)
-    await user.click(screen.getByRole('button', { name: 'Copy model name' }))
-    expect(await navigator.clipboard.readText()).toBe(name)
-    expect(onClick).not.toHaveBeenCalled()
+    expect(
+      screen.queryByRole('button', { name: 'Copy model name' })
+    ).not.toBeInTheDocument()
     await user.click(screen.getByRole('button', { name: 'Details' }))
     expect(onClick).toHaveBeenCalledOnce()
     expect(onClick).toHaveBeenCalledWith(name)
+  })
+
+  it('opens the video studio with a video model when its try button is clicked', async () => {
+    const user = userEvent.setup()
+    const onClick = vi.fn()
+    const onTry = vi.fn()
+    render(
+      <ModelCard
+        model={pricingModel({
+          model_name: 'seedance-2.0',
+          billing_mode: 'tiered_expr',
+          billing_expr:
+            'u("resolution") == "480p" ? tier("480p", u("seconds") * 0.04) : tier("720p", u("seconds") * 0.09)',
+          billing_usage_schema: {
+            resolution: { enum: ['480p', '720p'] },
+            seconds: { type: 'number', unit: 'second' },
+          },
+        })}
+        onClick={onClick}
+        onTry={onTry}
+      />
+    )
+
+    await user.click(screen.getByRole('button', { name: 'Try' }))
+
+    expect(onTry).toHaveBeenCalledWith('seedance-2.0')
+    expect(onClick).not.toHaveBeenCalled()
+  })
+
+  it('offers no try button for a model the video studio cannot run', () => {
+    render(
+      <ModelCard model={pricingModel()} onClick={vi.fn()} onTry={vi.fn()} />
+    )
+    expect(screen.queryByRole('button', { name: 'Try' })).toBeNull()
   })
 
   it('shows missing values without placeholder bars when metrics are unavailable', () => {

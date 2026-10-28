@@ -16,6 +16,7 @@ along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 For commercial licensing, please contact support@quantumnous.com
 */
+import { useNavigate } from '@tanstack/react-router'
 import { lazy, Suspense, useCallback, useMemo, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 
@@ -103,6 +104,13 @@ export function Pricing() {
     setSelectedModelName(modelName)
   }, [])
 
+  const navigate = useNavigate()
+  const handleModelTry = useCallback(
+    (modelName: string) =>
+      navigate({ to: '/video-studio', search: { model: modelName } }),
+    [navigate]
+  )
+
   const selectedModel = useMemo(
     () =>
       selectedModelName
@@ -138,6 +146,7 @@ export function Pricing() {
         <ModelCardGrid
           models={sectionModels}
           onModelClick={handleModelClick}
+          onModelTry={handleModelTry}
           priceRate={priceRate}
           usdExchangeRate={usdExchangeRate}
           tokenUnit={tokenUnit}
