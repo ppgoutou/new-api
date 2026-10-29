@@ -17,7 +17,7 @@ along with this program. If not, see <https://www.gnu.org/licenses/>.
 For commercial licensing, please contact support@quantumnous.com
 */
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
-import { render, screen } from '@testing-library/react'
+import { render, screen, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
@@ -119,5 +119,41 @@ describe('WorksList', () => {
     await user.click(await screen.findByRole('button', { name: 'Edit again' }))
 
     expect(onEdit).toHaveBeenCalledWith({ model: 'seedance-2.0' })
+  })
+
+  it('hides a work in this browser after the delete is confirmed', async () => {
+    vi.mocked(getUserTaskLogs).mockResolvedValue({
+      data: { items: [failedTask('task_1', 'seedance-2.0')] },
+    } as never)
+    const user = userEvent.setup()
+    const view = renderList(vi.fn())
+
+    await user.click(await screen.findByRole('button', { name: 'Delete' }))
+    await user.click(
+      within(screen.getByRole('alertdialog')).getByRole('button', {
+        name: 'Delete',
+      })
+    )
+
+    expect(await screen.findByText('No videos yet')).toBeInTheDocument()
+    view.unmount()
+    renderList(vi.fn())
+    expect(await screen.findByText('No videos yet')).toBeInTheDocument()
+  })
+
+  it('keeps the work when the delete is cancelled', async () => {
+    vi.mocked(getUserTaskLogs).mockResolvedValue({
+      data: { items: [failedTask('task_1', 'seedance-2.0')] },
+    } as never)
+    const user = userEvent.setup()
+    renderList(vi.fn())
+
+    await user.click(await screen.findByRole('button', { name: 'Delete' }))
+    await user.click(screen.getByRole('button', { name: 'Cancel' }))
+
+    expect(
+      screen.getByRole('button', { name: 'Edit again' })
+    ).toBeInTheDocument()
+    expect(screen.queryByText('No videos yet')).not.toBeInTheDocument()
   })
 })
