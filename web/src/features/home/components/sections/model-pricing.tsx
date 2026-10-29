@@ -61,7 +61,7 @@ export function ModelPricing() {
         <div className='mt-8 grid gap-5 md:grid-cols-2'>
           {HOME_VIDEO_MODELS.map((model) => {
             const pricing = byModel.get(model.name)
-            const range = pricing?.durationRange
+            const range = pricing?.durationRange ?? model.durationRange
             const columns: StaticDataTableColumn<SeedancePriceRow>[] = [
               {
                 id: 'option',
@@ -130,12 +130,10 @@ export function ModelPricing() {
                       {t('Duration per clip')}
                     </dt>
                     <dd className='mt-0.5 font-medium'>
-                      {range
-                        ? t('{{min}}–{{max}} seconds', {
-                            min: range[0],
-                            max: range[1],
-                          })
-                        : '-'}
+                      {t('{{min}}–{{max}} seconds', {
+                        min: range[0],
+                        max: range[1],
+                      })}
                     </dd>
                   </div>
                 </dl>

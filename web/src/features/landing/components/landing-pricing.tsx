@@ -37,17 +37,13 @@ export function LandingPricing() {
       )
     ),
   ]
-  const durations = HOME_VIDEO_MODELS.flatMap((model) => {
-    const range = byModel.get(model.name)?.durationRange
-    return range
-      ? [
-          t('{{model}}: {{min}}–{{max}}s per clip', {
-            model: model.name,
-            min: range[0],
-            max: range[1],
-          }),
-        ]
-      : []
+  const durations = HOME_VIDEO_MODELS.map((model) => {
+    const range = byModel.get(model.name)?.durationRange ?? model.durationRange
+    return t('{{model}}: {{min}}–{{max}}s per clip', {
+      model: model.name,
+      min: range[0],
+      max: range[1],
+    })
   })
 
   return (
