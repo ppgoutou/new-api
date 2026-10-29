@@ -31,11 +31,19 @@ import { estimateDraftCostUSD } from '../lib/draft'
 import { estimateImageCostUSD } from '../lib/image-draft'
 import type { StudioDraft } from '../types'
 
+/** Estimated charge of a studio request, after the viewer's group discount. */
+export interface StudioPrice {
+  /** Formatted in the site currency, for display. */
+  label: string
+  /** The same charge in USD, comparable with the wallet balance. */
+  costUSD: number
+}
+
 /**
  * Estimated charge of the draft in the site currency, after the viewer's group
  * discount, or null while prices are loading or the model has no video price.
  */
-export function useStudioPrice(draft: StudioDraft): string | null {
+export function useStudioPrice(draft: StudioDraft): StudioPrice | null {
   const pricing = usePricingData()
   // Prices are formatted in the site currency; re-render when it changes.
   useSystemConfigStore((state) => state.config.currency)
@@ -62,14 +70,18 @@ export function useStudioPrice(draft: StudioDraft): string | null {
     draft.count,
     hasReferenceVideo
   )
-  return formatTaskUsageUnitPrice(costUSD, {
-    tokenUnit: 'M',
-    showRechargePrice: false,
-    priceRate: pricing.priceRate,
-    usdExchangeRate: pricing.usdExchangeRate,
-    groupRatioMultiplier: getDisplayGroupRatio(model),
-    fractionDigits: VIDEO_PRICE_FRACTION_DIGITS,
-  })
+  const groupRatio = getDisplayGroupRatio(model)
+  return {
+    label: formatTaskUsageUnitPrice(costUSD, {
+      tokenUnit: 'M',
+      showRechargePrice: false,
+      priceRate: pricing.priceRate,
+      usdExchangeRate: pricing.usdExchangeRate,
+      groupRatioMultiplier: groupRatio,
+      fractionDigits: VIDEO_PRICE_FRACTION_DIGITS,
+    }),
+    costUSD: costUSD * groupRatio,
+  }
 }
 
 /**
@@ -81,7 +93,7 @@ export function useStudioImagePrice(
   modelName: string,
   size: string,
   count: number
-): string | null {
+): StudioPrice | null {
   const pricing = usePricingData()
   useSystemConfigStore((state) => state.config.currency)
 
@@ -90,12 +102,16 @@ export function useStudioImagePrice(
   )
   const costUSD = model ? estimateImageCostUSD(model, size, count) : null
   if (!model || costUSD === null) return null
-  return formatTaskUsageUnitPrice(costUSD, {
-    tokenUnit: 'M',
-    showRechargePrice: false,
-    priceRate: pricing.priceRate,
-    usdExchangeRate: pricing.usdExchangeRate,
-    groupRatioMultiplier: getDisplayGroupRatio(model),
-    fractionDigits: VIDEO_PRICE_FRACTION_DIGITS,
-  })
+  const groupRatio = getDisplayGroupRatio(model)
+  return {
+    label: formatTaskUsageUnitPrice(costUSD, {
+      tokenUnit: 'M',
+      showRechargePrice: false,
+      priceRate: pricing.priceRate,
+      usdExchangeRate: pricing.usdExchangeRate,
+      groupRatioMultiplier: groupRatio,
+      fractionDigits: VIDEO_PRICE_FRACTION_DIGITS,
+    }),
+    costUSD: costUSD * groupRatio,
+  }
 }

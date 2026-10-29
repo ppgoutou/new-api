@@ -35,6 +35,7 @@ import {
   STUDIO_MAX_IMAGE_COUNT,
 } from '../constants'
 import { assetKindOf, useAssetUploader } from '../hooks/use-asset-uploader'
+import { useStudioBalance } from '../hooks/use-studio-balance'
 import { useStudioDraft } from '../hooks/use-studio-draft'
 import { useStudioImageModels } from '../hooks/use-studio-models'
 import { useStudioImagePrice } from '../hooks/use-studio-price'
@@ -44,6 +45,7 @@ import type { StudioDraft } from '../types'
 import { ChoiceMenu } from './choice-menu'
 import { PromptInput } from './prompt-input'
 import { ReferencePanel } from './reference-panel'
+import { StudioCost } from './studio-cost'
 
 interface ImageComposerProps {
   /** Model picked on entry, such as from a pricing card's try button. */
@@ -78,6 +80,8 @@ export function ImageComposer(props: ImageComposerProps) {
     references: studio.draft.references,
   }
   const price = useStudioImagePrice(draft.model, draft.size, draft.count)
+  const balance = useStudioBalance(price?.costUSD ?? null)
+  const insufficient = balance.shortfallUSD !== null
   const problem = model
     ? validateImageDraft(draft)
     : 'No image model is available'
@@ -95,6 +99,7 @@ export function ImageComposer(props: ImageComposerProps) {
       toast.error(t(problem))
       return
     }
+    if (insufficient) return
     setSubmitting(true)
     const body = buildImageRequest(draft)
     try {
@@ -116,6 +121,7 @@ export function ImageComposer(props: ImageComposerProps) {
       toast.error(getServerErrorMessage(error, t('Image generation failed')))
     } finally {
       setSubmitting(false)
+      balance.refresh()
     }
   }
 
@@ -180,18 +186,13 @@ export function ImageComposer(props: ImageComposerProps) {
           onChange={(count) => studio.update({ count: Number(count) })}
         />
         <div className='ml-auto flex items-center gap-3'>
-          {price && (
-            <span className='text-muted-foreground text-xs'>
-              {t('Estimated cost')}{' '}
-              <span className='text-foreground font-semibold'>{price}</span>
-            </span>
-          )}
+          <StudioCost price={price} shortfallUSD={balance.shortfallUSD} />
           <Button
             type='button'
             size='icon'
             className='size-9 rounded-full'
             onClick={submit}
-            disabled={submitting}
+            disabled={submitting || insufficient}
             aria-label={t('Generate image')}
             title={problem ? t(problem) : t('Generate image')}
           >

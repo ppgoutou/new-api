@@ -7675,6 +7675,8 @@
     "Delete this video?": "Xóa video này?",
     "The video is removed from your works in this browser. Its usage record is kept.": "Video sẽ bị xóa khỏi danh sách tác phẩm trên trình duyệt này. Bản ghi sử dụng vẫn được giữ lại.",
     "Delete this image?": "Xóa hình ảnh này?",
-    "The image is removed from this browser. Download it first if you want to keep it.": "Hình ảnh sẽ bị xóa khỏi trình duyệt này. Hãy tải xuống trước nếu bạn muốn giữ lại."
+    "The image is removed from this browser. Download it first if you want to keep it.": "Hình ảnh sẽ bị xóa khỏi trình duyệt này. Hãy tải xuống trước nếu bạn muốn giữ lại.",
+    "Insufficient balance, {{amount}} short.": "Số dư không đủ, còn thiếu {{amount}}.",
+    "Go to top up": "Nạp tiền"
   }
 }
