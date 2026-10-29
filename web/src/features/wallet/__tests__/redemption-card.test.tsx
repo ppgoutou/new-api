@@ -106,3 +106,11 @@ it('links redemption records to the shop order lookup in a new tab', () => {
   expect(records).toHaveAttribute('target', '_blank')
 })
 
+
+it('shows only a skeleton, without the title, while top-up info loads', () => {
+  renderCard({ loading: true, topupLink: 'https://shop.example/store' })
+
+  expect(screen.getByTestId('redemption-card-skeleton')).toBeInTheDocument()
+  expect(screen.queryByText('兑换码充值')).not.toBeInTheDocument()
+  expect(screen.queryByLabelText('输入兑换码')).not.toBeInTheDocument()
+})
