@@ -36,6 +36,7 @@ import { OverviewDashboard } from '../overview-dashboard'
 const storageKey = 'dashboard_overview_setup_guide_expanded'
 let client: QueryClient
 let keyLookupError: Error | null
+let taskRequests: string[]
 
 beforeEach(() => {
   window.localStorage.clear()
@@ -52,7 +53,12 @@ beforeEach(() => {
     defaultOptions: { queries: { retry: false } },
   })
   keyLookupError = null
+  taskRequests = []
   vi.spyOn(api, 'get').mockImplementation(async (url) => {
+    if (url.startsWith('/api/task')) {
+      taskRequests.push(url)
+      return { data: { success: true, data: { items: [] } } }
+    }
     switch (url) {
       case '/api/token/?p=1&size=10':
         if (keyLookupError) throw keyLookupError
@@ -114,7 +120,7 @@ describe('overview setup guide', () => {
     expect(toggle).toHaveAttribute('aria-expanded', 'false')
     expect(
       screen.getAllByRole('heading').map((heading) => heading.textContent)
-    ).toEqual(['Overview', 'Usage at a glance'])
+    ).toEqual(['Overview', 'Recent works', 'Usage at a glance'])
     expect(screen.queryByText('Setup guide complete')).not.toBeInTheDocument()
     expect(screen.queryByText('Setup progress: 3/3')).not.toBeInTheDocument()
     for (const name of ['API Keys', 'Channels', 'Usage Logs', 'Pricing']) {
@@ -237,5 +243,24 @@ describe('overview setup guide', () => {
     expect(
       screen.queryByRole('button', { name: 'Setup guide' })
     ).not.toBeInTheDocument()
+  })
+
+  it('opens with video creation shortcuts and the three latest works', async () => {
+    await renderOverview()
+
+    expect(
+      await screen.findByRole('link', { name: 'Open Video Creation' })
+    ).toHaveAttribute('href', '/video-studio')
+    expect(screen.getByRole('link', { name: 'Recharge' })).toHaveAttribute(
+      'href',
+      '/wallet'
+    )
+    expect(screen.getByRole('link', { name: 'Create API Key' })).toHaveAttribute(
+      'href',
+      '/keys'
+    )
+    await screen.findByText('No videos yet')
+    expect(taskRequests).toHaveLength(1)
+    expect(taskRequests[0]).toContain('page_size=3')
   })
 })
