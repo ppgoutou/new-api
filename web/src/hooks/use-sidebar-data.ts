@@ -56,7 +56,7 @@ export function useSidebarData(): SidebarData {
     navGroups: [
       {
         id: 'chat',
-        title: t('Chat'),
+        title: t('Creation'),
         items: [
           {
             title: t('Video Creation'),
