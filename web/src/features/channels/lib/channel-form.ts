@@ -19,17 +19,17 @@ For commercial licensing, please contact support@quantumnous.com
 import { z } from 'zod'
 
 import {
-  CLAUDE_FIELD_PASSTHROUGH_TYPES,
+  CHANNEL_STATUS,
   CHANNEL_TYPE_NEW_API,
   CHANNEL_TYPE_OLLAMA,
+  CHANNEL_TYPE_SGLANG,
   CHANNEL_TYPE_TASK_PLUGIN,
   CHANNEL_TYPE_VLLM,
-  CHANNEL_TYPE_SGLANG,
-  CHANNEL_STATUS,
+  CLAUDE_FIELD_PASSTHROUGH_TYPES,
   ERROR_MESSAGES,
   FIELD_PASSTHROUGH_TYPES,
-  MODEL_FETCHABLE_TYPES,
   OPENAI_FIELD_PASSTHROUGH_TYPES,
+  UPSTREAM_MODEL_DETECTION_TYPES,
 } from '../constants'
 import type { Channel } from '../types'
 import {
@@ -793,8 +793,8 @@ function buildSettingsJSON(formData: ChannelFormValues): string {
   settingsObj.disable_task_polling_sleep =
     formData.disable_task_polling_sleep === true
 
-  // Upstream model update settings (for model-fetchable channel types)
-  if (MODEL_FETCHABLE_TYPES.has(formData.type)) {
+  // Upstream model update settings (for detectable channel types)
+  if (UPSTREAM_MODEL_DETECTION_TYPES.has(formData.type)) {
     settingsObj.upstream_model_update_check_enabled =
       formData.upstream_model_update_check_enabled === true
     settingsObj.upstream_model_update_auto_sync_enabled =

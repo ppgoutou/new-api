@@ -138,21 +138,22 @@ import {
 } from '../../api'
 import {
   ADD_MODE_OPTIONS,
-  CLAUDE_FIELD_PASSTHROUGH_TYPES,
   CHANNEL_STATUS_LABELS,
   CHANNEL_TYPE_NEW_API,
   CHANNEL_TYPE_OLLAMA,
   CHANNEL_TYPE_OPTIONS,
+  CHANNEL_TYPE_SGLANG,
   CHANNEL_TYPE_TASK_PLUGIN,
   CHANNEL_TYPE_VLLM,
-  CHANNEL_TYPE_SGLANG,
   CHANNEL_TYPE_WARNINGS,
+  CLAUDE_FIELD_PASSTHROUGH_TYPES,
   ERROR_MESSAGES,
-  FIELD_PASSTHROUGH_TYPES,
   FIELD_DESCRIPTIONS,
+  FIELD_PASSTHROUGH_TYPES,
   FIELD_PLACEHOLDERS,
   MODEL_FETCHABLE_TYPES,
   OPENAI_FIELD_PASSTHROUGH_TYPES,
+  UPSTREAM_MODEL_DETECTION_TYPES,
 } from '../../constants'
 import { useChannelKeyDisclosure } from '../../hooks/use-channel-key-disclosure'
 import {
@@ -2288,7 +2289,7 @@ export function ChannelMutateDrawer({
     </div>
   )
 
-  const upstreamModelDetectionFields = MODEL_FETCHABLE_TYPES.has(
+  const upstreamModelDetectionFields = UPSTREAM_MODEL_DETECTION_TYPES.has(
     currentType
   ) && (
     <div

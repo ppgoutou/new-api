@@ -63,10 +63,10 @@ import { truncateText } from '@/lib/utils'
 import { getCodexUsage, updateChannelBalance } from '../api'
 import {
   CHANNEL_STATUS_CONFIG,
+  CHANNEL_TYPE_SGLANG,
   CHANNEL_TYPE_TASK_PLUGIN,
   CHANNEL_TYPE_VLLM,
-  CHANNEL_TYPE_SGLANG,
-  MODEL_FETCHABLE_TYPES,
+  UPSTREAM_MODEL_DETECTION_TYPES,
 } from '../constants'
 import {
   formatRelativeTime,
@@ -119,11 +119,11 @@ function parseIonetMeta(otherInfo: string | null | undefined): null | {
 }
 
 /**
- * Upstream update tags (+N / -N) shown on channel name for model-fetchable channels
+ * Upstream update tags (+N / -N) shown on channel name for detectable channels
  */
 function UpstreamUpdateTags({ channel }: { channel: Channel }) {
   const { upstream, setCurrentRow } = useChannels()
-  if (!MODEL_FETCHABLE_TYPES.has(channel.type)) {
+  if (!UPSTREAM_MODEL_DETECTION_TYPES.has(channel.type)) {
     return null
   }
 

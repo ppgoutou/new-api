@@ -27,7 +27,10 @@ import { SettingsSwitchField } from '@/features/system-settings/components/setti
 import { ChannelHealthSource } from '@/features/system-settings/request-policies/related-policy-link'
 import { cn } from '@/lib/utils'
 
-import { CHANNEL_TYPE_TASK_PLUGIN, MODEL_FETCHABLE_TYPES } from '../constants'
+import {
+  CHANNEL_TYPE_TASK_PLUGIN,
+  UPSTREAM_MODEL_DETECTION_TYPES,
+} from '../constants'
 import type { ChannelFormValues } from '../lib/channel-form'
 import {
   getHeaderPassthroughState,
@@ -152,7 +155,7 @@ export function ChannelQuickOptions(props: ChannelQuickOptionsProps) {
       }),
     disabled: props.disabled,
   })
-  if (MODEL_FETCHABLE_TYPES.has(props.channelType)) {
+  if (UPSTREAM_MODEL_DETECTION_TYPES.has(props.channelType)) {
     options.push({
       key: 'model-check',
       label: t('Detect model updates'),

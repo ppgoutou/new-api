@@ -59,7 +59,7 @@ import {
 } from '@/lib/admin-permissions'
 import { useAuthStore } from '@/stores/auth-store'
 
-import { MODEL_FETCHABLE_TYPES } from '../constants'
+import { UPSTREAM_MODEL_DETECTION_TYPES } from '../constants'
 import {
   channelsQueryKeys,
   handleDeleteChannel,
@@ -296,8 +296,8 @@ export function DataTableRowActions({ row }: DataTableRowActionsProps) {
             </DropdownMenuShortcut>
           </DropdownMenuItem>
 
-          {/* Detect Upstream Updates (only for fetchable channel types) */}
-          {MODEL_FETCHABLE_TYPES.has(channel.type) && (
+          {/* Detect Upstream Updates (only for detectable channel types) */}
+          {UPSTREAM_MODEL_DETECTION_TYPES.has(channel.type) && (
             <DropdownMenuItem
               onClick={() => upstream.detectChannelUpdates(channel)}
             >

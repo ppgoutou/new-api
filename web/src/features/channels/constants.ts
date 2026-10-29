@@ -524,6 +524,14 @@ export const MODEL_FETCHABLE_TYPES = new Set([
   CHANNEL_TYPE_SGLANG,
 ])
 
+// Channel types the scheduled upstream model detection can check. Task plugin
+// channels report their supplier's /v1/models, falling back to the plugin's
+// own list, though the channel form does not fetch models for them.
+export const UPSTREAM_MODEL_DETECTION_TYPES = new Set([
+  ...MODEL_FETCHABLE_TYPES,
+  CHANNEL_TYPE_TASK_PLUGIN,
+])
+
 export const FIELD_PASSTHROUGH_TYPES = new Set([
   1,
   14,
