@@ -106,6 +106,7 @@ type Meta struct {
 	UsageSchema          map[string]UsageFieldSchema `json:"usageSchema,omitempty"`
 	UsageExamples        []UsageExample              `json:"usageExamples,omitempty"`
 	UsageProfiles        []UsageProfile              `json:"usageProfiles,omitempty"`
+	ModelLimits          map[string]ModelLimits      `json:"modelLimits,omitempty"`
 	Auth                 AuthMeta                    `json:"auth"`
 }
 
@@ -155,6 +156,31 @@ type UsageProfile struct {
 	Models   []string                    `json:"models"`
 	Schema   map[string]UsageFieldSchema `json:"schema"`
 	Examples []UsageExample              `json:"examples,omitempty"`
+}
+
+// ModelLimits is what one model can generate, for clients that build its
+// requests. Durations are seconds: the range, and optionally the only values
+// inside it the vendor takes. Ratios are output aspect ratios such as "16:9".
+// Display only; the plugin's decoder still enforces its own limits.
+type ModelLimits struct {
+	MinDuration int      `json:"minDuration,omitempty"`
+	MaxDuration int      `json:"maxDuration,omitempty"`
+	Durations   []int    `json:"durations,omitempty"`
+	Ratios      []string `json:"ratios,omitempty"`
+}
+
+// LimitsForModel returns the declared limits of the first candidate that has
+// any, in the same candidate order as UsageForModels.
+func (m Meta) LimitsForModel(models ...string) (ModelLimits, bool) {
+	for _, model := range models {
+		folded := asciiFold(model)
+		for declared, limits := range m.ModelLimits {
+			if asciiFold(declared) == folded {
+				return limits, true
+			}
+		}
+	}
+	return ModelLimits{}, false
 }
 
 // UsageForModel returns read-only usage metadata for a declared model. Aliases
@@ -910,6 +936,15 @@ func cloneMeta(meta Meta) Meta {
 		profile.Schema = CloneUsageSchema(profile.Schema)
 		profile.Examples = CloneUsageExamples(profile.Examples)
 	}
+	if meta.ModelLimits != nil {
+		limits := make(map[string]ModelLimits, len(meta.ModelLimits))
+		for model, entry := range meta.ModelLimits {
+			entry.Durations = slices.Clone(entry.Durations)
+			entry.Ratios = slices.Clone(entry.Ratios)
+			limits[model] = entry
+		}
+		meta.ModelLimits = limits
+	}
 	return meta
 }
 
@@ -1030,7 +1065,7 @@ func decodeMeta(value any) (Meta, error) {
 	}
 	for field := range object {
 		switch field {
-		case "requiredCapabilities", "submitResponseTypes", "sortPriority", "website", "apiVersion", "key", "name", "icon", "description", "version", "author", "baseUrl", "channelTypes", "channelType", "compatibleChannelTypes", "models", "fetchMode", "allowedHosts", "upstreams", "routes", "protocols", "usageSchema", "usageExamples", "usageProfiles", "auth", "endpoints", "submitPaths", "actions":
+		case "requiredCapabilities", "submitResponseTypes", "sortPriority", "website", "apiVersion", "key", "name", "icon", "description", "version", "author", "baseUrl", "channelTypes", "channelType", "compatibleChannelTypes", "models", "fetchMode", "allowedHosts", "upstreams", "routes", "protocols", "usageSchema", "usageExamples", "usageProfiles", "modelLimits", "auth", "endpoints", "submitPaths", "actions":
 		default:
 			return Meta{}, &UnknownMetaFieldError{Field: field}
 		}
@@ -1155,6 +1190,12 @@ func decodeMeta(value any) (Meta, error) {
 	}
 	if usageProfiles, exists := object["usageProfiles"]; exists {
 		meta.UsageProfiles, err = decodeUsageProfiles(usageProfiles)
+		if err != nil {
+			return Meta{}, err
+		}
+	}
+	if modelLimits, exists := object["modelLimits"]; exists {
+		meta.ModelLimits, err = decodeModelLimits(modelLimits)
 		if err != nil {
 			return Meta{}, err
 		}
@@ -1461,7 +1502,104 @@ func normalizeV1Meta(meta *Meta) error {
 			return fmt.Errorf("plugin meta usageProfiles[%d]: %w", index, err)
 		}
 	}
+	for model, limits := range meta.ModelLimits {
+		if _, exists := models[model]; !exists {
+			return fmt.Errorf("plugin meta modelLimits model %q is not declared in plugin meta models", model)
+		}
+		if err := validateModelLimits(limits); err != nil {
+			return fmt.Errorf("plugin meta modelLimits[%q]: %w", model, err)
+		}
+	}
 	return nil
+}
+
+var modelLimitRatioPattern = regexp.MustCompile(`^[1-9][0-9]{0,2}:[1-9][0-9]{0,2}$`)
+
+const maxModelLimitValues = 64
+
+func validateModelLimits(limits ModelLimits) error {
+	if limits.MinDuration == 0 && limits.MaxDuration == 0 && len(limits.Durations) == 0 && len(limits.Ratios) == 0 {
+		return fmt.Errorf("limits must declare durations or ratios")
+	}
+	if (limits.MinDuration == 0) != (limits.MaxDuration == 0) {
+		return fmt.Errorf("minDuration and maxDuration must be declared together")
+	}
+	if limits.MinDuration < 0 || limits.MinDuration > limits.MaxDuration || limits.MaxDuration > relaycommon.MaxTaskDurationSeconds {
+		return fmt.Errorf("duration range must satisfy 1 <= minDuration <= maxDuration <= %d", relaycommon.MaxTaskDurationSeconds)
+	}
+	if len(limits.Durations) > maxModelLimitValues || len(limits.Ratios) > maxModelLimitValues {
+		return fmt.Errorf("durations and ratios may list at most %d values", maxModelLimitValues)
+	}
+	lowest, highest := 1, relaycommon.MaxTaskDurationSeconds
+	if limits.MaxDuration > 0 {
+		lowest, highest = limits.MinDuration, limits.MaxDuration
+	}
+	for index, seconds := range limits.Durations {
+		if seconds < lowest || seconds > highest {
+			return fmt.Errorf("durations must lie between %d and %d", lowest, highest)
+		}
+		if index > 0 && seconds <= limits.Durations[index-1] {
+			return fmt.Errorf("durations must be strictly increasing")
+		}
+	}
+	for index, ratio := range limits.Ratios {
+		if !modelLimitRatioPattern.MatchString(ratio) {
+			return fmt.Errorf("ratio %q must look like 16:9", ratio)
+		}
+		if slices.Contains(limits.Ratios[:index], ratio) {
+			return fmt.Errorf("ratio %q is listed twice", ratio)
+		}
+	}
+	return nil
+}
+
+func decodeModelLimits(value any) (map[string]ModelLimits, error) {
+	object, ok := value.(map[string]any)
+	if !ok {
+		return nil, fmt.Errorf("plugin meta modelLimits must be an object")
+	}
+	result := make(map[string]ModelLimits, len(object))
+	for model, rawEntry := range object {
+		entry, ok := rawEntry.(map[string]any)
+		if !ok {
+			return nil, fmt.Errorf("plugin meta modelLimits[%q] must be an object", model)
+		}
+		for key := range entry {
+			switch key {
+			case "minDuration", "maxDuration", "durations", "ratios":
+			default:
+				return nil, fmt.Errorf("plugin meta modelLimits[%q] has unknown field %q", model, key)
+			}
+		}
+		var limits ModelLimits
+		var err error
+		if limits.MinDuration, err = integerMetaField(entry, "minDuration"); err != nil {
+			return nil, err
+		}
+		if limits.MaxDuration, err = integerMetaField(entry, "maxDuration"); err != nil {
+			return nil, err
+		}
+		if rawDurations, exists := entry["durations"]; exists {
+			items, ok := rawDurations.([]any)
+			if !ok {
+				return nil, fmt.Errorf("plugin meta modelLimits[%q] durations must be an array of integers", model)
+			}
+			for _, item := range items {
+				seconds, err := integerMetaField(map[string]any{"durations": item}, "durations")
+				if err != nil {
+					return nil, err
+				}
+				limits.Durations = append(limits.Durations, seconds)
+			}
+		}
+		if _, exists := entry["ratios"]; exists {
+			if limits.Ratios, err = strictStringSlice(entry, "ratios"); err != nil {
+				return nil, err
+			}
+		}
+		result[model] = limits
+	}
+	return result, nil
 }
 
 func validateUsageSchema(schema map[string]UsageFieldSchema) error {

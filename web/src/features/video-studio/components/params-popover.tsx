@@ -29,7 +29,8 @@ import {
 import { Slider } from '@/components/ui/slider'
 import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group'
 
-import { STUDIO_MAX_COUNT, STUDIO_RATIOS, type StudioModel } from '../constants'
+import { STUDIO_MAX_COUNT, type StudioModel } from '../constants'
+import { fitStudioSeconds } from '../lib/draft'
 import type { StudioDraft, StudioRatio } from '../types'
 
 interface OptionRowProps {
@@ -119,7 +120,7 @@ export function ParamsPopover(props: ParamsPopoverProps) {
         <OptionRow
           label={t('Aspect ratio')}
           value={draft.ratio}
-          options={STUDIO_RATIOS.map((ratio) => ({
+          options={model.ratios.map((ratio) => ({
             value: ratio,
             label: ratioLabel(ratio),
           }))}
@@ -151,7 +152,7 @@ export function ParamsPopover(props: ParamsPopoverProps) {
             value={[draft.seconds]}
             onValueChange={(value) => {
               const seconds = Array.isArray(value) ? value[0] : value
-              props.onChange({ seconds })
+              props.onChange({ seconds: fitStudioSeconds(model, seconds) })
             }}
           />
           <div className='text-muted-foreground flex justify-between text-[11px]'>

@@ -47,6 +47,7 @@ const MODEL: PricingModel = {
     reference_video_tokens: { type: 'number', unit: 'token' },
     resolution: { enum: ['480p', '720p'] },
   },
+  model_limits: { minDuration: 4, maxDuration: 15 },
 }
 
 function renderTables(groups: string[], model: PricingModel = MODEL) {

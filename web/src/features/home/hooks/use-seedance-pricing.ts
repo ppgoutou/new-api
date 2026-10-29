@@ -49,6 +49,8 @@ export type SeedancePriceRow = {
 
 export type SeedanceModelPricing = {
   rows: SeedancePriceRow[]
+  /** Output seconds the model accepts, when its plugin declares them. */
+  durationRange?: readonly [number, number]
   lowestPrice: string
   discount: PriceDiscount | null
 }
@@ -122,6 +124,7 @@ export function useSeedancePricing() {
         options(ratio)
       ),
       discount: getPriceDiscount(discountRatio),
+      durationRange: videoPricing.durationRange,
     })
   }
 

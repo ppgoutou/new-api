@@ -20,7 +20,6 @@ import { useTranslation } from 'react-i18next'
 
 import { useSeedancePricing } from '@/features/home/hooks/use-seedance-pricing'
 import { HOME_VIDEO_MODELS } from '@/features/home/lib/video-home'
-import { VIDEO_DURATION_RANGES } from '@/features/pricing/lib/video-pricing'
 
 /**
  * Resolutions as rows and Seedance models as columns, so both models' prices
@@ -39,7 +38,7 @@ export function LandingPricing() {
     ),
   ]
   const durations = HOME_VIDEO_MODELS.flatMap((model) => {
-    const range = VIDEO_DURATION_RANGES[model.name]
+    const range = byModel.get(model.name)?.durationRange
     return range
       ? [
           t('{{model}}: {{min}}–{{max}}s per clip', {

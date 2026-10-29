@@ -16,13 +16,13 @@ along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 For commercial licensing, please contact support@quantumnous.com
 */
-import { render, screen, waitFor } from '@testing-library/react'
+import { render, screen, waitFor, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
 import { createVideoTask, uploadVideoAsset } from '../api'
 import { Composer } from '../components/composer'
-import type { StudioModel } from '../constants'
+import { STUDIO_RATIOS, type StudioModel } from '../constants'
 
 const studioModels = vi.hoisted(() => ({ current: [] as StudioModel[] }))
 
@@ -47,14 +47,14 @@ beforeEach(() => {
     {
       name: 'seedance-2.0',
       resolutions: ['480p', '720p', '1080p', '4k'],
-      duration: [4, 15],
+      duration: [4, 15], ratios: STUDIO_RATIOS 
     },
     {
       name: 'seedance-2.5',
       resolutions: ['480p', '720p', '1080p'],
-      duration: [4, 30],
+      duration: [4, 30], ratios: STUDIO_RATIOS 
     },
-    { name: 'seedance2.0-720p-P', resolutions: ['720p'], duration: [5, 15] },
+    { name: 'seedance2.0-720p-P', resolutions: ['720p'], duration: [5, 15], ratios: STUDIO_RATIOS  },
   ]
   vi.stubGlobal(
     'URL',
@@ -124,6 +124,26 @@ describe('Composer', () => {
       images: ['https://site.example/video-assets/cat.png'],
     })
     expect(screen.getByText('¥0.75')).toBeInTheDocument()
+  })
+
+  it('offers only the aspect ratios the model supports', async () => {
+    studioModels.current = [
+      {
+        name: 'D-sd2.5-G3-1',
+        resolutions: ['480p', '720p', '1080p'],
+        duration: [4, 30],
+        ratios: ['auto', '16:9', '1:1', '9:16'],
+      },
+    ]
+    const user = userEvent.setup()
+    render(<Composer onSubmitted={vi.fn()} />)
+
+    await user.click(screen.getByRole('button', { name: /^Auto/ }))
+
+    const ratios = within(screen.getByRole('group', { name: 'Aspect ratio' }))
+    expect(
+      ratios.getAllByRole('button').map((item) => item.textContent)
+    ).toEqual(['Auto', '16:9', '1:1', '9:16'])
   })
 
   it('does not submit an empty prompt', async () => {
@@ -216,7 +236,7 @@ describe('Composer', () => {
       {
         name: 'seedance-2.5-g4-m1-官转',
         resolutions: ['720p'],
-        duration: [4, 15],
+        duration: [4, 15], ratios: STUDIO_RATIOS 
       },
     ]
     const user = userEvent.setup()

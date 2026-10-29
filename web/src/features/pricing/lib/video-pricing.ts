@@ -35,21 +35,13 @@ export const VIDEO_TOKENS_PER_SECOND: Readonly<Record<string, number>> = {
 /** Video prices are shown rounded to two decimal places. */
 export const VIDEO_PRICE_FRACTION_DIGITS = 2
 
-/** Output durations, in seconds, that each upstream video model accepts. */
-export const VIDEO_DURATION_RANGES: Readonly<
-  Record<string, readonly [number, number]>
-> = {
-  'seedance-2.0': [4, 15],
-  'seedance-2.5': [4, 30],
-  'sd-2.0-线路1': [4, 15],
-  'sd-2.0-线路1-fast': [4, 15],
-  'sd-2.5-线路1（2.5）': [4, 30],
-  'seedance2.0-720p-P': [5, 15],
-  'seedance2.5-720p-P': [5, 30],
-  'seedance-2.0-official': [4, 15],
-  'seedance-2.5-official-relay': [4, 30],
-  'seedance-2-5-NSFW': [4, 30],
-  'seedance-2.5-G2-V': [4, 30],
+/** Output duration range, in seconds, the model's task plugin declares. */
+export function getModelDurationRange(
+  model: Pick<PricingModel, 'model_limits'>
+): readonly [number, number] | undefined {
+  const limits = model.model_limits
+  if (!limits?.minDuration || !limits.maxDuration) return undefined
+  return [limits.minDuration, limits.maxDuration]
 }
 
 export type VideoPricingRow = {
@@ -179,9 +171,7 @@ function videoPricingFromExpr(
     hasReferencePricing: rows.some(
       (row) => row.referencePricePerMillion !== undefined
     ),
-    durationRange: model.model_name
-      ? VIDEO_DURATION_RANGES[model.model_name]
-      : undefined,
+    durationRange: getModelDurationRange(model),
     rows,
   }
 }
@@ -243,9 +233,7 @@ export function getPerVideoPricing(model: PricingModel): VideoPricing | null {
   return {
     optionField,
     hasReferencePricing: false,
-    durationRange: model.model_name
-      ? VIDEO_DURATION_RANGES[model.model_name]
-      : undefined,
+    durationRange: getModelDurationRange(model),
     rows,
   }
 }
@@ -325,9 +313,7 @@ export function getTokenVideoPricing(model: PricingModel): VideoPricing | null {
   return {
     optionField,
     hasReferencePricing,
-    durationRange: model.model_name
-      ? VIDEO_DURATION_RANGES[model.model_name]
-      : undefined,
+    durationRange: getModelDurationRange(model),
     rows,
   }
 }

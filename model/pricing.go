@@ -48,7 +48,9 @@ type Pricing struct {
 	OfficialPriceExpr      string                               `json:"official_price_expr,omitempty"`
 	BillingUsageSchema     map[string]jsplugin.UsageFieldSchema `json:"billing_usage_schema,omitempty"`
 	BillingUsageExamples   []jsplugin.UsageExample              `json:"billing_usage_examples,omitempty"`
-	PricingVersion         string                               `json:"pricing_version,omitempty"`
+	// ModelLimits is what the serving plugin says the model can generate.
+	ModelLimits    *jsplugin.ModelLimits `json:"model_limits,omitempty"`
+	PricingVersion string                `json:"pricing_version,omitempty"`
 }
 
 type PricingVendor struct {
@@ -412,6 +414,9 @@ func updatePricing() {
 			usageSchema, usageExamples := plugin.Meta.UsageForModel(usageModel)
 			pricing.BillingUsageSchema = jsplugin.CloneUsageSchema(usageSchema)
 			pricing.BillingUsageExamples = jsplugin.CloneUsageExamples(usageExamples)
+			if limits, declared := plugin.Meta.LimitsForModel(usageModel); declared {
+				pricing.ModelLimits = &limits
+			}
 		}
 		providers := pluginGeneration.PluginsByModel(model)
 		hasProviderOverride := false

@@ -28,12 +28,14 @@ import {
   DEFAULT_STUDIO_DURATION,
   REFERENCE_LIMITS,
   REFERENCE_TOKEN_NAMES,
+  STUDIO_RATIOS,
   type StudioModel,
 } from '../constants'
 import type {
   AssetKind,
   StudioAsset,
   StudioDraft,
+  StudioRatio,
   VideoTaskRequest,
 } from '../types'
 
@@ -51,11 +53,19 @@ export function studioModelsFromPricing(
       getPerVideoPricing(model) ??
       getTokenVideoPricing(model)
     if (!pricing || pricing.optionField !== 'resolution') return []
+    const declaredRatios = model.model_limits?.ratios ?? []
+    const durations = model.model_limits?.durations
     return [
       {
         name: model.model_name,
         resolutions: pricing.rows.map((row) => row.option),
         duration: pricing.durationRange ?? DEFAULT_STUDIO_DURATION,
+        ...(durations?.length ? { durations } : {}),
+        ratios: declaredRatios.length
+          ? STUDIO_RATIOS.filter(
+              (ratio) => ratio === 'auto' || declaredRatios.includes(ratio)
+            )
+          : STUDIO_RATIOS,
       },
     ]
   })
@@ -131,8 +141,21 @@ export function removeReferenceFromPrompt(
 }
 
 /**
- * Keeps model, resolution and duration inside what the available models
- * support. Leaves the draft unchanged while there are no models.
+ * The length closest to seconds that the model takes, inside its range and,
+ * for a model that lists its lengths, one of them (the shorter on a tie).
+ */
+export function fitStudioSeconds(model: StudioModel, seconds: number): number {
+  const [shortest, longest] = model.duration
+  const clamped = Math.min(Math.max(seconds, shortest), longest)
+  if (!model.durations?.length) return clamped
+  return model.durations.reduce((best, value) =>
+    Math.abs(value - clamped) < Math.abs(best - clamped) ? value : best
+  )
+}
+
+/**
+ * Keeps model, ratio, resolution and duration inside what the available
+ * models support. Leaves the draft unchanged while there are no models.
  */
 export function fitDraftToModel(
   draft: StudioDraft,
@@ -140,14 +163,17 @@ export function fitDraftToModel(
 ): StudioDraft {
   const model = findStudioModel(models, draft.model)
   if (!model) return draft
-  const [shortest, longest] = model.duration
+  const ratio: StudioRatio = model.ratios.includes(draft.ratio)
+    ? draft.ratio
+    : 'auto'
   return {
     ...draft,
     model: model.name,
+    ratio,
     resolution: model.resolutions.includes(draft.resolution)
       ? draft.resolution
       : (model.resolutions.at(-1) ?? draft.resolution),
-    seconds: Math.min(Math.max(draft.seconds, shortest), longest),
+    seconds: fitStudioSeconds(model, draft.seconds),
   }
 }
 
