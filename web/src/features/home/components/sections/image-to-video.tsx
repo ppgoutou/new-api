@@ -63,7 +63,7 @@ export function ImageToVideo() {
     <section className='bg-muted/30 border-border/40 relative z-10 border-y px-6 py-20 md:py-28'>
       <div className='mx-auto flex max-w-6xl flex-wrap items-center gap-12'>
         <div className='min-w-0 flex-[1_1_22rem]'>
-          <p className='mb-2 text-sm font-semibold text-blue-600 dark:text-blue-400'>
+          <p className='mb-2 text-sm font-semibold text-brand dark:text-brand-on-dark'>
             {t('Three ways to generate')}
           </p>
           <h2 className='text-3xl font-bold tracking-tight md:text-4xl'>
@@ -80,15 +80,15 @@ export function ImageToVideo() {
                 key={mode.title}
                 className={cn(
                   'bg-card flex gap-4 rounded-xl border p-4',
-                  mode.highlighted ? 'border-blue-500/50' : 'border-border/60'
+                  mode.highlighted ? 'border-brand/50' : 'border-border/60'
                 )}
               >
                 <span
                   className={cn(
                     'flex size-8 shrink-0 items-center justify-center rounded-lg text-sm font-bold',
                     mode.highlighted
-                      ? 'bg-blue-600 text-white'
-                      : 'bg-blue-500/10 text-blue-700 dark:text-blue-300'
+                      ? 'bg-brand text-white'
+                      : 'bg-brand-soft text-brand-hover dark:text-brand-on-dark'
                   )}
                   aria-hidden
                 >
@@ -107,7 +107,7 @@ export function ImageToVideo() {
 
         <div className='flex min-w-0 flex-[1.3_1_30rem] flex-wrap items-center gap-4'>
           <figure className='min-w-0 flex-[1_1_12rem]'>
-            <div className='border-border/60 aspect-video overflow-hidden rounded-xl border bg-slate-900'>
+            <div className='border-border/60 aspect-video overflow-hidden rounded-xl bg-ink-raised border'>
               {inputImage ? (
                 <img
                   src={inputImage}
@@ -119,7 +119,7 @@ export function ImageToVideo() {
                 <div
                   role='img'
                   aria-label={t('Input: an image')}
-                  className='flex size-full items-center justify-center text-slate-400'
+                  className='flex size-full items-center justify-center text-white/60'
                 >
                   <ImageIcon
                     className='size-8'
@@ -134,11 +134,11 @@ export function ImageToVideo() {
             </figcaption>
           </figure>
           <ArrowRight
-            className='size-6 shrink-0 text-blue-600 dark:text-blue-400'
+            className='size-6 shrink-0 text-brand dark:text-brand-on-dark'
             aria-hidden
           />
           <figure className='min-w-0 flex-[1.4_1_16rem]'>
-            <div className='aspect-video overflow-hidden rounded-xl border border-blue-500/50 bg-slate-900'>
+            <div className='aspect-video overflow-hidden rounded-xl border-brand/50 bg-ink-raised border'>
               <PlayableClip
                 key={pair.video}
                 src={pair.video}

@@ -181,7 +181,7 @@ export function RechargeFormCard({
       title={t('Online Top-up')}
       description={t('Pay online and the credit arrives right away')}
       icon={<WalletCards className='h-4 w-4' />}
-      iconClassName='rounded-full bg-blue-600 text-white'
+      iconClassName='bg-brand rounded-full text-white'
       disableHoverEffect
       className='h-full'
       action={
@@ -233,7 +233,7 @@ export function RechargeFormCard({
                             {formatCredit(preset.value)}
                           </div>
                           {hasDiscount && (
-                            <div className='text-xs font-medium text-green-600'>
+                            <div className='text-success text-xs font-medium'>
                               {getDiscountLabel(discount, t)}
                             </div>
                           )}

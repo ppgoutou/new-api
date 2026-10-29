@@ -47,15 +47,15 @@ export function LandingContacts() {
       href: `https://t.me/${SUPPORT_TELEGRAM}`,
       external: true,
       icon: Send,
-      tone: 'border-blue-400/35 hover:border-blue-400/70',
-      iconTone: 'bg-blue-600/20 text-blue-400',
+      tone: 'border-brand-on-dark/35 hover:border-brand-on-dark/70',
+      iconTone: 'bg-brand/20 text-brand-on-dark',
     },
   ]
 
   return (
     <div id='contact' className='flex flex-col gap-3'>
       <h2 className='text-2xl font-bold text-white'>{t('Contact us')}</h2>
-      <p className='text-sm leading-relaxed text-slate-400'>
+      <p className='text-sm leading-relaxed text-white/60'>
         {t(
           'Questions about pricing, volume, top-ups or integration? Reach us on whichever app is convenient for you.'
         )}
@@ -69,7 +69,7 @@ export function LandingContacts() {
                 ? { target: '_blank', rel: 'noopener noreferrer' }
                 : {})}
               className={cn(
-                'group flex items-center gap-3 rounded-xl border bg-slate-900/60 px-4 py-3.5 backdrop-blur-sm transition-colors',
+                'group flex items-center gap-3 rounded-xl border bg-ink-raised/60 px-4 py-3.5 backdrop-blur-sm transition-colors',
                 contact.tone
               )}
             >
@@ -82,7 +82,7 @@ export function LandingContacts() {
                 <contact.icon className='size-5' aria-hidden />
               </span>
               <span className='min-w-0 flex-1'>
-                <span className='block text-xs text-slate-500'>
+                <span className='block text-xs text-white/50'>
                   {contact.label}
                 </span>
                 <span className='block truncate font-mono text-sm text-white'>
@@ -90,7 +90,7 @@ export function LandingContacts() {
                 </span>
               </span>
               <ArrowUpRight
-                className='size-4 text-slate-500 transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5 group-hover:text-white'
+                className='size-4 text-white/50 transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5 group-hover:text-white'
                 aria-hidden
               />
             </a>

@@ -98,7 +98,7 @@ export function Showcase(props: ShowcaseProps) {
       <div className='mx-auto max-w-6xl'>
         <div className='flex flex-wrap items-end justify-between gap-6'>
           <div className='max-w-xl'>
-            <p className='mb-2 text-sm font-semibold text-blue-600 dark:text-blue-400'>
+            <p className='mb-2 text-sm font-semibold text-brand dark:text-brand-on-dark'>
               {t('Showcase')}
             </p>
             <h2 className='text-3xl font-bold tracking-tight md:text-4xl'>
@@ -146,7 +146,7 @@ export function Showcase(props: ShowcaseProps) {
                   title={card.title}
                 />
                 {card.spec && (
-                  <span className='pointer-events-none absolute right-2.5 bottom-2.5 rounded-md bg-slate-950/70 px-2 py-0.5 font-mono text-[11px] text-slate-100'>
+                  <span className='pointer-events-none absolute right-2.5 bottom-2.5 rounded-md bg-ink/70 px-2 py-0.5 font-mono text-[11px] text-white/90'>
                     {card.spec}
                   </span>
                 )}
@@ -178,7 +178,7 @@ export function Showcase(props: ShowcaseProps) {
                   )}
                   <Link
                     to={startTarget}
-                    className='px-2 text-sm font-semibold text-blue-600 hover:underline dark:text-blue-400'
+                    className='px-2 text-sm font-semibold text-brand dark:text-brand-on-dark hover:underline'
                   >
                     {t('Generate with it')} →
                   </Link>

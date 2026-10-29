@@ -37,7 +37,7 @@ export function VideoCta(props: VideoCtaProps) {
     <section className='relative z-10 px-6 pb-24 md:pb-32'>
       <AnimateInView
         animation='scale-in'
-        className='mx-auto flex max-w-5xl flex-col items-center gap-4 rounded-3xl border border-blue-500/30 bg-blue-500/5 px-8 py-14 text-center'
+        className='mx-auto flex max-w-5xl flex-col items-center gap-4 rounded-3xl border-brand/30 bg-brand-soft border px-8 py-14 text-center'
       >
         <h2 className='text-2xl font-bold tracking-tight md:text-4xl'>
           {t('Write your first prompt')}

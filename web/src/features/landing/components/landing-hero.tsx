@@ -30,7 +30,7 @@ import { useSystemConfig } from '@/hooks/use-system-config'
 import { cn } from '@/lib/utils'
 
 const GRADIENT_TEXT =
-  'bg-gradient-to-r from-blue-400 via-cyan-400 to-violet-400 bg-clip-text text-transparent'
+  'bg-gradient-to-r from-brand-on-dark via-cyan-400 to-violet-400 bg-clip-text text-transparent'
 
 export function LandingHero() {
   const { t } = useTranslation()
@@ -81,7 +81,7 @@ export function LandingHero() {
         <div className='flex items-center gap-2'>
           <LanguageSwitcher />
           <Button
-            className='group rounded-lg border-0 bg-gradient-to-r from-blue-600 to-violet-600 text-white shadow-[0_0_20px_rgba(99,102,241,0.45)] hover:from-blue-500 hover:to-violet-500'
+            className='group rounded-lg border-0 bg-brand hover:bg-brand-hover text-white shadow-[0_0_20px_color-mix(in_oklch,var(--brand)_45%,transparent)]'
             render={<Link to='/' />}
           >
             {t('Go to website')}
@@ -95,9 +95,9 @@ export function LandingHero() {
 
       <div className='grid grid-cols-[minmax(0,1fr)] items-center gap-10 py-8 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.1fr)] lg:gap-12 lg:py-12 2xl:py-16'>
         <div className='landing-animate-fade-up opacity-0'>
-          <p className='inline-flex items-center gap-2 rounded-full border border-blue-400/35 bg-blue-600/10 px-3 py-1 font-mono text-xs tracking-wide text-blue-300'>
+          <p className='inline-flex items-center gap-2 rounded-full border-brand-on-dark/35 bg-brand/10 text-brand-on-dark border px-3 py-1 font-mono text-xs tracking-wide'>
             <span
-              className='size-1.5 animate-pulse rounded-full bg-cyan-400 shadow-[0_0_8px_#22d3ee]'
+              className='size-1.5 animate-pulse rounded-full bg-brand-on-dark shadow-[0_0_8px_var(--brand-on-dark)]'
               aria-hidden
             />
             {t('Seedance AI video · online')}
@@ -114,15 +114,15 @@ export function LandingHero() {
                 : t('billed per second')}
             </span>
           </h1>
-          <p className='mt-5 max-w-xl text-base leading-relaxed text-slate-400 2xl:text-lg'>
+          <p className='mt-5 max-w-xl text-base leading-relaxed text-white/60 2xl:text-lg'>
             {t(
               'Create cinematic video with ByteDance Seedance right in your browser, or add it to your own app with our video API. Billed per generated second.'
             )}
           </p>
-          <ul className='mt-6 flex flex-col gap-2.5 text-sm text-slate-300'>
+          <ul className='mt-6 flex flex-col gap-2.5 text-sm text-white/75'>
             {points.map((point) => (
               <li key={point.text} className='flex items-center gap-2.5'>
-                <point.icon className='size-4 text-cyan-400' aria-hidden />
+                <point.icon className='size-4 text-brand-on-dark' aria-hidden />
                 {point.text}
               </li>
             ))}
@@ -130,10 +130,10 @@ export function LandingHero() {
         </div>
 
         <figure
-          className='landing-animate-fade-up rounded-2xl bg-gradient-to-br from-blue-400/80 via-cyan-400/25 to-violet-400/80 p-px opacity-0 shadow-[0_0_60px_rgba(59,130,246,0.25)]'
+          className='landing-animate-fade-up rounded-2xl bg-gradient-to-br from-brand-on-dark/80 via-cyan-400/25 to-violet-400/80 p-px opacity-0 shadow-[0_0_60px_rgba(59,130,246,0.25)]'
           style={{ animationDelay: '120ms' }}
         >
-          <div className='relative aspect-video overflow-hidden rounded-[15px] bg-slate-950'>
+          <div className='relative aspect-video overflow-hidden rounded-[15px] bg-ink'>
             <ShowcaseVideo
               key={hero.video}
               src={hero.video}
@@ -142,15 +142,15 @@ export function LandingHero() {
               eager
             />
             {hero.spec && (
-              <span className='absolute top-3 left-3 rounded-md border border-slate-400/20 bg-slate-950/70 px-2 py-0.5 font-mono text-xs text-slate-100'>
+              <span className='absolute top-3 left-3 rounded-md border border-white/15 bg-ink/70 px-2 py-0.5 font-mono text-xs text-white/90'>
                 {hero.spec}
               </span>
             )}
-            <span className='absolute top-3 right-3 rounded-md bg-slate-950/70 px-2 py-0.5 font-mono text-xs text-cyan-400'>
+            <span className='absolute top-3 right-3 rounded-md bg-ink/70 px-2 py-0.5 font-mono text-xs text-brand-on-dark'>
               ● {t('Generated')}
             </span>
             {hero.prompt && (
-              <figcaption className='absolute inset-x-3 bottom-3 truncate rounded-lg border border-slate-400/15 bg-slate-950/85 px-3 py-2 font-mono text-xs text-slate-200 backdrop-blur-sm'>
+              <figcaption className='absolute inset-x-3 bottom-3 truncate rounded-lg border border-white/10 bg-ink/85 px-3 py-2 font-mono text-xs text-white/85 backdrop-blur-sm'>
                 <span className='text-violet-400'>prompt&gt;</span>{' '}
                 {hero.prompt}
               </figcaption>
@@ -163,9 +163,9 @@ export function LandingHero() {
         {stats.map((stat) => (
           <div
             key={stat.label}
-            className='flex flex-col-reverse rounded-xl border border-slate-400/15 bg-slate-900/60 px-4 py-3 backdrop-blur-sm'
+            className='flex flex-col-reverse rounded-xl border border-white/10 bg-ink-raised/60 px-4 py-3 backdrop-blur-sm'
           >
-            <dt className='mt-1 text-xs text-slate-500'>{stat.label}</dt>
+            <dt className='mt-1 text-xs text-white/50'>{stat.label}</dt>
             <dd
               className={cn('font-mono text-2xl font-semibold', GRADIENT_TEXT)}
             >
