@@ -29,12 +29,20 @@ import { OnboardingSection } from '../components/onboarding/onboarding-section'
 
 const alpha = { id: 1, name: 'alpha', type: 1, group: 'default,vip', status: 1 }
 const beta = { id: 2, name: 'beta', type: 1, group: 'default', status: 1 }
+const gamma = {
+  id: 5,
+  name: 'gamma',
+  type: 61,
+  group: 'default',
+  status: 1,
+  plugin_missing: true,
+}
 
 const overview = {
   items: [
     {
       model_name: 'gpt-new',
-      pending_channels: [alpha, beta],
+      pending_channels: [alpha, beta, gamma],
       removed_channels: [],
       channels: [],
       metadata_id: 0,
@@ -244,6 +252,27 @@ describe('model onboarding workbench', () => {
       id: 1,
       add_models: ['gpt-new'],
     })
+  })
+
+  it('leaves a channel whose plugin lacks the model unchecked and marked', async () => {
+    const user = userEvent.setup()
+    mockApi()
+    renderSection()
+
+    await user.click(await screen.findByRole('button', { name: /gpt-new/ }))
+    const channels = screen
+      .getByRole('heading', { name: 'Offered by upstream' })
+      .closest('section') as HTMLElement
+    const boxes = within(channels).getAllByRole('checkbox')
+
+    expect(boxes.map((box) => box.getAttribute('aria-checked'))).toEqual([
+      'true',
+      'true',
+      'false',
+    ])
+    expect(within(channels).getAllByText('Plugin update needed')).toHaveLength(
+      1
+    )
   })
 
   it('creates metadata for a model that has none from its description alone', async () => {

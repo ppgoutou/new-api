@@ -160,7 +160,10 @@ func TestUpstreamPriceCheckPricesNewModelsAndApplyOverwrites(t *testing.T) {
 		Id: 1, Type: 1, Key: "key-1", Status: common.ChannelStatusEnabled, Name: "supplier",
 		Group: "default", Models: "new-model,priced-model", BaseURL: &baseURL,
 	}).Error)
+	require.NoError(t, writeOnboardingOption(onboardingPricingTokenOption, map[string]string{"1": "  "}))
+	assert.False(t, upstreamPriceCheckHandler{}.Enabled(), "the scheduled check waits for a supplier token")
 	require.NoError(t, writeOnboardingOption(onboardingPricingTokenOption, map[string]string{"1": "supplier-token"}))
+	assert.True(t, upstreamPriceCheckHandler{}.Enabled())
 	require.NoError(t, model.UpdateModelPricing([]model.ModelPricingChange{{
 		ModelName: "priced-model", ExpectedVersion: model.ModelPricingVersion(model.PricingValues{}),
 		Pricing: model.PricingValues{"ModelPrice": 0.2},

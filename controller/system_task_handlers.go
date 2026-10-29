@@ -2,6 +2,7 @@ package controller
 
 import (
 	"context"
+	"strconv"
 	"time"
 
 	"github.com/QuantumNous/new-api/common"
@@ -12,13 +13,14 @@ import (
 )
 
 // RegisterScheduledSystemTasks wires the periodic channel test, upstream model
-// update, and async task polling (Midjourney / Suno / video) jobs into the
+// update, upstream price check, and async task polling (Midjourney / Suno / video) jobs into the
 // system task framework so a DB lease dedups execution across multiple master
 // instances and each run is recorded as one task row. Call this before
 // service.StartSystemTaskRunner.
 func RegisterScheduledSystemTasks() {
 	service.RegisterSystemTaskHandler(channelTestHandler{})
 	service.RegisterSystemTaskHandler(modelUpdateHandler{})
+	service.RegisterSystemTaskHandler(upstreamPriceCheckHandler{})
 	service.RegisterSystemTaskHandler(midjourneyPollHandler{})
 	service.RegisterSystemTaskHandler(asyncTaskPollHandler{})
 }
@@ -107,6 +109,53 @@ func (modelUpdateHandler) Run(ctx context.Context, task *model.SystemTask, runne
 		return
 	}
 	summary := runChannelUpstreamModelUpdateTaskOnce(ctx, payload.Manual, !payload.Manual, service.NewSystemTaskProgressReporter(task, runnerID))
+	finishSystemTaskHandler(task, runnerID, model.SystemTaskStatusSucceeded, summary, nil)
+}
+
+// upstreamPriceCheckHandler runs the supplier price check of the model
+// onboarding workbench on a schedule, so supplier repricing and new supplier
+// models show up without a manual check. It runs only while some channel has
+// a supplier pricing token.
+type upstreamPriceCheckHandler struct{}
+
+func (upstreamPriceCheckHandler) Type() string { return model.SystemTaskTypeUpstreamPrice }
+
+func (upstreamPriceCheckHandler) Enabled() bool { return hasUpstreamPricingToken() }
+
+func (upstreamPriceCheckHandler) Interval() time.Duration {
+	intervalMinutes := common.GetEnvOrDefault("UPSTREAM_PRICE_CHECK_INTERVAL_MINUTES", 60)
+	if intervalMinutes < 1 {
+		intervalMinutes = 60
+	}
+	return time.Duration(intervalMinutes) * time.Minute
+}
+
+func (upstreamPriceCheckHandler) NewPayload() any { return nil }
+
+type upstreamPriceCheckSummary struct {
+	CheckedChannels int      `json:"checked_channels"`
+	FailedChannels  int      `json:"failed_channels"`
+	Changes         int      `json:"changes"`
+	AppliedModels   []string `json:"applied_models"`
+}
+
+func (upstreamPriceCheckHandler) Run(ctx context.Context, task *model.SystemTask, runnerID string) {
+	rows, applied, err := checkUpstreamPrices(ctx)
+	if err != nil {
+		finishSystemTaskHandler(task, runnerID, model.SystemTaskStatusFailed, nil, err)
+		return
+	}
+	snapshots := readOnboardingOption[map[string]upstreamPriceSnapshot](onboardingPriceSnapshotOption)
+	summary := upstreamPriceCheckSummary{AppliedModels: applied}
+	for _, row := range rows {
+		switch row.Status {
+		case "error":
+			summary.FailedChannels++
+		case "ok", "baseline":
+			summary.CheckedChannels++
+		}
+		summary.Changes += len(snapshotChanges(row, snapshots[strconv.Itoa(row.ID)]))
+	}
 	finishSystemTaskHandler(task, runnerID, model.SystemTaskStatusSucceeded, summary, nil)
 }
 

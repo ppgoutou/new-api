@@ -169,6 +169,12 @@ type ModelLimits struct {
 	Ratios      []string `json:"ratios,omitempty"`
 }
 
+// DeclaresModel reports whether the plugin lists the model. Plugins look
+// their own models up by exact name; one that lists none takes any model.
+func (m Meta) DeclaresModel(model string) bool {
+	return len(m.Models) == 0 || slices.Contains(m.Models, model)
+}
+
 // LimitsForModel returns the declared limits of the first candidate that has
 // any, in the same candidate order as UsageForModels.
 func (m Meta) LimitsForModel(models ...string) (ModelLimits, bool) {

@@ -251,6 +251,8 @@ export type OnboardingChannel = {
   type: number
   group: string
   status: number
+  /** The channel's task plugin does not list this pending model yet. */
+  plugin_missing?: boolean
 }
 
 /**
