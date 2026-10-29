@@ -24,6 +24,7 @@ import { useTranslation } from 'react-i18next'
 import { StatusBadge } from '@/components/status-badge'
 import { Checkbox } from '@/components/ui/checkbox'
 import { useMediaQuery } from '@/hooks'
+import { useIsAdmin } from '@/hooks/use-admin'
 import { toIntlLocale } from '@/i18n/languages'
 import { getUserGroups } from '@/lib/api'
 import { getCurrencyDisplay } from '@/lib/currency'
@@ -47,9 +48,11 @@ import { DataTableRowActions } from './data-table-row-actions'
 
 const EMPTY_GROUP_RATIOS: Record<string, number | string> = {}
 
-function useGroupRatios(): Record<string, number | string> {
+/** Group ratios by group name; only admins see them, so others skip the request. */
+function useGroupRatios(enabled: boolean): Record<string, number | string> {
   const { data } = useQuery({
     queryKey: ['user-groups'],
+    enabled,
     queryFn: async () => requireServerSuccess(await getUserGroups()),
     staleTime: 0,
     select: (res) => {
@@ -64,7 +67,7 @@ function useGroupRatios(): Record<string, number | string> {
     },
   })
 
-  return data ?? EMPTY_GROUP_RATIOS
+  return (enabled && data) || EMPTY_GROUP_RATIOS
 }
 
 export function useApiKeysColumns(now: number): ColumnDef<ApiKey>[] {
@@ -72,7 +75,7 @@ export function useApiKeysColumns(now: number): ColumnDef<ApiKey>[] {
   useSystemConfigStore((state) => state.config.currency)
   const { meta: currency } = getCurrencyDisplay()
   const quotaUnit = currency.kind === 'tokens' ? t('Tokens') : currency.symbol
-  const groupRatios = useGroupRatios()
+  const groupRatios = useGroupRatios(useIsAdmin())
   const shouldReduceMotion = useMediaQuery('(prefers-reduced-motion: reduce)')
   const locale = toIntlLocale(i18n.resolvedLanguage || i18n.language)
   const justNowLabel = t('Just now')

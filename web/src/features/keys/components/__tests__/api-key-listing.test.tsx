@@ -45,6 +45,8 @@ import { afterEach, beforeEach, expect, it, vi } from 'vitest'
 
 import zh from '@/i18n/locales/zh.json'
 import { api } from '@/lib/api'
+import { ROLE } from '@/lib/roles'
+import { useAuthStore } from '@/stores/auth-store'
 import {
   DEFAULT_CURRENCY_CONFIG,
   useSystemConfigStore,
@@ -469,7 +471,7 @@ it('keeps full mobile information without group or quota section headings', asyn
       screen.queryByText(zh.translation['Group'], { exact: true })
     ).not.toBeInTheDocument()
     expect(screen.getByText('default')).toBeInTheDocument()
-    expect(screen.getByText('1x')).toBeInTheDocument()
+    expect(screen.queryByText('1x')).not.toBeInTheDocument()
     expect(screen.getByText(zh.translation['Models'])).toBeInTheDocument()
     expect(
       screen.getByText(zh.translation['IP Restriction'])
@@ -524,4 +526,23 @@ it('keeps mobile quota readable and opens complete model and IP restrictions by 
   details = await screen.findByRole('dialog')
   expect(within(details).getByText('192.0.2.1')).toBeVisible()
   expect(within(details).getByText('2001:db8::1')).toBeVisible()
+})
+
+it('hides the group ratio from regular users and shows it to admins', async () => {
+  await renderKeysPage()
+  expect(screen.getByText('default')).toBeInTheDocument()
+  expect(screen.queryByText('1x')).not.toBeInTheDocument()
+  cleanup()
+
+  useAuthStore.getState().auth.setUser({
+    id: 1,
+    username: 'admin',
+    role: ROLE.ADMIN,
+  })
+  try {
+    await renderKeysPage()
+    expect(await screen.findByText('1x')).toBeInTheDocument()
+  } finally {
+    useAuthStore.getState().auth.setUser(null)
+  }
 })
