@@ -137,14 +137,15 @@ function WorkCard(props: { task: TaskLog }) {
 }
 
 /** The signed-in user's latest video tasks, refreshed while any is running. */
-export function WorksList() {
+export function WorksList(props: { limit?: number }) {
   const { t } = useTranslation()
+  const pageSize = props.limit ?? WORKS_PAGE_SIZE
   const works = useQuery({
-    queryKey: STUDIO_WORKS_QUERY_KEY,
+    queryKey: [...STUDIO_WORKS_QUERY_KEY, pageSize],
     queryFn: async () => {
       const response = await getUserTaskLogs({
         p: 1,
-        page_size: WORKS_PAGE_SIZE,
+        page_size: pageSize,
       })
       return (response.data?.items ?? []) as TaskLog[]
     },
@@ -157,7 +158,7 @@ export function WorksList() {
   if (works.isLoading) {
     return (
       <div className='grid gap-4 sm:grid-cols-2 xl:grid-cols-3'>
-        {Array.from({ length: 3 }, (_, index) => (
+        {Array.from({ length: Math.min(pageSize, 3) }, (_, index) => (
           <Skeleton key={index} className='aspect-video rounded-xl' />
         ))}
       </div>

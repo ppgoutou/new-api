@@ -22,9 +22,8 @@ import { useTranslation } from 'react-i18next'
 
 import { Button } from '@/components/ui/button'
 
-import { useHomeShowcase } from '../../hooks/use-home-showcase'
+import { useHeroClip } from '../../hooks/use-hero-clip'
 import { useSeedancePricing } from '../../hooks/use-seedance-pricing'
-import { getHomeMediaUrl, HERO_VIDEO } from '../../lib/video-home'
 import { ShowcaseVideo } from '../showcase-video'
 
 interface VideoHeroProps {
@@ -34,17 +33,7 @@ interface VideoHeroProps {
 export function VideoHero(props: VideoHeroProps) {
   const { t } = useTranslation()
   const { bestDiscount } = useSeedancePricing()
-  const configured = useHomeShowcase().hero
-  // An admin-uploaded hero replaces the built-in clip and its copy as a whole.
-  const hero = configured.video
-    ? configured
-    : {
-        title: t(HERO_VIDEO.title),
-        prompt: t(HERO_VIDEO.prompt),
-        spec: HERO_VIDEO.spec,
-        video: getHomeMediaUrl(`${HERO_VIDEO.name}.mp4`),
-        poster: getHomeMediaUrl(`${HERO_VIDEO.name}.jpg`),
-      }
+  const hero = useHeroClip()
   const startTarget = props.isAuthenticated ? '/video-studio' : '/sign-up'
 
   const facts = [
