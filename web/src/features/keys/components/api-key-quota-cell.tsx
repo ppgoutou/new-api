@@ -125,10 +125,10 @@ export function ApiKeyQuotaCell(props: ApiKeyQuotaCellProps) {
       <span
         data-slot='api-key-quota-values'
         className={cn(
-          'grid w-full min-w-0 items-baseline gap-x-2 gap-y-1 text-sm',
+          'grid w-full min-w-0 gap-x-2 gap-y-1 text-sm',
           props.variant === 'card'
-            ? 'grid-cols-[auto_minmax(0,1fr)]'
-            : 'grid-cols-2'
+            ? 'grid-cols-[auto_minmax(0,1fr)] items-baseline'
+            : 'grid-cols-2 items-end'
         )}
       >
         {props.variant === 'card' && (
@@ -157,14 +157,18 @@ export function ApiKeyQuotaCell(props: ApiKeyQuotaCellProps) {
         {props.variant === 'card' && (
           <span className='text-muted-foreground'>{t('Used amount')}</span>
         )}
-        <span
-          className={cn(
-            'text-muted-foreground min-w-0 truncate text-right tabular-nums',
-            props.variant === 'card' && 'text-sm leading-5 font-normal'
-          )}
-        >
-          {formattedUsed}
-        </span>
+        {props.variant === 'card' ? (
+          <span className='text-muted-foreground min-w-0 truncate text-right text-sm leading-5 font-normal tabular-nums'>
+            {formattedUsed}
+          </span>
+        ) : (
+          <span className='text-muted-foreground flex min-w-0 flex-col text-right'>
+            <span className='text-[11px] leading-4'>{t('Used amount')}</span>
+            <span className='truncate text-right tabular-nums'>
+              {formattedUsed}
+            </span>
+          </span>
+        )}
       </span>
     </QuotaDetailsPopover>
   )

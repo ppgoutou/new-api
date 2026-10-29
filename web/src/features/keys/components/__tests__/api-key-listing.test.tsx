@@ -153,7 +153,7 @@ afterEach(() => {
     .setConfig({ currency: { ...DEFAULT_CURRENCY_CONFIG } })
 })
 
-it('shows desktop remaining and used amounts side by side without labels, with the currency only in the header', () => {
+it('shows desktop remaining and used amounts side by side, labelling only the used amount, with the currency only in the header', () => {
   renderQuota()
   expect(
     screen.getByRole('columnheader', { name: 'Quota ($)' })
@@ -161,8 +161,8 @@ it('shows desktop remaining and used amounts side by side without labels, with t
   const trigger = screen.getByRole('button', {
     name: /Remaining 80; Remaining percentage 40%; Used amount 120/,
   })
-  expect(trigger).toHaveTextContent('80120')
-  expect(trigger).not.toHaveTextContent(/Remaining|Used amount/)
+  expect(trigger).toHaveTextContent('80Used amount120')
+  expect(trigger).not.toHaveTextContent(/Remaining/)
   expect(
     trigger.querySelector('[data-slot="api-key-quota-values"]')
   ).toHaveClass('grid-cols-2')
@@ -202,8 +202,8 @@ it('shows unlimited with cumulative usage and explains it on demand', async () =
   renderQuota({ ...key, unlimited_quota: true })
   const button = screen.getByRole('button', { name: /Unlimited/ })
   expect(button).toHaveTextContent('Unlimited')
-  expect(button).toHaveTextContent('Unlimited120')
-  expect(button).not.toHaveTextContent(/Remaining|Used amount/)
+  expect(button).toHaveTextContent('UnlimitedUsed amount120')
+  expect(button).not.toHaveTextContent(/Remaining/)
   expect(within(button).getByText('Unlimited')).toHaveClass('text-left')
   expect(screen.queryByRole('progressbar')).not.toBeInTheDocument()
   await userEvent.click(button)
