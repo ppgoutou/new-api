@@ -38,7 +38,7 @@ export function ModelPricing() {
   return (
     <section
       id='pricing'
-      className='relative z-10 scroll-mt-20 px-6 py-20 md:py-28'
+      className='relative z-10 scroll-mt-20 px-6 py-14 md:py-20'
     >
       <div className='mx-auto max-w-6xl'>
         <p className='mb-2 text-sm font-semibold text-brand dark:text-brand-on-dark'>

@@ -44,7 +44,7 @@ export function VideoHero(props: VideoHeroProps) {
   ]
 
   return (
-    <section className='relative z-10 px-6 pt-24 pb-16 md:pt-32 md:pb-24'>
+    <section className='relative z-10 px-6 pt-24 pb-10 md:pt-32 md:pb-14'>
       <div className='mx-auto flex max-w-6xl flex-col items-center gap-6 text-center'>
         <p className='landing-animate-fade-up inline-flex items-center gap-2 rounded-full border-brand/20 bg-brand-soft text-brand-hover dark:text-brand-on-dark border px-3.5 py-1.5 text-xs font-medium opacity-0'>
           <span className='size-1.5 rounded-full bg-brand' aria-hidden />

@@ -60,7 +60,7 @@ export function ImageToVideo() {
   ]
 
   return (
-    <section className='bg-muted/30 border-border/40 relative z-10 border-y px-6 py-20 md:py-28'>
+    <section className='bg-muted/30 border-border/40 relative z-10 border-y px-6 py-14 md:py-20'>
       <div className='mx-auto flex max-w-6xl flex-wrap items-center gap-12'>
         <div className='min-w-0 flex-[1_1_22rem]'>
           <p className='mb-2 text-sm font-semibold text-brand dark:text-brand-on-dark'>

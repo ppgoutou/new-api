@@ -63,7 +63,7 @@ export function ApiQuickstart() {
   return (
     <section
       id='api'
-      className='bg-muted/30 border-border/40 relative z-10 scroll-mt-20 border-y px-6 py-20 md:py-28'
+      className='bg-muted/30 border-border/40 relative z-10 scroll-mt-20 border-y px-6 py-14 md:py-20'
     >
       <div className='mx-auto flex max-w-6xl flex-wrap items-start gap-12'>
         <div className='min-w-0 flex-[1_1_20rem]'>
