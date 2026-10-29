@@ -487,15 +487,25 @@ func SetOnboardingUpstreamPricingToken(c *gin.Context) {
 	common.ApiSuccess(c, nil)
 }
 
-// CheckOnboardingUpstreamPrices fetches every tokened channel's upstream
-// pricing, keeps it as the latest snapshot and reports what differs from the
-// acknowledged baseline. A channel's first fetch becomes its baseline. Served
-// models without a charged price get the supplier's price.
+// CheckOnboardingUpstreamPrices runs one upstream price check and reports
+// what differs from the acknowledged baseline.
 func CheckOnboardingUpstreamPrices(c *gin.Context) {
-	channels, err := upstreamPriceChannels()
+	rows, _, err := checkUpstreamPrices(c.Request.Context())
 	if err != nil {
 		common.ApiError(c, err)
 		return
+	}
+	respondUpstreamPriceReport(c, rows)
+}
+
+// checkUpstreamPrices fetches every tokened channel's upstream pricing and
+// keeps it as the latest snapshot. A channel's first fetch becomes its
+// baseline. Served models without a charged price get the supplier's price;
+// their names are returned.
+func checkUpstreamPrices(ctx context.Context) ([]upstreamPriceChannel, []string, error) {
+	channels, err := upstreamPriceChannels()
+	if err != nil {
+		return nil, nil, err
 	}
 	rows := upstreamPriceChannelRows(channels)
 	tokens := readOnboardingOption[map[string]string](onboardingPricingTokenOption)
@@ -512,7 +522,7 @@ func CheckOnboardingUpstreamPrices(c *gin.Context) {
 			continue
 		}
 		wg.Go(func() {
-			models, group, err := fetchUpstreamPricing(c.Request.Context(), row.BaseURL, token)
+			models, group, err := fetchUpstreamPricing(ctx, row.BaseURL, token)
 			results[i] = fetched{models: models, group: group, err: err}
 		})
 	}
@@ -544,14 +554,13 @@ func CheckOnboardingUpstreamPrices(c *gin.Context) {
 		rows[i].BaselineTime, rows[i].LatestTime = snapshot.BaselineTime, snapshot.LatestTime
 		snapshots[key] = snapshot
 	}
+	applied := make([]string, 0)
 	prices := upstreamModelPrices(rows, snapshots)
 	if len(prices) > 0 {
 		local, err := model.GetModelPricingSnapshot(slices.Collect(maps.Keys(prices)))
 		if err != nil {
-			common.ApiError(c, err)
-			return
+			return nil, nil, err
 		}
-		applied := make([]string, 0)
 		for _, entry := range local.Entries {
 			pricing := prices[entry.ModelName].Pricing
 			if pricing == nil || len(chargedModelPricing(entry.Configured)) > 0 {
@@ -566,10 +575,20 @@ func CheckOnboardingUpstreamPrices(c *gin.Context) {
 		acceptUpstreamBaseline(snapshots, applied)
 	}
 	if err := writeOnboardingOption(onboardingPriceSnapshotOption, snapshots); err != nil {
-		common.ApiError(c, err)
-		return
+		return nil, nil, err
 	}
-	respondUpstreamPriceReport(c, rows)
+	return rows, applied, nil
+}
+
+// hasUpstreamPricingToken reports whether any channel has a supplier token,
+// which is what the scheduled price check needs to do anything.
+func hasUpstreamPricingToken() bool {
+	for _, token := range readOnboardingOption[map[string]string](onboardingPricingTokenOption) {
+		if strings.TrimSpace(token) != "" {
+			return true
+		}
+	}
+	return false
 }
 
 // ApplyOnboardingUpstreamPrice sets one model's charged price to its latest

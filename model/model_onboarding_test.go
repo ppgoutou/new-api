@@ -4,12 +4,18 @@ import (
 	"testing"
 
 	"github.com/QuantumNous/new-api/common"
+	"github.com/QuantumNous/new-api/constant"
+	"github.com/QuantumNous/new-api/pkg/jsplugin"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
 
 func TestGetOnboardingOverview(t *testing.T) {
 	require.NoError(t, DB.AutoMigrate(&Model{}))
+	_, err := jsplugin.DefaultRegistry.Register(pricingUsagePluginSource("1.0.0", "{}"), jsplugin.Options{})
+	require.NoError(t, err)
+	t.Cleanup(func() { jsplugin.DefaultRegistry.Unregister("pricing-usage-probe") })
+	pluginSetting := `{"task_plugin_key":"pricing-usage-probe"}`
 	require.NoError(t, DB.Exec("DELETE FROM channels").Error)
 	require.NoError(t, DB.Exec("DELETE FROM models").Error)
 	t.Cleanup(func() {
@@ -25,6 +31,8 @@ func TestGetOnboardingOverview(t *testing.T) {
 		{Id: 3, Name: "off", Key: "k3", Group: "default", Status: common.ChannelStatusManuallyDisabled, Models: "hidden-model",
 			OtherSettings: `{"upstream_model_update_last_detected_models":["off-new"]}`},
 		{Id: 4, Name: "broken", Key: "k4", Group: "default", Status: common.ChannelStatusEnabled, Models: "", OtherSettings: `not json`},
+		{Id: 5, Name: "plugin", Key: "k5", Type: constant.ChannelTypeTaskPlugin, Group: "default", Status: common.ChannelStatusEnabled, Models: "",
+			Setting: &pluginSetting, OtherSettings: `{"upstream_model_update_last_detected_models":["pricing-usage-model","plugin-new"]}`},
 	}
 	require.NoError(t, DB.Create(&channels).Error)
 	require.NoError(t, DB.Create(&[]Model{
@@ -39,13 +47,19 @@ func TestGetOnboardingOverview(t *testing.T) {
 	for _, item := range overview.Items {
 		byName[item.ModelName] = item
 	}
-	assert.Len(t, byName, 3, "disabled channels contribute nothing")
+	assert.Len(t, byName, 5, "disabled channels contribute nothing")
 
 	newModel := byName["gpt-new"]
 	assert.Empty(t, newModel.Channels)
 	require.Len(t, newModel.PendingChannels, 2)
 	assert.Equal(t, "default,vip", newModel.PendingChannels[0].Group)
 	assert.Zero(t, newModel.MetadataID)
+	assert.False(t, newModel.PendingChannels[0].PluginMissing, "channels without a plugin flag nothing")
+
+	require.Len(t, byName["pricing-usage-model"].PendingChannels, 1)
+	assert.False(t, byName["pricing-usage-model"].PendingChannels[0].PluginMissing)
+	require.Len(t, byName["plugin-new"].PendingChannels, 1)
+	assert.True(t, byName["plugin-new"].PendingChannels[0].PluginMissing, "the plugin does not list it")
 
 	configured := byName["gpt-a"]
 	assert.Len(t, configured.Channels, 2)

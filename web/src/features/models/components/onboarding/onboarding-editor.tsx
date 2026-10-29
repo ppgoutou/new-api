@@ -24,6 +24,7 @@ import { toast } from 'sonner'
 
 import { ConfirmDialog } from '@/components/confirm-dialog'
 import { GroupBadge } from '@/components/group-badge'
+import { StatusBadge } from '@/components/status-badge'
 import { Button } from '@/components/ui/button'
 import { Checkbox } from '@/components/ui/checkbox'
 import { Combobox } from '@/components/ui/combobox'
@@ -118,8 +119,15 @@ function OnboardingChannelsCard(props: {
   const { t } = useTranslation()
   const pending = props.item.pending_channels
   const removed = props.item.removed_channels
+  // A channel whose plugin does not list the model would fail every call, so
+  // it is left for the admin to pick after updating the plugin.
   const [selectedPending, setSelectedPending] = useState<Set<number>>(
-    () => new Set(pending.map((channel) => channel.id))
+    () =>
+      new Set(
+        pending
+          .filter((channel) => !channel.plugin_missing)
+          .map((channel) => channel.id)
+      )
   )
   const [selectedRemoved, setSelectedRemoved] = useState<Set<number>>(
     () => new Set(removed.map((channel) => channel.id))
@@ -221,6 +229,13 @@ function OnboardingChannelsCard(props: {
         {pending.length > 0 && (
           <section className='space-y-2'>
             <h3 className='text-sm font-medium'>{t('Offered by upstream')}</h3>
+            {pending.some((channel) => channel.plugin_missing) && (
+              <p className='text-muted-foreground text-xs'>
+                {t(
+                  'The plugin of a marked channel does not support this model yet. Calls through it fail until the plugin is updated.'
+                )}
+              </p>
+            )}
             <ChannelChecklist
               channels={pending}
               selected={selectedPending}
@@ -310,6 +325,7 @@ function ChannelRows(props: { channels: OnboardingChannel[] }) {
 }
 
 function ChannelLabel(props: { channel: OnboardingChannel }) {
+  const { t } = useTranslation()
   return (
     <span className='flex min-w-0 flex-wrap items-center gap-1.5 text-sm'>
       <span className='truncate'>{props.channel.name}</span>
@@ -317,6 +333,13 @@ function ChannelLabel(props: { channel: OnboardingChannel }) {
       {channelGroups([props.channel]).map((group) => (
         <GroupBadge key={group} group={group} size='sm' />
       ))}
+      {props.channel.plugin_missing && (
+        <StatusBadge
+          variant='warning'
+          label={t('Plugin update needed')}
+          copyable={false}
+        />
+      )}
     </span>
   )
 }

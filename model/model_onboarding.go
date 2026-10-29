@@ -5,6 +5,8 @@ import (
 	"strings"
 
 	"github.com/QuantumNous/new-api/common"
+	"github.com/QuantumNous/new-api/constant"
+	"github.com/QuantumNous/new-api/pkg/jsplugin"
 	"github.com/QuantumNous/new-api/relaykit/dto"
 )
 
@@ -14,6 +16,9 @@ type OnboardingChannel struct {
 	Type   int    `json:"type"`
 	Group  string `json:"group"`
 	Status int    `json:"status"`
+	// PluginMissing marks a pending model that the channel's task plugin does
+	// not list, so requests for it fail until the plugin is updated.
+	PluginMissing bool `json:"plugin_missing,omitempty"`
 }
 
 // OnboardingModel is one concrete model name that is either offered by an
@@ -38,7 +43,7 @@ type OnboardingOverview struct {
 // Disabled channels are ignored on both sides.
 func GetOnboardingOverview() (*OnboardingOverview, error) {
 	var channels []Channel
-	err := DB.Select("id", "name", "type", commonGroupCol, "status", "models", "settings").
+	err := DB.Select("id", "name", "type", commonGroupCol, "status", "models", "setting", "settings").
 		Where("status = ?", common.ChannelStatusEnabled).
 		Order("id").
 		Find(&channels).Error
@@ -72,12 +77,18 @@ func GetOnboardingOverview() (*OnboardingOverview, error) {
 		if channel.OtherSettings != "" {
 			_ = common.UnmarshalJsonStr(channel.OtherSettings, &settings)
 		}
+		var plugin *jsplugin.LoadedPlugin
+		if channel.Type == constant.ChannelTypeTaskPlugin {
+			plugin, _ = jsplugin.DefaultRegistry.Get(channel.GetSetting().TaskPluginKey)
+		}
 		for _, name := range normalizeLookupValues(settings.UpstreamModelUpdateLastDetectedModels) {
 			if slices.Contains(configured, name) {
 				continue
 			}
+			pending := ref
+			pending.PluginMissing = plugin != nil && !plugin.Meta.DeclaresModel(name)
 			entry := item(name)
-			entry.PendingChannels = append(entry.PendingChannels, ref)
+			entry.PendingChannels = append(entry.PendingChannels, pending)
 		}
 		for _, name := range normalizeLookupValues(settings.UpstreamModelUpdateLastRemovedModels) {
 			if !slices.Contains(configured, name) {
