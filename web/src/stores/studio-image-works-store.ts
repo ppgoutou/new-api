@@ -24,6 +24,14 @@ import {
 } from '@/features/video-studio/constants'
 import type { StudioImage } from '@/features/video-studio/types'
 
+function storeWorks(works: StudioImage[]) {
+  try {
+    window.localStorage.setItem(STUDIO_IMAGE_WORKS_KEY, JSON.stringify(works))
+  } catch {
+    // Storage may be full or blocked; the list still shows this session.
+  }
+}
+
 function readStoredWorks(): StudioImage[] {
   try {
     const raw = window.localStorage.getItem(STUDIO_IMAGE_WORKS_KEY)
@@ -37,6 +45,7 @@ function readStoredWorks(): StudioImage[] {
 interface ImageWorksState {
   works: StudioImage[]
   add: (images: StudioImage[]) => void
+  remove: (id: string) => void
 }
 
 /**
@@ -52,14 +61,13 @@ export const useStudioImageWorks = create<ImageWorksState>((set) => ({
         0,
         STUDIO_IMAGE_WORKS_LIMIT
       )
-      try {
-        window.localStorage.setItem(
-          STUDIO_IMAGE_WORKS_KEY,
-          JSON.stringify(works)
-        )
-      } catch {
-        // Storage may be full or blocked; the list still shows this session.
-      }
+      storeWorks(works)
+      return { works }
+    }),
+  remove: (id) =>
+    set((state) => {
+      const works = state.works.filter((work) => work.id !== id)
+      storeWorks(works)
       return { works }
     }),
 }))

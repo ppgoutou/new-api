@@ -7671,6 +7671,10 @@
     "Recent works": "最近の作品",
     "View all": "すべて表示",
     "Creation": "制作",
-    "Edit again": "再編集"
+    "Edit again": "再編集",
+    "Delete this video?": "この動画を削除しますか？",
+    "The video is removed from your works in this browser. Its usage record is kept.": "この動画はこのブラウザの作品一覧から削除されます。利用記録は保持されます。",
+    "Delete this image?": "この画像を削除しますか？",
+    "The image is removed from this browser. Download it first if you want to keep it.": "この画像はこのブラウザから削除されます。残したい場合は先にダウンロードしてください。"
   }
 }

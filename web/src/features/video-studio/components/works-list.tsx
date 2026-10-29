@@ -17,9 +17,11 @@ along with this program. If not, see <https://www.gnu.org/licenses/>.
 For commercial licensing, please contact support@quantumnous.com
 */
 import { useQuery } from '@tanstack/react-query'
-import { AlertCircle, Download, Film, PencilLine } from 'lucide-react'
+import { AlertCircle, Download, Film, PencilLine, Trash2 } from 'lucide-react'
+import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 
+import { ConfirmDialog } from '@/components/confirm-dialog'
 import { Button } from '@/components/ui/button'
 import {
   Empty,
@@ -38,6 +40,7 @@ import { translateServerText } from '@/lib/server-error-message'
 
 import { STUDIO_WORKS_QUERY_KEY } from '../constants'
 import { draftFromVideoRequest } from '../lib/draft'
+import { hideTask, readHiddenTasks } from '../lib/hidden-works'
 import { recallTaskPrompt } from '../lib/prompt-history'
 import type { StudioDraft } from '../types'
 
@@ -96,6 +99,7 @@ function WorkVideo(props: { task: TaskLog }) {
 function WorkCard(props: {
   task: TaskLog
   onEdit?: (draft: Partial<StudioDraft>) => void
+  onDelete: () => void
 }) {
   const { t } = useTranslation()
   const task = props.task
@@ -150,14 +154,25 @@ function WorkCard(props: {
           {onEdit && Object.keys(editDraft).length > 0 && (
             <Button
               variant='ghost'
-              size='xs'
+              size='icon-xs'
               className='shrink-0'
               onClick={() => onEdit(editDraft)}
+              aria-label={t('Edit again')}
+              title={t('Edit again')}
             >
               <PencilLine aria-hidden />
-              {t('Edit again')}
             </Button>
           )}
+          <Button
+            variant='ghost'
+            size='icon-xs'
+            className='hover:text-destructive shrink-0'
+            onClick={props.onDelete}
+            aria-label={t('Delete')}
+            title={t('Delete')}
+          >
+            <Trash2 aria-hidden />
+          </Button>
         </div>
       </div>
     </article>
@@ -167,6 +182,7 @@ function WorkCard(props: {
 /**
  * The signed-in user's latest video tasks, refreshed while any is running.
  * With `onEdit`, each work offers to load its request back into the composer.
+ * Deleting a work, after a confirmation, hides it in this browser.
  */
 export function WorksList(props: {
   limit?: number
@@ -174,6 +190,8 @@ export function WorksList(props: {
 }) {
   const { t } = useTranslation()
   const pageSize = props.limit ?? WORKS_PAGE_SIZE
+  const [hidden, setHidden] = useState(readHiddenTasks)
+  const [deleting, setDeleting] = useState<string | null>(null)
   const works = useQuery({
     queryKey: [...STUDIO_WORKS_QUERY_KEY, pageSize],
     queryFn: async () => {
@@ -198,7 +216,9 @@ export function WorksList(props: {
       </div>
     )
   }
-  const tasks = works.data ?? []
+  const tasks = (works.data ?? []).filter(
+    (task) => !hidden.includes(task.task_id)
+  )
   if (tasks.length === 0) {
     return (
       <Empty className='border'>
@@ -217,10 +237,33 @@ export function WorksList(props: {
     )
   }
   return (
-    <div className='grid gap-4 sm:grid-cols-2 xl:grid-cols-3'>
-      {tasks.map((task) => (
-        <WorkCard key={task.task_id} task={task} onEdit={props.onEdit} />
-      ))}
-    </div>
+    <>
+      <div className='grid gap-4 sm:grid-cols-2 xl:grid-cols-3'>
+        {tasks.map((task) => (
+          <WorkCard
+            key={task.task_id}
+            task={task}
+            onEdit={props.onEdit}
+            onDelete={() => setDeleting(task.task_id)}
+          />
+        ))}
+      </div>
+      <ConfirmDialog
+        destructive
+        open={deleting !== null}
+        onOpenChange={(open) => {
+          if (!open) setDeleting(null)
+        }}
+        title={t('Delete this video?')}
+        desc={t(
+          'The video is removed from your works in this browser. Its usage record is kept.'
+        )}
+        confirmText={t('Delete')}
+        handleConfirm={() => {
+          if (deleting) setHidden(hideTask(deleting))
+          setDeleting(null)
+        }}
+      />
+    </>
   )
 }
