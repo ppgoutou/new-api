@@ -123,6 +123,14 @@ For commercial licensing, please contact support@quantumnous.com
   --brand-hover: #1d4ed8;
   --brand-soft: #eff6ff;
   --brand-on-dark: #60a5fa;
+  /* Site backdrop (components/aurora-background.tsx): canvas color plus
+   * space-separated RGB triplets for the drifting and pointer glows. */
+  --aurora-base: #f6f8fb;
+  --aurora-glow-1: 96 165 250;
+  --aurora-glow-2: 167 139 250;
+  --aurora-glow-3: 45 212 191;
+  --aurora-pointer: 37 99 235;
+  --aurora-strength: 0.22;
   --ink: #0b1220;
   --ink-raised: #111a2e;
   --surface-muted: #f6f8fb;
@@ -199,6 +207,8 @@ For commercial licensing, please contact support@quantumnous.com
 .dark {
   /* OpenAI-like dark mode with a crisp charcoal canvas. */
   --background: oklch(0.235 0 0);
+  --aurora-base: #1f1f1f;
+  --aurora-strength: 0.12;
   --foreground: oklch(0.965 0 0);
   --card: oklch(0.285 0 0);
   --card-foreground: oklch(0.965 0 0);
