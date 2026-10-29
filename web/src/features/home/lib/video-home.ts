@@ -39,18 +39,24 @@ export function getSupportQqChatUrl(userAgent: string): string {
   return `tencent://message/?uin=${SUPPORT_QQ}&Site=api-finder&Menu=yes`
 }
 
-/** Seedance models presented on the home page, in display order. */
+/**
+ * Seedance models presented on the home page, in display order. The
+ * duration range stands in for the one the model's plugin declares while the
+ * pricing list has no model of that exact name.
+ */
 export const HOME_VIDEO_MODELS = [
   {
     name: 'seedance-2.0',
     tagline: 'Stable and cost-effective, up to 4K',
     resolutions: ['480p', '720p', '1080p', '4K'],
+    durationRange: [4, 15],
     isNew: false,
   },
   {
     name: 'seedance-2.5',
     tagline: 'More natural motion and longer clips',
     resolutions: ['480p', '720p', '1080p'],
+    durationRange: [4, 30],
     isNew: true,
   },
 ] as const
