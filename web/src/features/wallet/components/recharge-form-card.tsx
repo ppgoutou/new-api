@@ -220,11 +220,12 @@ export function RechargeFormCard({
                       <Button
                         key={preset.value}
                         variant='outline'
+                        aria-pressed={selectedPreset === preset.value}
                         className={cn(
                           'flex h-full min-h-16 flex-col items-start justify-center rounded-lg px-3 py-2.5 text-left whitespace-normal sm:min-h-[72px] sm:p-4',
                           selectedPreset === preset.value
-                            ? 'border-foreground bg-foreground/5 dark:border-foreground dark:bg-foreground/10'
-                            : 'border-muted'
+                            ? 'border-brand bg-brand-soft text-brand-hover dark:text-brand-on-dark'
+                            : 'border-border'
                         )}
                         onClick={() => onSelectPreset(preset)}
                       >
@@ -270,8 +271,8 @@ export function RechargeFormCard({
                     className={cn(
                       'h-full min-h-16 rounded-lg px-3 text-base font-semibold sm:min-h-[72px] sm:px-4 sm:text-lg',
                       selectedPreset === null && localAmount !== ''
-                        ? 'border-foreground bg-foreground/5 dark:border-foreground dark:bg-foreground/10'
-                        : 'border-muted'
+                        ? 'border-brand bg-brand-soft text-brand-hover dark:text-brand-on-dark'
+                        : 'border-border'
                     )}
                   />
                 </div>

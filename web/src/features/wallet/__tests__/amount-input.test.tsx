@@ -127,3 +127,33 @@ it('shows at most five presets and keeps the custom tile empty while a preset is
   expect(custom).toHaveAttribute('placeholder', '自定义金额')
 })
 
+
+it('marks only the selected preset tile as pressed', () => {
+  render(
+    <I18nextProvider i18n={i18n}>
+      <RechargeFormCard
+        topupInfo={{
+          enable_online_topup: false,
+          enable_stripe_topup: true,
+          pay_methods: [],
+          min_topup: 10,
+          stripe_min_topup: 10,
+          amount_options: [50, 100],
+          discount: {},
+        }}
+        presetAmounts={[50, 100].map((value) => ({ value }))}
+        selectedPreset={100}
+        topupAmount={100}
+        amountUnit='CNY'
+        paymentLoading={null}
+        onSelectPreset={vi.fn()}
+        onTopupAmountChange={vi.fn()}
+        onPaymentMethodSelect={vi.fn()}
+      />
+    </I18nextProvider>
+  )
+
+  const [fifty, hundred] = screen.getAllByRole('button')
+  expect(fifty).toHaveAttribute('aria-pressed', 'false')
+  expect(hundred).toHaveAttribute('aria-pressed', 'true')
+})
