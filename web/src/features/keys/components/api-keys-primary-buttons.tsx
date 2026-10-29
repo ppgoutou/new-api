@@ -16,12 +16,13 @@ along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 For commercial licensing, please contact support@quantumnous.com
 */
-import { ChevronDown, Globe, Plus } from 'lucide-react'
+import { Link } from '@tanstack/react-router'
+import { BookOpen, ChevronDown, Globe, Plus } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 
 import { CopyButton } from '@/components/copy-button'
 import { LoadingState } from '@/components/loading-state'
-import { Button } from '@/components/ui/button'
+import { Button, buttonVariants } from '@/components/ui/button'
 import {
   Item,
   ItemActions,
@@ -112,6 +113,13 @@ export function ApiKeysPrimaryButtons() {
           )}
         </PopoverContent>
       </Popover>
+      <Link
+        to='/docs'
+        className={buttonVariants({ variant: 'outline', size: 'sm' })}
+      >
+        <BookOpen aria-hidden='true' />
+        {t('Docs')}
+      </Link>
       <Button size='sm' onClick={() => setOpen('create')}>
         <Plus className='h-4 w-4' />
         {t('Create API Key')}
