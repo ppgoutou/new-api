@@ -61,10 +61,9 @@ import type {
   TokenUnit,
 } from '../types'
 import { ModelBillingModeBadge } from './model-billing-mode-badge'
-import { ModelPerfBadge, type ModelPerfBadgeData } from './model-perf-badge'
 
 // Brand color shared by the cheapest tier and the details action.
-const CARD_ACCENT_CLASS = 'bg-brand text-white'
+const CARD_ACCENT_CLASS = 'border-brand bg-brand text-white'
 
 export interface ModelCardProps {
   model: PricingModel
@@ -76,21 +75,7 @@ export interface ModelCardProps {
   tokenUnit?: TokenUnit
   showRechargePrice?: boolean
   selectedGroup?: string
-  perf?: ModelPerfBadgeData
   badges?: PricingModelBadge[]
-}
-
-// The footer stacks the actions under the metrics until the card is wide
-// enough for both on one row; the Try button needs the wider breakpoint.
-const FOOTER_LAYOUT = {
-  strip: '@[24rem]:flex-row',
-  actions: '@[24rem]:border-t-0 @[24rem]:border-l-2',
-  button: '@[24rem]:flex-none',
-}
-const FOOTER_LAYOUT_WITH_TRY = {
-  strip: '@[28rem]:flex-row',
-  actions: '@[28rem]:border-t-0 @[28rem]:border-l-2',
-  button: '@[28rem]:flex-none',
 }
 
 const MODEL_BADGE_CLASSES: Record<PricingModelBadge, string> = {
@@ -160,7 +145,6 @@ export const ModelCard = memo(function ModelCard(props: ModelCardProps) {
     return null
   }, [props.model])
   const showTry = tryKind !== null && props.onTry !== undefined
-  const footerLayout = showTry ? FOOTER_LAYOUT_WITH_TRY : FOOTER_LAYOUT
   let priceSummary: ReactNode
   if (videoPricing) {
     const optionDefinition =
@@ -192,7 +176,7 @@ export const ModelCard = memo(function ModelCard(props: ModelCardProps) {
             <div
               key={row.option}
               className={cn(
-                'border-foreground flex min-w-0 items-baseline gap-1 rounded-full border-[1.5px] px-2.5 py-0.5',
+                'border-border flex min-w-0 items-baseline gap-1 rounded-full border-[1.5px] px-2.5 py-0.5',
                 row === lowestRow && CARD_ACCENT_CLASS
               )}
             >
@@ -403,12 +387,12 @@ export const ModelCard = memo(function ModelCard(props: ModelCardProps) {
   }
 
   return (
-    <Card className='border-foreground h-full min-w-0 gap-3 rounded-2xl border-2 shadow-[6px_6px_0_0_var(--foreground)] ring-0 transition-[translate,box-shadow] duration-200 hover:-translate-x-1 hover:-translate-y-1 hover:shadow-[10px_10px_0_0_var(--foreground)] motion-reduce:transition-none motion-reduce:hover:translate-x-0 motion-reduce:hover:translate-y-0'>
+    <Card className='hover:border-brand/40 h-full min-w-0 gap-3'>
       <CardHeader className='flex flex-row items-center gap-3'>
         <div
           aria-hidden
           className={cn(
-            'border-foreground bg-brand-soft text-brand-hover dark:text-brand-on-dark flex size-11 shrink-0 items-center justify-center rounded-xl border-2'
+            'bg-brand-soft text-brand-hover dark:text-brand-on-dark flex size-11 shrink-0 items-center justify-center rounded-lg'
           )}
         >
           {modelIcon || <span className='text-sm font-bold'>{initial}</span>}
@@ -438,7 +422,7 @@ export const ModelCard = memo(function ModelCard(props: ModelCardProps) {
               <li
                 key={badge}
                 className={cn(
-                  'border-foreground rounded-md border-[1.5px] px-1.5 py-px text-[11px] leading-4 font-bold tracking-wide',
+                  'rounded-md px-1.5 py-0.5 text-[11px] leading-4 font-bold tracking-wide',
                   MODEL_BADGE_CLASSES[badge]
                 )}
               >
@@ -540,50 +524,37 @@ export const ModelCard = memo(function ModelCard(props: ModelCardProps) {
           </dl>
         )}
       </CardContent>
-      <CardFooter className='border-foreground @container mt-auto w-full rounded-none border-t-2 bg-transparent p-0'>
-        <ModelPerfBadge
-          perf={props.perf}
-          className={cn('flex-col items-stretch gap-0', footerLayout.strip)}
+      <CardFooter className='border-border mt-auto w-full rounded-none border-t-[1.5px] bg-transparent p-0'>
+        <div
+          role='group'
+          aria-label={t('Actions')}
+          className='flex w-full self-stretch'
         >
-          <div
-            role='group'
-            aria-label={t('Actions')}
-            className={cn(
-              'border-foreground flex shrink-0 self-stretch border-t-2',
-              footerLayout.actions
-            )}
-          >
-            {showTry && (
-              <Button
-                variant='ghost'
-                onClick={() =>
-                  tryKind &&
-                  props.onTry?.(props.model.model_name || '', tryKind)
-                }
-                className={cn(
-                  'hover:bg-muted h-auto min-h-11 flex-1 rounded-none px-4 font-bold',
-                  footerLayout.button
-                )}
-              >
-                <Play aria-hidden className='size-4' />
-                {t('Try')}
-              </Button>
-            )}
+          {showTry && (
             <Button
               variant='ghost'
-              onClick={() => props.onClick(props.model.model_name || '')}
-              className={cn(
-                'h-auto min-h-11 flex-1 rounded-none px-5 font-bold hover:bg-brand-hover hover:text-white',
-                showTry && 'border-foreground border-l-2',
-                footerLayout.button,
-                CARD_ACCENT_CLASS
-              )}
+              onClick={() =>
+                tryKind && props.onTry?.(props.model.model_name || '', tryKind)
+              }
+              className='hover:bg-muted h-auto min-h-11 flex-1 rounded-none px-4 font-bold'
             >
-              {t('Details')}
-              <ChevronRight aria-hidden className='size-4' />
+              <Play aria-hidden className='size-4' />
+              {t('Try')}
             </Button>
-          </div>
-        </ModelPerfBadge>
+          )}
+          <Button
+            variant='ghost'
+            onClick={() => props.onClick(props.model.model_name || '')}
+            className={cn(
+              'h-auto min-h-11 flex-1 rounded-none px-5 font-bold hover:bg-brand-hover hover:text-white',
+              showTry && 'border-border border-l-[1.5px]',
+              CARD_ACCENT_CLASS
+            )}
+          >
+            {t('Details')}
+            <ChevronRight aria-hidden className='size-4' />
+          </Button>
+        </div>
       </CardFooter>
     </Card>
   )
