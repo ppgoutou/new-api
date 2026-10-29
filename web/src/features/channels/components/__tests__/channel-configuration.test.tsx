@@ -1264,10 +1264,13 @@ test('quick options show only applicable shortcuts when the provider changes', a
   await user.click(screen.getByRole('button', { name: 'Change provider' }))
   await user.click(screen.getByRole('option', { name: /Video A/ }))
   quick = within(screen.getByRole('group', { name: 'Quick options' }))
-  expect(quick.getAllByRole('switch')).toHaveLength(1)
+  expect(quick.getAllByRole('switch')).toHaveLength(2)
   expect(
     quick.getByRole('switch', { name: 'Auto-disable channel' })
   ).toBeChecked()
+  expect(
+    quick.getByRole('switch', { name: 'Detect model updates' })
+  ).not.toBeChecked()
 })
 
 test('editing opens the shared configuration and omits an unchanged key on update', async () => {
@@ -1564,7 +1567,7 @@ test('configuration from fields unsupported by the selected provider stays unmar
     setting:
       '{"task_plugin_key":"video-a","force_format":true,"responses_websocket_enabled":true}',
     settings:
-      '{"allow_speed":true,"allow_service_tier":true,"upstream_model_update_check_enabled":true,"ollama_openai_chat":true}',
+      '{"allow_speed":true,"allow_service_tier":true,"ollama_openai_chat":true}',
   }
   render(<ConfigurationHarness currentRow={editingChannel} />)
   await screen.findByDisplayValue('Existing channel')

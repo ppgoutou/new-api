@@ -21,8 +21,8 @@ import type { FieldErrors, FieldPath } from 'react-hook-form'
 import {
   CHANNEL_TYPE_OLLAMA,
   CLAUDE_FIELD_PASSTHROUGH_TYPES,
-  MODEL_FETCHABLE_TYPES,
   OPENAI_FIELD_PASSTHROUGH_TYPES,
+  UPSTREAM_MODEL_DETECTION_TYPES,
 } from '../constants'
 import { CHANNEL_TYPE_ADVANCED_CUSTOM } from './advanced-custom'
 import { channelFormSchema, type ChannelFormValues } from './channel-form'
@@ -180,7 +180,7 @@ export function getChannelConfigurationState(
       values.disable_task_polling_sleep
     ),
     upstreamModelDetection:
-      MODEL_FETCHABLE_TYPES.has(values.type) &&
+      UPSTREAM_MODEL_DETECTION_TYPES.has(values.type) &&
       Boolean(
         values.upstream_model_update_check_enabled ||
         values.upstream_model_update_auto_sync_enabled ||
