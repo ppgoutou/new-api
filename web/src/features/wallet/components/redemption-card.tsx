@@ -21,6 +21,7 @@ import { useTranslation } from 'react-i18next'
 
 import { Alert, AlertDescription } from '@/components/ui/alert'
 import { Button, buttonVariants } from '@/components/ui/button'
+import { Card, CardContent, CardHeader } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Skeleton } from '@/components/ui/skeleton'
@@ -58,6 +59,27 @@ export function RedemptionCard(props: RedemptionCardProps) {
     },
   ]
 
+  // A full skeleton, header included, so the card does not show up ahead of
+  // the recharge card next to it while top-up info loads.
+  if (props.loading) {
+    return (
+      <Card
+        data-card-hover='false'
+        data-testid='redemption-card-skeleton'
+        className='h-full gap-0 overflow-hidden py-0'
+      >
+        <CardHeader className='border-b p-3 !pb-3 sm:p-5 sm:!pb-5'>
+          <Skeleton className='h-6 w-32' />
+          <Skeleton className='mt-2 h-4 w-48' />
+        </CardHeader>
+        <CardContent className='space-y-4 p-3 sm:p-5'>
+          <Skeleton className='h-48 w-full rounded-lg' />
+          <Skeleton className='h-28 w-full rounded-lg' />
+        </CardContent>
+      </Card>
+    )
+  }
+
   return (
     <TitledCard
       title={t('Redemption Code Top-up')}
@@ -82,104 +104,97 @@ export function RedemptionCard(props: RedemptionCardProps) {
       }
       contentClassName='flex flex-1 flex-col gap-4'
     >
-      {props.loading ? (
-        <div className='space-y-4'>
-          <Skeleton className='h-48 w-full rounded-lg' />
-          <Skeleton className='h-28 w-full rounded-lg' />
-        </div>
-      ) : (
-        <>
-          {props.topupLink && (
-            <div className='flex flex-1 flex-col items-center justify-center gap-4 rounded-lg border-brand/15 bg-brand-soft border px-4 py-6 text-center sm:px-6'>
-              <ol className='grid w-full grid-cols-3 gap-2 sm:gap-4'>
-                {purchaseSteps.map((step, index) => (
-                  <li
-                    key={step.title}
-                    className='flex flex-col items-center gap-1'
-                  >
-                    <span className='bg-background mb-1 flex size-7 items-center justify-center rounded-full border-brand/30 text-brand dark:text-brand-on-dark border text-xs font-semibold'>
-                      {index + 1}
-                    </span>
-                    <span className='text-xs leading-snug font-semibold sm:text-sm'>
-                      {step.title}
-                    </span>
-                    <span className='text-muted-foreground text-xs leading-snug'>
-                      {step.detail}
-                    </span>
-                  </li>
-                ))}
-              </ol>
-              <a
-                href={props.topupLink}
-                target='_blank'
-                rel='noopener noreferrer'
-                className={cn(
-                  buttonVariants(),
-                  'h-11 gap-2 bg-brand hover:bg-brand-hover px-6 text-base text-white'
-                )}
-              >
-                <Gift className='h-4 w-4' aria-hidden='true' />
-                {t('Buy redemption code')}
-                <ExternalLink className='h-3.5 w-3.5' aria-hidden='true' />
-              </a>
-              <p className='text-muted-foreground text-xs'>
-                {t('Credit never expires after redeeming')}
-              </p>
-            </div>
-          )}
-
-          {props.redemptionEnabled ? (
-            <div className='space-y-3 rounded-lg border p-4'>
-              <Label
-                htmlFor='redemption-code'
-                className='text-muted-foreground text-xs font-medium'
-              >
-                {t('Enter redemption code')}
-              </Label>
-              <div className='grid grid-cols-[minmax(0,1fr)_auto] gap-2'>
-                <Input
-                  id='redemption-code'
-                  value={props.redemptionCode}
-                  onChange={(e) => props.onRedemptionCodeChange(e.target.value)}
-                  placeholder={t('Paste your redemption code')}
-                  className='h-11 min-w-0'
-                />
-                <Button
-                  onClick={props.onRedeem}
-                  disabled={props.redeeming}
-                  className='h-11 bg-brand hover:bg-brand-hover px-5 text-white'
+      <>
+        {props.topupLink && (
+          <div className='border-brand/15 bg-brand-soft flex flex-1 flex-col items-center justify-center gap-4 rounded-lg border px-4 py-6 text-center sm:px-6'>
+            <ol className='grid w-full grid-cols-3 gap-2 sm:gap-4'>
+              {purchaseSteps.map((step, index) => (
+                <li
+                  key={step.title}
+                  className='flex flex-col items-center gap-1'
                 >
-                  {props.redeeming && (
-                    <Loader2 className='mr-2 h-4 w-4 animate-spin' />
-                  )}
-                  {t('Redeem')}
-                </Button>
-              </div>
-              {props.topupLink && (
-                <p className='text-muted-foreground text-xs'>
-                  {t('Need a redemption code?')}{' '}
-                  <a
-                    href={props.topupLink}
-                    target='_blank'
-                    rel='noopener noreferrer'
-                    className='text-brand dark:text-brand-on-dark underline underline-offset-4'
-                  >
-                    {t('Buy redemption code')}
-                  </a>
-                </p>
+                  <span className='bg-background border-brand/30 text-brand dark:text-brand-on-dark mb-1 flex size-7 items-center justify-center rounded-full border text-xs font-semibold'>
+                    {index + 1}
+                  </span>
+                  <span className='text-xs leading-snug font-semibold sm:text-sm'>
+                    {step.title}
+                  </span>
+                  <span className='text-muted-foreground text-xs leading-snug'>
+                    {step.detail}
+                  </span>
+                </li>
+              ))}
+            </ol>
+            <a
+              href={props.topupLink}
+              target='_blank'
+              rel='noopener noreferrer'
+              className={cn(
+                buttonVariants(),
+                'h-11 gap-2 bg-brand hover:bg-brand-hover px-6 text-base text-white'
               )}
-            </div>
-          ) : (
-            <Alert>
-              <AlertDescription>
-                {t(
-                  'Redemption codes are disabled until the administrator confirms compliance terms.'
+            >
+              <Gift className='h-4 w-4' aria-hidden='true' />
+              {t('Buy redemption code')}
+              <ExternalLink className='h-3.5 w-3.5' aria-hidden='true' />
+            </a>
+            <p className='text-muted-foreground text-xs'>
+              {t('Credit never expires after redeeming')}
+            </p>
+          </div>
+        )}
+
+        {props.redemptionEnabled ? (
+          <div className='space-y-3 rounded-lg border p-4'>
+            <Label
+              htmlFor='redemption-code'
+              className='text-muted-foreground text-xs font-medium'
+            >
+              {t('Enter redemption code')}
+            </Label>
+            <div className='grid grid-cols-[minmax(0,1fr)_auto] gap-2'>
+              <Input
+                id='redemption-code'
+                value={props.redemptionCode}
+                onChange={(e) => props.onRedemptionCodeChange(e.target.value)}
+                placeholder={t('Paste your redemption code')}
+                className='h-11 min-w-0'
+              />
+              <Button
+                onClick={props.onRedeem}
+                disabled={props.redeeming}
+                className='bg-brand hover:bg-brand-hover h-11 px-5 text-white'
+              >
+                {props.redeeming && (
+                  <Loader2 className='mr-2 h-4 w-4 animate-spin' />
                 )}
-              </AlertDescription>
-            </Alert>
-          )}
-        </>
-      )}
+                {t('Redeem')}
+              </Button>
+            </div>
+            {props.topupLink && (
+              <p className='text-muted-foreground text-xs'>
+                {t('Need a redemption code?')}{' '}
+                <a
+                  href={props.topupLink}
+                  target='_blank'
+                  rel='noopener noreferrer'
+                  className='text-brand dark:text-brand-on-dark underline underline-offset-4'
+                >
+                  {t('Buy redemption code')}
+                </a>
+              </p>
+            )}
+          </div>
+        ) : (
+          <Alert>
+            <AlertDescription>
+              {t(
+                'Redemption codes are disabled until the administrator confirms compliance terms.'
+              )}
+            </AlertDescription>
+          </Alert>
+        )}
+      </>
     </TitledCard>
   )
 }
