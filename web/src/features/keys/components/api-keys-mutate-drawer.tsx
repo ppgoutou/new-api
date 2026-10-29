@@ -63,6 +63,7 @@ import {
 import { Switch } from '@/components/ui/switch'
 import { Textarea } from '@/components/ui/textarea'
 import { RelatedPolicyLink } from '@/features/system-settings/request-policies/related-policy-link'
+import { useIsAdmin } from '@/hooks/use-admin'
 import { useStatus } from '@/hooks/use-status'
 import { getUserModels, getUserGroups } from '@/lib/api'
 import { getCurrencyDisplay, getCurrencyLabel } from '@/lib/currency'
@@ -110,6 +111,7 @@ export function ApiKeysMutateDrawer({
   const isUpdate = !!currentRow
   const currentRowId = currentRow?.id
   const { triggerRefresh } = useApiKeys()
+  const isAdmin = useIsAdmin()
   const { status, loading: statusLoading } = useStatus()
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [advancedOpen, setAdvancedOpen] = useState(false)
@@ -168,9 +170,10 @@ export function ApiKeysMutateDrawer({
         value: key,
         label: key,
         desc: info.desc ? translateServerText(t, info.desc) : key,
-        ratio: info.ratio,
+        // Group pricing ratios are for admins only.
+        ratio: isAdmin ? info.ratio : undefined,
       })),
-    [groupsData, t]
+    [groupsData, isAdmin, t]
   )
   const backendHasAuto = groups.some((g) => g.value === 'auto')
   const availableAutoGroupNames = useMemo(
