@@ -12,8 +12,15 @@ import (
 
 func TestTaskLogDTOSeparatesUserAdminAndRootDetails(t *testing.T) {
 	task := &model.Task{
-		TaskID:   "task_public",
-		Platform: "document-parser",
+		TaskID:    "task_public",
+		Platform:  "document-parser",
+		ChannelId: 3,
+		Data:      []byte(`{"id":"supplier-task","video_url":"https://supplier.invalid/v.mp4"}`),
+		Properties: model.Properties{
+			Input:             "a prompt",
+			OriginModelName:   "public-model",
+			UpstreamModelName: "supplier-model",
+		},
 		PrivateData: model.TaskPrivateData{
 			Key:            "channel-secret-canary",
 			UpstreamTaskID: "upstream-private",
@@ -39,6 +46,10 @@ func TestTaskLogDTOSeparatesUserAdminAndRootDetails(t *testing.T) {
 	userView := tasksToDto([]*model.Task{task}, false, common.RoleCommonUser)[0]
 	assert.Nil(t, userView.AdminInfo)
 	assert.Nil(t, userView.RootInfo)
+	assert.Empty(t, userView.Platform)
+	assert.Zero(t, userView.ChannelId)
+	assert.Nil(t, userView.Data)
+	assert.Equal(t, model.Properties{Input: "a prompt", OriginModelName: "public-model"}, userView.Properties)
 
 	adminView := tasksToDto([]*model.Task{task}, false, common.RoleAdminUser)[0]
 	require.NotNil(t, adminView.AdminInfo)
@@ -52,6 +63,10 @@ func TestTaskLogDTOSeparatesUserAdminAndRootDetails(t *testing.T) {
 	assert.Equal(t, "request-public", adminView.AdminInfo.RequestID)
 	assert.Equal(t, "/v1/documents", adminView.AdminInfo.RequestPath)
 	assert.Nil(t, adminView.RootInfo)
+	assert.Equal(t, "document-parser", adminView.Platform)
+	assert.Equal(t, 3, adminView.ChannelId)
+	assert.NotNil(t, adminView.Data)
+	assert.Equal(t, task.Properties, adminView.Properties)
 
 	rootView := tasksToDto([]*model.Task{task}, false, common.RoleRootUser)[0]
 	require.NotNil(t, rootView.AdminInfo)

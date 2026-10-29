@@ -26,12 +26,21 @@ import {
   waitFor,
 } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
+import type { ReactNode } from 'react'
 import { afterEach, beforeEach, expect, it, vi } from 'vitest'
 
 import { STATUS_QUERY_KEY, type StatusData } from '@/lib/status-query'
 
 import { ApiKeysPrimaryButtons } from '../api-keys-primary-buttons'
 import { ApiKeysProvider } from '../api-keys-provider'
+
+vi.mock('@tanstack/react-router', () => ({
+  Link: (props: { to: string; className?: string; children: ReactNode }) => (
+    <a href={props.to} className={props.className}>
+      {props.children}
+    </a>
+  ),
+}))
 
 let client: QueryClient
 
@@ -213,4 +222,13 @@ it('keeps long addresses readable within the scrollable panel and updates when c
     })
   )
   expect(await navigator.clipboard.readText()).toBe('https://new.example.com')
+})
+
+it('links to the API docs next to the address list', () => {
+  renderAddresses({ server_address: 'https://console.example.com' })
+
+  expect(screen.getByRole('link', { name: 'Docs' })).toHaveAttribute(
+    'href',
+    '/docs'
+  )
 })

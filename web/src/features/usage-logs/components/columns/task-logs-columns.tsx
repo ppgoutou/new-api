@@ -26,7 +26,7 @@ import { useTranslation } from 'react-i18next'
 import { StatusBadge } from '@/components/status-badge'
 import { Avatar, AvatarFallback } from '@/components/ui/avatar'
 import { getUserAvatarFallback, getUserAvatarStyle } from '@/lib/avatar'
-import { formatTimestampToDate } from '@/lib/format'
+import { formatLogQuota, formatTimestampToDate } from '@/lib/format'
 import { translateServerText } from '@/lib/server-error-message'
 import { cn } from '@/lib/utils'
 
@@ -218,12 +218,29 @@ export function useTaskLogsColumns(
                 className='border-border/60 bg-muted/30 !text-foreground max-w-full truncate rounded-md border px-1.5 py-0.5 font-mono'
               />
               <span className='text-muted-foreground/60 truncate text-[11px]'>
-                {t(log.platform)} · {t(taskActionMapper.getLabel(log.action))}
+                {log.platform ? `${t(log.platform)} · ` : null}
+                {t(taskActionMapper.getLabel(log.action))}
               </span>
             </div>
           )
         },
         meta: { mobileTitle: true },
+      },
+      {
+        id: 'model',
+        header: t('Model'),
+        accessorFn: (row) => row.properties?.origin_model_name ?? '',
+        cell: ({ row }) => {
+          const model = row.original.properties?.origin_model_name
+          if (!model) {
+            return <span className='text-muted-foreground/60 text-xs'>-</span>
+          }
+          return (
+            <span className='block max-w-[180px] truncate font-mono text-xs'>
+              {model}
+            </span>
+          )
+        },
       },
       createDurationColumn<TaskLog>({
         submitTimeKey: 'submit_time',
@@ -247,6 +264,21 @@ export function useTaskLogsColumns(
               copyable={false}
               className='-ml-1.5'
             />
+          )
+        },
+      },
+      {
+        accessorKey: 'quota',
+        header: t('Cost'),
+        cell: ({ row }) => {
+          const quota = row.original.quota
+          if (!quota) {
+            return <span className='text-muted-foreground/60 text-xs'>-</span>
+          }
+          return (
+            <span className='font-mono text-xs font-semibold tabular-nums'>
+              {formatLogQuota(quota)}
+            </span>
           )
         },
       },
