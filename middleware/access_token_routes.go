@@ -284,6 +284,7 @@ var accessTokenRouteRules = map[string]accessTokenRouteRule{
 	"GET /api/models/onboarding/upstream_prices":              accessTokenScopeRule("model:read"),
 	"POST /api/models/onboarding/upstream_prices/check":       accessTokenScopeRule("model:write"),
 	"POST /api/models/onboarding/upstream_prices/acknowledge": accessTokenScopeRule("model:write"),
+	"POST /api/models/onboarding/upstream_prices/apply":       accessTokenSessionRule,
 	"PUT /api/models/onboarding/upstream_prices/token":        accessTokenSessionRule,
 	"GET /api/models/":                                        accessTokenScopeRule("model:read"),
 	"GET /api/models/search":                                  accessTokenScopeRule("model:read"),
@@ -317,8 +318,9 @@ var accessTokenRouteRules = map[string]accessTokenRouteRule{
 	"POST /pg/chat/completions": accessTokenSessionRule,
 
 	// router/relay-router.go and router/api-router.go: video creation page
-	"POST /pg/videos":        accessTokenSessionRule,
-	"POST /api/video_assets": accessTokenSessionRule,
+	"POST /pg/videos":             accessTokenSessionRule,
+	"POST /pg/images/generations": accessTokenSessionRule,
+	"POST /api/video_assets":      accessTokenSessionRule,
 }
 
 var (
