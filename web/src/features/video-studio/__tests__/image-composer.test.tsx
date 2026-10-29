@@ -16,7 +16,7 @@ along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 For commercial licensing, please contact support@quantumnous.com
 */
-import { render, screen, waitFor } from '@testing-library/react'
+import { render, screen, waitFor, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
@@ -25,6 +25,7 @@ import { useStudioImageWorks } from '@/stores/studio-image-works-store'
 import { generateImages } from '../api'
 import { ImageComposer } from '../components/image-composer'
 import { ImageWorksList } from '../components/image-works-list'
+import { STUDIO_IMAGE_WORKS_KEY } from '../constants'
 
 vi.mock('../api', () => ({
   uploadVideoAsset: vi.fn(),
@@ -100,5 +101,49 @@ describe('ImageComposer', () => {
     expect(
       screen.getByRole('button', { name: 'Model: seedream-5-0-flash' })
     ).toBeInTheDocument()
+  })
+})
+
+describe('ImageWorksList', () => {
+  const work = {
+    id: 'img_1',
+    url: 'https://cdn.example/fox.png',
+    prompt: 'a red fox',
+    model: 'seedream-5.0-pro',
+    size: '2048x2048',
+    createdAt: 1_790_000_000,
+  }
+
+  it('removes an image from the list and storage after the delete is confirmed', async () => {
+    useStudioImageWorks.setState({ works: [work] })
+    const user = userEvent.setup()
+    render(<ImageWorksList />)
+
+    await user.click(screen.getByRole('button', { name: 'Delete' }))
+    await user.click(
+      within(screen.getByRole('alertdialog')).getByRole('button', {
+        name: 'Delete',
+      })
+    )
+
+    await waitFor(() =>
+      expect(
+        screen.queryByRole('img', { name: 'a red fox' })
+      ).not.toBeInTheDocument()
+    )
+    expect(useStudioImageWorks.getState().works).toEqual([])
+    expect(window.localStorage.getItem(STUDIO_IMAGE_WORKS_KEY)).toBe('[]')
+  })
+
+  it('keeps the image when the delete is cancelled', async () => {
+    useStudioImageWorks.setState({ works: [work] })
+    const user = userEvent.setup()
+    render(<ImageWorksList />)
+
+    await user.click(screen.getByRole('button', { name: 'Delete' }))
+    await user.click(screen.getByRole('button', { name: 'Cancel' }))
+
+    expect(screen.getByRole('img', { name: 'a red fox' })).toBeInTheDocument()
+    expect(useStudioImageWorks.getState().works).toHaveLength(1)
   })
 })

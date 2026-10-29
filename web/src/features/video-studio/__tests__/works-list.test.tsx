@@ -17,64 +17,143 @@ along with this program. If not, see <https://www.gnu.org/licenses/>.
 For commercial licensing, please contact support@quantumnous.com
 */
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
-import { render, screen } from '@testing-library/react'
-import { beforeEach, describe, expect, it, vi } from 'vitest'
+import { render, screen, within } from '@testing-library/react'
+import userEvent from '@testing-library/user-event'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
+import { getTaskArtifacts, getUserTaskLogs } from '@/features/usage-logs/api'
 import type { TaskLog } from '@/features/usage-logs/types'
-import { api } from '@/lib/api'
 
 import { WorksList } from '../components/works-list'
+import { rememberTaskPrompt } from '../lib/prompt-history'
 
-function failedTask(): TaskLog {
+vi.mock('@/features/usage-logs/api', () => ({
+  getUserTaskLogs: vi.fn(),
+  getTaskArtifacts: vi.fn(),
+}))
+
+function failedTask(taskId: string, model: string): TaskLog {
   return {
     id: 1,
-    user_id: 7,
-    platform: 'seedance',
-    task_id: 'task-failed',
-    action: 'generate',
-    channel_id: 3,
+    user_id: 1,
+    platform: 'video',
+    task_id: taskId,
+    action: 'GENERATE',
+    channel_id: 1,
     group: 'default',
     quota: 0,
-    submit_time: 1,
+    submit_time: 1_790_000_000,
     status: 'FAILURE',
-    fail_reason: 'Upstream rejected the prompt',
+    fail_reason: 'Video generation failed',
+    properties: { origin_model_name: model },
   }
 }
 
-beforeEach(() => {
-  vi.spyOn(api, 'get').mockResolvedValue({
-    data: { success: true, data: { items: [failedTask()] } },
-  })
-})
-
-function renderWorks(compact: boolean) {
+function renderList(onEdit: () => void) {
   const client = new QueryClient({
     defaultOptions: { queries: { retry: false } },
   })
   return render(
     <QueryClientProvider client={client}>
-      <WorksList limit={6} compact={compact} />
+      <WorksList onEdit={onEdit} />
     </QueryClientProvider>
   )
 }
 
-describe('works list', () => {
-  it('lays compact works six to a row on wide screens and drops the failure reason', async () => {
-    renderWorks(true)
+beforeEach(() => {
+  window.localStorage.clear()
+  vi.mocked(getTaskArtifacts).mockResolvedValue({ artifacts: [] } as never)
+})
 
-    const card = await screen.findByRole('article')
-    expect(card.parentElement).toHaveClass('grid-cols-2', 'lg:grid-cols-6')
-    expect(screen.getByText('Generation failed')).toBeVisible()
-    expect(
-      screen.queryByText('Upstream rejected the prompt')
-    ).not.toBeInTheDocument()
+afterEach(() => {
+  vi.clearAllMocks()
+})
+
+describe('WorksList', () => {
+  it('hands the remembered request of a work to onEdit when Edit again is clicked', async () => {
+    rememberTaskPrompt(
+      'task_1',
+      {
+        model: 'seedance-2.5',
+        prompt: 'a cat in @图片1',
+        seconds: 8,
+        resolution: '1080p',
+        images: ['https://site.example/video-assets/cat.png'],
+      },
+      'seedance-2.5 · 1080p · 8s'
+    )
+    vi.mocked(getUserTaskLogs).mockResolvedValue({
+      data: { items: [failedTask('task_1', 'seedance-2.5')] },
+    } as never)
+    const onEdit = vi.fn()
+    const user = userEvent.setup()
+    renderList(onEdit)
+
+    await user.click(await screen.findByRole('button', { name: 'Edit again' }))
+
+    expect(onEdit).toHaveBeenCalledOnce()
+    expect(onEdit.mock.calls[0][0]).toMatchObject({
+      mode: 'reference',
+      model: 'seedance-2.5',
+      prompt: 'a cat in @图片1',
+      seconds: 8,
+      resolution: '1080p',
+      references: [
+        {
+          kind: 'image',
+          status: 'ready',
+          url: 'https://site.example/video-assets/cat.png',
+        },
+      ],
+    })
   })
 
-  it('keeps the full studio cards with the failure reason when not compact', async () => {
-    renderWorks(false)
+  it('offers only the model of a work submitted without a remembered request', async () => {
+    vi.mocked(getUserTaskLogs).mockResolvedValue({
+      data: { items: [failedTask('task_old', 'seedance-2.0')] },
+    } as never)
+    const onEdit = vi.fn()
+    const user = userEvent.setup()
+    renderList(onEdit)
 
-    const card = await screen.findByRole('article')
-    expect(card.parentElement).toHaveClass('xl:grid-cols-3')
-    expect(screen.getByText('Upstream rejected the prompt')).toBeVisible()
+    await user.click(await screen.findByRole('button', { name: 'Edit again' }))
+
+    expect(onEdit).toHaveBeenCalledWith({ model: 'seedance-2.0' })
+  })
+
+  it('hides a work in this browser after the delete is confirmed', async () => {
+    vi.mocked(getUserTaskLogs).mockResolvedValue({
+      data: { items: [failedTask('task_1', 'seedance-2.0')] },
+    } as never)
+    const user = userEvent.setup()
+    const view = renderList(vi.fn())
+
+    await user.click(await screen.findByRole('button', { name: 'Delete' }))
+    await user.click(
+      within(screen.getByRole('alertdialog')).getByRole('button', {
+        name: 'Delete',
+      })
+    )
+
+    expect(await screen.findByText('No videos yet')).toBeInTheDocument()
+    view.unmount()
+    renderList(vi.fn())
+    expect(await screen.findByText('No videos yet')).toBeInTheDocument()
+  })
+
+  it('keeps the work when the delete is cancelled', async () => {
+    vi.mocked(getUserTaskLogs).mockResolvedValue({
+      data: { items: [failedTask('task_1', 'seedance-2.0')] },
+    } as never)
+    const user = userEvent.setup()
+    renderList(vi.fn())
+
+    await user.click(await screen.findByRole('button', { name: 'Delete' }))
+    await user.click(screen.getByRole('button', { name: 'Cancel' }))
+
+    expect(
+      screen.getByRole('button', { name: 'Edit again' })
+    ).toBeInTheDocument()
+    expect(screen.queryByText('No videos yet')).not.toBeInTheDocument()
   })
 })

@@ -7671,6 +7671,10 @@
     "Recent works": "Créations récentes",
     "View all": "Tout voir",
     "Creation": "Création",
-    "Edit again": "Modifier à nouveau"
+    "Edit again": "Modifier à nouveau",
+    "Delete this video?": "Supprimer cette vidéo ?",
+    "The video is removed from your works in this browser. Its usage record is kept.": "La vidéo est retirée de vos créations dans ce navigateur. Son historique d’utilisation est conservé.",
+    "Delete this image?": "Supprimer cette image ?",
+    "The image is removed from this browser. Download it first if you want to keep it.": "L’image est supprimée de ce navigateur. Téléchargez-la d’abord si vous souhaitez la conserver."
   }
 }

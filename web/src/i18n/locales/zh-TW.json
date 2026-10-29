@@ -7671,6 +7671,10 @@
     "Recent works": "最近作品",
     "View all": "查看全部",
     "Creation": "創作",
-    "Edit again": "重新編輯"
+    "Edit again": "重新編輯",
+    "Delete this video?": "刪除這個影片？",
+    "The video is removed from your works in this browser. Its usage record is kept.": "該影片將從本瀏覽器的作品列表中移除，使用紀錄會保留。",
+    "Delete this image?": "刪除這張圖片？",
+    "The image is removed from this browser. Download it first if you want to keep it.": "該圖片將從本瀏覽器中移除。如需保留，請先下載。"
   }
 }
