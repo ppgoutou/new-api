@@ -25,9 +25,9 @@ import { TitledCard } from '@/components/ui/titled-card'
 import { WorksList } from '@/features/video-studio/components/works-list'
 import { cn } from '@/lib/utils'
 
-const RECENT_WORKS_LIMIT = 3
+const RECENT_WORKS_LIMIT = 6
 
-/** The overview's first card: start a video, top up, get a key, and the latest works. */
+/** The overview's first card: start a video, top up, get a key, and the six latest works. */
 export function CreationPanel() {
   const { t } = useTranslation()
 
@@ -77,7 +77,7 @@ export function CreationPanel() {
             <ArrowRight className='size-3.5' aria-hidden />
           </Link>
         </div>
-        <WorksList limit={RECENT_WORKS_LIMIT} />
+        <WorksList limit={RECENT_WORKS_LIMIT} compact />
       </div>
     </TitledCard>
   )

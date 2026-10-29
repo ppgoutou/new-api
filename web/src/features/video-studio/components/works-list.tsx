@@ -35,6 +35,7 @@ import { TASK_STATUS } from '@/features/usage-logs/constants'
 import type { TaskLog } from '@/features/usage-logs/types'
 import { formatTimestamp } from '@/lib/format'
 import { translateServerText } from '@/lib/server-error-message'
+import { cn } from '@/lib/utils'
 
 import { STUDIO_WORKS_QUERY_KEY } from '../constants'
 import { draftFromVideoRequest } from '../lib/draft'
@@ -95,6 +96,7 @@ function WorkVideo(props: { task: TaskLog }) {
 
 function WorkCard(props: {
   task: TaskLog
+  compact?: boolean
   onEdit?: (draft: Partial<StudioDraft>) => void
 }) {
   const { t } = useTranslation()
@@ -125,7 +127,7 @@ function WorkCard(props: {
       <div className='text-destructive flex size-full flex-col items-center justify-center gap-1 px-4 text-center text-xs'>
         <AlertCircle className='size-5' aria-hidden />
         <span className='font-semibold'>{t('Generation failed')}</span>
-        {task.fail_reason && (
+        {task.fail_reason && !props.compact && (
           <span className='text-muted-foreground line-clamp-3'>
             {translateServerText(t, task.fail_reason)}
           </span>
@@ -137,12 +139,21 @@ function WorkCard(props: {
   return (
     <article className='bg-card border-border/60 overflow-hidden rounded-xl border'>
       <div className='bg-muted/40 relative aspect-video'>{media}</div>
-      <div className='flex flex-col gap-1 p-3'>
-        <p className='line-clamp-2 min-h-10 text-sm'>
+      <div className={cn('flex flex-col gap-1', props.compact ? 'p-2' : 'p-3')}>
+        <p
+          className={cn(
+            props.compact ? 'truncate text-xs' : 'line-clamp-2 min-h-10 text-sm'
+          )}
+        >
           {remembered?.prompt || t('Video task')}
         </p>
         <div className='flex items-center gap-2'>
-          <p className='text-muted-foreground min-w-0 flex-1 truncate text-xs'>
+          <p
+            className={cn(
+              'text-muted-foreground min-w-0 flex-1 truncate',
+              props.compact ? 'text-[11px]' : 'text-xs'
+            )}
+          >
             {remembered?.spec || modelName || task.task_id}
             {' · '}
             {formatTimestamp(task.submit_time)}
@@ -170,10 +181,16 @@ function WorkCard(props: {
  */
 export function WorksList(props: {
   limit?: number
+  /** Up to six small cards per row, as on the dashboard. */
+  compact?: boolean
   onEdit?: (draft: Partial<StudioDraft>) => void
 }) {
   const { t } = useTranslation()
   const pageSize = props.limit ?? WORKS_PAGE_SIZE
+  const gridClassName = props.compact
+    ? 'grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-6'
+    : 'grid gap-4 sm:grid-cols-2 xl:grid-cols-3'
+  const skeletonCount = Math.min(pageSize, props.compact ? 6 : 3)
   const works = useQuery({
     queryKey: [...STUDIO_WORKS_QUERY_KEY, pageSize],
     queryFn: async () => {
@@ -191,8 +208,8 @@ export function WorksList(props: {
 
   if (works.isLoading) {
     return (
-      <div className='grid gap-4 sm:grid-cols-2 xl:grid-cols-3'>
-        {Array.from({ length: Math.min(pageSize, 3) }, (_, index) => (
+      <div className={gridClassName}>
+        {Array.from({ length: skeletonCount }, (_, index) => (
           <Skeleton key={index} className='aspect-video rounded-xl' />
         ))}
       </div>
@@ -217,9 +234,14 @@ export function WorksList(props: {
     )
   }
   return (
-    <div className='grid gap-4 sm:grid-cols-2 xl:grid-cols-3'>
+    <div className={gridClassName}>
       {tasks.map((task) => (
-        <WorkCard key={task.task_id} task={task} onEdit={props.onEdit} />
+        <WorkCard
+          key={task.task_id}
+          task={task}
+          compact={props.compact}
+          onEdit={props.onEdit}
+        />
       ))}
     </div>
   )

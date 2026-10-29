@@ -245,7 +245,7 @@ describe('overview setup guide', () => {
     ).not.toBeInTheDocument()
   })
 
-  it('opens with video creation shortcuts and the three latest works', async () => {
+  it('opens with video creation shortcuts and the six latest works', async () => {
     await renderOverview()
 
     expect(
@@ -261,6 +261,6 @@ describe('overview setup guide', () => {
     )
     await screen.findByText('No videos yet')
     expect(taskRequests).toHaveLength(1)
-    expect(taskRequests[0]).toContain('page_size=3')
+    expect(taskRequests[0]).toContain('page_size=6')
   })
 })

@@ -18,106 +18,63 @@ For commercial licensing, please contact support@quantumnous.com
 */
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { render, screen } from '@testing-library/react'
-import userEvent from '@testing-library/user-event'
-import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
+import { beforeEach, describe, expect, it, vi } from 'vitest'
 
-import { getTaskArtifacts, getUserTaskLogs } from '@/features/usage-logs/api'
 import type { TaskLog } from '@/features/usage-logs/types'
+import { api } from '@/lib/api'
 
 import { WorksList } from '../components/works-list'
-import { rememberTaskPrompt } from '../lib/prompt-history'
 
-vi.mock('@/features/usage-logs/api', () => ({
-  getUserTaskLogs: vi.fn(),
-  getTaskArtifacts: vi.fn(),
-}))
-
-function failedTask(taskId: string, model: string): TaskLog {
+function failedTask(): TaskLog {
   return {
     id: 1,
-    user_id: 1,
-    platform: 'video',
-    task_id: taskId,
-    action: 'GENERATE',
-    channel_id: 1,
+    user_id: 7,
+    platform: 'seedance',
+    task_id: 'task-failed',
+    action: 'generate',
+    channel_id: 3,
     group: 'default',
     quota: 0,
-    submit_time: 1_790_000_000,
+    submit_time: 1,
     status: 'FAILURE',
-    fail_reason: 'Video generation failed',
-    properties: { origin_model_name: model },
+    fail_reason: 'Upstream rejected the prompt',
   }
 }
 
-function renderList(onEdit: () => void) {
+beforeEach(() => {
+  vi.spyOn(api, 'get').mockResolvedValue({
+    data: { success: true, data: { items: [failedTask()] } },
+  })
+})
+
+function renderWorks(compact: boolean) {
   const client = new QueryClient({
     defaultOptions: { queries: { retry: false } },
   })
   return render(
     <QueryClientProvider client={client}>
-      <WorksList onEdit={onEdit} />
+      <WorksList limit={6} compact={compact} />
     </QueryClientProvider>
   )
 }
 
-beforeEach(() => {
-  window.localStorage.clear()
-  vi.mocked(getTaskArtifacts).mockResolvedValue({ artifacts: [] } as never)
-})
+describe('works list', () => {
+  it('lays compact works six to a row on wide screens and drops the failure reason', async () => {
+    renderWorks(true)
 
-afterEach(() => {
-  vi.clearAllMocks()
-})
-
-describe('WorksList', () => {
-  it('hands the remembered request of a work to onEdit when Edit again is clicked', async () => {
-    rememberTaskPrompt(
-      'task_1',
-      {
-        model: 'seedance-2.5',
-        prompt: 'a cat in @图片1',
-        seconds: 8,
-        resolution: '1080p',
-        images: ['https://site.example/video-assets/cat.png'],
-      },
-      'seedance-2.5 · 1080p · 8s'
-    )
-    vi.mocked(getUserTaskLogs).mockResolvedValue({
-      data: { items: [failedTask('task_1', 'seedance-2.5')] },
-    } as never)
-    const onEdit = vi.fn()
-    const user = userEvent.setup()
-    renderList(onEdit)
-
-    await user.click(await screen.findByRole('button', { name: 'Edit again' }))
-
-    expect(onEdit).toHaveBeenCalledOnce()
-    expect(onEdit.mock.calls[0][0]).toMatchObject({
-      mode: 'reference',
-      model: 'seedance-2.5',
-      prompt: 'a cat in @图片1',
-      seconds: 8,
-      resolution: '1080p',
-      references: [
-        {
-          kind: 'image',
-          status: 'ready',
-          url: 'https://site.example/video-assets/cat.png',
-        },
-      ],
-    })
+    const card = await screen.findByRole('article')
+    expect(card.parentElement).toHaveClass('grid-cols-2', 'lg:grid-cols-6')
+    expect(screen.getByText('Generation failed')).toBeVisible()
+    expect(
+      screen.queryByText('Upstream rejected the prompt')
+    ).not.toBeInTheDocument()
   })
 
-  it('offers only the model of a work submitted without a remembered request', async () => {
-    vi.mocked(getUserTaskLogs).mockResolvedValue({
-      data: { items: [failedTask('task_old', 'seedance-2.0')] },
-    } as never)
-    const onEdit = vi.fn()
-    const user = userEvent.setup()
-    renderList(onEdit)
+  it('keeps the full studio cards with the failure reason when not compact', async () => {
+    renderWorks(false)
 
-    await user.click(await screen.findByRole('button', { name: 'Edit again' }))
-
-    expect(onEdit).toHaveBeenCalledWith({ model: 'seedance-2.0' })
+    const card = await screen.findByRole('article')
+    expect(card.parentElement).toHaveClass('xl:grid-cols-3')
+    expect(screen.getByText('Upstream rejected the prompt')).toBeVisible()
   })
 })
