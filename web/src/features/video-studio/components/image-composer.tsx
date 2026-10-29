@@ -40,6 +40,7 @@ import { useStudioImageModels } from '../hooks/use-studio-models'
 import { useStudioImagePrice } from '../hooks/use-studio-price'
 import { labelReferences } from '../lib/draft'
 import { buildImageRequest, validateImageDraft } from '../lib/image-draft'
+import type { StudioDraft } from '../types'
 import { ChoiceMenu } from './choice-menu'
 import { PromptInput } from './prompt-input'
 import { ReferencePanel } from './reference-panel'
@@ -47,16 +48,25 @@ import { ReferencePanel } from './reference-panel'
 interface ImageComposerProps {
   /** Model picked on entry, such as from a pricing card's try button. */
   initialModel?: string
+  /** A past image loaded back for editing; takes over the initial model. */
+  initialDraft?: Partial<StudioDraft>
+  initialSize?: string
 }
 
 /** Prompt box for image generation: reference images, model, size, count. */
 export function ImageComposer(props: ImageComposerProps) {
   const { t } = useTranslation()
-  const studio = useStudioDraft(props.initialModel)
+  const studio = useStudioDraft(
+    props.initialDraft ??
+      (props.initialModel ? { model: props.initialModel } : undefined)
+  )
   const models = useStudioImageModels()
   const addWorks = useStudioImageWorks((state) => state.add)
   const upload = useAssetUploader()
-  const [size, setSize] = useState(DEFAULT_IMAGE_SIZE)
+  const [size, setSize] = useState(
+    STUDIO_IMAGE_SIZES.find((option) => option.value === props.initialSize)
+      ?.value ?? DEFAULT_IMAGE_SIZE
+  )
   const [submitting, setSubmitting] = useState(false)
   const model =
     models.find((option) => option.name === studio.draft.model) ?? models[0]
@@ -97,6 +107,7 @@ export function ImageComposer(props: ImageComposerProps) {
           prompt: body.prompt,
           model: body.model,
           size: body.size,
+          ...(body.image ? { references: body.image } : {}),
           createdAt,
         }))
       )

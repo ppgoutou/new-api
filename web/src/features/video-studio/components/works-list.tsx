@@ -17,7 +17,7 @@ along with this program. If not, see <https://www.gnu.org/licenses/>.
 For commercial licensing, please contact support@quantumnous.com
 */
 import { useQuery } from '@tanstack/react-query'
-import { AlertCircle, Download, Film } from 'lucide-react'
+import { AlertCircle, Download, Film, PencilLine } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 
 import { Button } from '@/components/ui/button'
@@ -37,7 +37,9 @@ import { formatTimestamp } from '@/lib/format'
 import { translateServerText } from '@/lib/server-error-message'
 
 import { STUDIO_WORKS_QUERY_KEY } from '../constants'
+import { draftFromVideoRequest } from '../lib/draft'
 import { recallTaskPrompt } from '../lib/prompt-history'
+import type { StudioDraft } from '../types'
 
 const WORKS_PAGE_SIZE = 12
 const POLL_INTERVAL_MS = 5000
@@ -91,11 +93,24 @@ function WorkVideo(props: { task: TaskLog }) {
   )
 }
 
-function WorkCard(props: { task: TaskLog }) {
+function WorkCard(props: {
+  task: TaskLog
+  onEdit?: (draft: Partial<StudioDraft>) => void
+}) {
   const { t } = useTranslation()
   const task = props.task
   const remembered = recallTaskPrompt(task.task_id)
   const modelName = task.properties?.origin_model_name
+  // Tasks submitted before the full request was kept bring back what is
+  // known: the prompt and the model.
+  let editDraft: Partial<StudioDraft> = {}
+  if (remembered?.request) {
+    editDraft = draftFromVideoRequest(remembered.request)
+  } else {
+    if (remembered?.prompt) editDraft.prompt = remembered.prompt
+    if (modelName) editDraft.model = modelName
+  }
+  const onEdit = props.onEdit
 
   let media = (
     <div className='text-muted-foreground flex size-full flex-col items-center justify-center gap-2 text-xs'>
@@ -126,18 +141,37 @@ function WorkCard(props: { task: TaskLog }) {
         <p className='line-clamp-2 min-h-10 text-sm'>
           {remembered?.prompt || t('Video task')}
         </p>
-        <p className='text-muted-foreground truncate text-xs'>
-          {remembered?.spec || modelName || task.task_id}
-          {' · '}
-          {formatTimestamp(task.submit_time)}
-        </p>
+        <div className='flex items-center gap-2'>
+          <p className='text-muted-foreground min-w-0 flex-1 truncate text-xs'>
+            {remembered?.spec || modelName || task.task_id}
+            {' · '}
+            {formatTimestamp(task.submit_time)}
+          </p>
+          {onEdit && Object.keys(editDraft).length > 0 && (
+            <Button
+              variant='ghost'
+              size='xs'
+              className='shrink-0'
+              onClick={() => onEdit(editDraft)}
+            >
+              <PencilLine aria-hidden />
+              {t('Edit again')}
+            </Button>
+          )}
+        </div>
       </div>
     </article>
   )
 }
 
-/** The signed-in user's latest video tasks, refreshed while any is running. */
-export function WorksList(props: { limit?: number }) {
+/**
+ * The signed-in user's latest video tasks, refreshed while any is running.
+ * With `onEdit`, each work offers to load its request back into the composer.
+ */
+export function WorksList(props: {
+  limit?: number
+  onEdit?: (draft: Partial<StudioDraft>) => void
+}) {
   const { t } = useTranslation()
   const pageSize = props.limit ?? WORKS_PAGE_SIZE
   const works = useQuery({
@@ -185,7 +219,7 @@ export function WorksList(props: { limit?: number }) {
   return (
     <div className='grid gap-4 sm:grid-cols-2 xl:grid-cols-3'>
       {tasks.map((task) => (
-        <WorkCard key={task.task_id} task={task} />
+        <WorkCard key={task.task_id} task={task} onEdit={props.onEdit} />
       ))}
     </div>
   )

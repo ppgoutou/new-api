@@ -39,7 +39,7 @@ import {
   validateDraft,
 } from '../lib/draft'
 import { rememberTaskPrompt } from '../lib/prompt-history'
-import type { StudioMode } from '../types'
+import type { StudioDraft, StudioMode } from '../types'
 import { ChoiceMenu } from './choice-menu'
 import { ParamsPopover } from './params-popover'
 import { PromptInput } from './prompt-input'
@@ -50,12 +50,17 @@ interface ComposerProps {
   onSubmitted: () => void
   /** Model picked on entry, such as from a pricing card's try button. */
   initialModel?: string
+  /** A past request loaded back for editing; takes over the initial model. */
+  initialDraft?: Partial<StudioDraft>
 }
 
 /** Prompt box with references, mode, model and output settings. */
 export function Composer(props: ComposerProps) {
   const { t } = useTranslation()
-  const studio = useStudioDraft(props.initialModel)
+  const studio = useStudioDraft(
+    props.initialDraft ??
+      (props.initialModel ? { model: props.initialModel } : undefined)
+  )
   const models = useStudioModels()
   const draft = fitDraftToModel(studio.draft, models)
   const model = findStudioModel(models, draft.model)
@@ -91,7 +96,7 @@ export function Composer(props: ComposerProps) {
     try {
       for (let index = 0; index < draft.count; index += 1) {
         const taskId = await createVideoTask(body)
-        rememberTaskPrompt(taskId, body.prompt, spec)
+        rememberTaskPrompt(taskId, body, spec)
         created += 1
       }
       toast.success(

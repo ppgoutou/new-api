@@ -16,7 +16,7 @@ along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 For commercial licensing, please contact support@quantumnous.com
 */
-import { Download, Image as ImageIcon } from 'lucide-react'
+import { Download, Image as ImageIcon, PencilLine } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 
 import { Button } from '@/components/ui/button'
@@ -30,8 +30,16 @@ import {
 import { formatTimestamp } from '@/lib/format'
 import { useStudioImageWorks } from '@/stores/studio-image-works-store'
 
-/** Images generated in this browser, newest first. */
-export function ImageWorksList() {
+import { restoredAssets } from '../lib/draft'
+import type { StudioDraft } from '../types'
+
+/**
+ * Images generated in this browser, newest first. With `onEdit`, each image
+ * offers to load its prompt, model, size and references into the composer.
+ */
+export function ImageWorksList(props: {
+  onEdit?: (draft: Partial<StudioDraft>, size: string) => void
+}) {
   const { t } = useTranslation()
   const works = useStudioImageWorks((state) => state.works)
 
@@ -85,10 +93,35 @@ export function ImageWorksList() {
           </div>
           <div className='flex flex-col gap-1 p-3'>
             <p className='line-clamp-2 min-h-10 text-sm'>{work.prompt}</p>
-            <p className='text-muted-foreground truncate text-xs'>
-              {work.model} · {work.size.replace('x', '×')} ·{' '}
-              {formatTimestamp(work.createdAt)}
-            </p>
+            <div className='flex items-center gap-2'>
+              <p className='text-muted-foreground min-w-0 flex-1 truncate text-xs'>
+                {work.model} · {work.size.replace('x', '×')} ·{' '}
+                {formatTimestamp(work.createdAt)}
+              </p>
+              {props.onEdit && (
+                <Button
+                  variant='ghost'
+                  size='xs'
+                  className='shrink-0'
+                  onClick={() =>
+                    props.onEdit?.(
+                      {
+                        model: work.model,
+                        prompt: work.prompt,
+                        references: restoredAssets(
+                          'image',
+                          work.references ?? []
+                        ),
+                      },
+                      work.size
+                    )
+                  }
+                >
+                  <PencilLine aria-hidden />
+                  {t('Edit again')}
+                </Button>
+              )}
+            </div>
           </div>
         </article>
       ))}

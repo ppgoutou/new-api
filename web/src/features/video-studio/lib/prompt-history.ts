@@ -17,12 +17,27 @@ along with this program. If not, see <https://www.gnu.org/licenses/>.
 For commercial licensing, please contact support@quantumnous.com
 */
 
+import type { VideoTaskRequest } from '../types'
+
 // The server does not keep the prompt of a video task, so the page remembers
-// the prompts it submitted in this browser to label the user's works.
+// the requests it submitted in this browser to label the user's works and to
+// load one back into the composer. Entries from before the request was kept
+// carry only the prompt and spec.
 const STORAGE_KEY = 'video-studio:prompts'
 const MAX_ENTRIES = 200
 
-type PromptEntry = { prompt: string; spec: string; at: number }
+type PromptEntry = {
+  prompt: string
+  spec: string
+  at: number
+  request?: VideoTaskRequest
+}
+
+export interface RememberedTask {
+  prompt: string
+  spec: string
+  request?: VideoTaskRequest
+}
 
 function readAll(): Record<string, PromptEntry> {
   try {
@@ -38,12 +53,12 @@ function readAll(): Record<string, PromptEntry> {
 
 export function rememberTaskPrompt(
   taskId: string,
-  prompt: string,
+  request: VideoTaskRequest,
   spec: string
 ) {
   try {
     const entries = readAll()
-    entries[taskId] = { prompt, spec, at: Date.now() }
+    entries[taskId] = { prompt: request.prompt, spec, at: Date.now(), request }
     const kept = Object.entries(entries)
       .sort((a, b) => b[1].at - a[1].at)
       .slice(0, MAX_ENTRIES)
@@ -56,13 +71,16 @@ export function rememberTaskPrompt(
   }
 }
 
-export function recallTaskPrompt(
-  taskId: string
-): { prompt: string; spec: string } | null {
+export function recallTaskPrompt(taskId: string): RememberedTask | null {
   const entry = readAll()[taskId]
   if (!entry || typeof entry.prompt !== 'string') return null
+  const request =
+    entry.request && typeof entry.request.model === 'string'
+      ? entry.request
+      : undefined
   return {
     prompt: entry.prompt,
     spec: typeof entry.spec === 'string' ? entry.spec : '',
+    ...(request ? { request } : {}),
   }
 }

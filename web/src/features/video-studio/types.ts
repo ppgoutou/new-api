@@ -89,6 +89,8 @@ export interface StudioImage {
   prompt: string
   model: string
   size: string
+  /** Public URLs of the reference images the request carried. */
+  references?: string[]
   /** Unix seconds. */
   createdAt: number
 }

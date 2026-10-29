@@ -18,6 +18,7 @@ For commercial licensing, please contact support@quantumnous.com
 */
 import { useQueryClient } from '@tanstack/react-query'
 import { useNavigate, useSearch } from '@tanstack/react-router'
+import { useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 
 import { Main } from '@/components/layout'
@@ -28,7 +29,16 @@ import { ImageComposer } from './components/image-composer'
 import { ImageWorksList } from './components/image-works-list'
 import { WorksList } from './components/works-list'
 import { STUDIO_WORKS_QUERY_KEY } from './constants'
-import type { StudioKind } from './types'
+import type { StudioDraft, StudioKind } from './types'
+
+/** A past work loaded back into the composer of its kind. */
+interface EditedWork {
+  kind: StudioKind
+  draft: Partial<StudioDraft>
+  size?: string
+  /** Changes on every load, so the composer starts over from the work. */
+  key: number
+}
 
 /** Creation page: a prompt canvas for videos or images over the latest works. */
 export function VideoStudio() {
@@ -37,11 +47,26 @@ export function VideoStudio() {
   const search = useSearch({ from: '/_authenticated/video-studio/' })
   const navigate = useNavigate({ from: '/video-studio/' })
   const kind: StudioKind = search.kind ?? 'video'
+  const [edited, setEdited] = useState<EditedWork | null>(null)
+  const composerRef = useRef<HTMLElement>(null)
+  const editWork = (draft: Partial<StudioDraft>, size?: string) => {
+    setEdited((current) => ({
+      kind,
+      draft,
+      size,
+      key: (current?.key ?? 0) + 1,
+    }))
+    composerRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+  }
+  const editedDraft = edited?.kind === kind ? edited : null
 
   return (
     <Main>
       <div className='mx-auto flex w-full max-w-5xl flex-col gap-10 px-3 py-8 sm:px-4 md:py-12'>
-        <section className='flex flex-col items-center gap-5'>
+        <section
+          ref={composerRef}
+          className='flex scroll-mt-4 flex-col items-center gap-5'
+        >
           <h1 className='text-center text-2xl font-bold tracking-tight md:text-3xl'>
             {kind === 'image'
               ? t('Create an image, bring your ideas to life')
@@ -49,9 +74,10 @@ export function VideoStudio() {
           </h1>
           <Tabs
             value={kind}
-            onValueChange={(value) =>
+            onValueChange={(value) => {
+              setEdited(null)
               navigate({ search: { kind: value as StudioKind }, replace: true })
-            }
+            }}
           >
             <TabsList>
               <TabsTrigger value='video'>{t('Video')}</TabsTrigger>
@@ -60,10 +86,17 @@ export function VideoStudio() {
           </Tabs>
           <div className='w-full'>
             {kind === 'image' ? (
-              <ImageComposer initialModel={search.model} />
+              <ImageComposer
+                key={editedDraft?.key}
+                initialModel={search.model}
+                initialDraft={editedDraft?.draft}
+                initialSize={editedDraft?.size}
+              />
             ) : (
               <Composer
+                key={editedDraft?.key}
                 initialModel={search.model}
+                initialDraft={editedDraft?.draft}
                 onSubmitted={() =>
                   queryClient.invalidateQueries({
                     queryKey: STUDIO_WORKS_QUERY_KEY,
@@ -77,7 +110,11 @@ export function VideoStudio() {
           <h2 className='text-lg font-semibold'>
             {kind === 'image' ? t('My images') : t('My videos')}
           </h2>
-          {kind === 'image' ? <ImageWorksList /> : <WorksList />}
+          {kind === 'image' ? (
+            <ImageWorksList onEdit={editWork} />
+          ) : (
+            <WorksList onEdit={(draft) => editWork(draft)} />
+          )}
         </section>
       </div>
     </Main>
