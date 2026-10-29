@@ -23,6 +23,8 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { createVideoTask, uploadVideoAsset } from '../api'
 import { Composer } from '../components/composer'
 import { STUDIO_RATIOS, type StudioModel } from '../constants'
+import { draftFromVideoRequest } from '../lib/draft'
+import type { VideoTaskRequest } from '../types'
 
 const studioModels = vi.hoisted(() => ({ current: [] as StudioModel[] }))
 
@@ -47,14 +49,21 @@ beforeEach(() => {
     {
       name: 'seedance-2.0',
       resolutions: ['480p', '720p', '1080p', '4k'],
-      duration: [4, 15], ratios: STUDIO_RATIOS 
+      duration: [4, 15],
+      ratios: STUDIO_RATIOS,
     },
     {
       name: 'seedance-2.5',
       resolutions: ['480p', '720p', '1080p'],
-      duration: [4, 30], ratios: STUDIO_RATIOS 
+      duration: [4, 30],
+      ratios: STUDIO_RATIOS,
     },
-    { name: 'seedance2.0-720p-P', resolutions: ['720p'], duration: [5, 15], ratios: STUDIO_RATIOS  },
+    {
+      name: 'seedance2.0-720p-P',
+      resolutions: ['720p'],
+      duration: [5, 15],
+      ratios: STUDIO_RATIOS,
+    },
   ]
   vi.stubGlobal(
     'URL',
@@ -199,6 +208,62 @@ describe('Composer', () => {
     })
   })
 
+  it('loads a past reference request for editing and resubmits it unchanged', async () => {
+    const past: VideoTaskRequest = {
+      model: 'seedance-2.5',
+      prompt: 'the dog in @图片1 dances to @音频1',
+      seconds: 8,
+      resolution: '1080p',
+      ratio: '9:16',
+      images: ['https://site.example/video-assets/dog.png'],
+      audios: ['https://site.example/video-assets/song.mp3'],
+    }
+    const user = userEvent.setup()
+    render(
+      <Composer
+        onSubmitted={vi.fn()}
+        initialModel='seedance-2.0'
+        initialDraft={draftFromVideoRequest(past)}
+      />
+    )
+
+    expect(screen.getByRole('textbox', { name: 'Video prompt' })).toHaveValue(
+      past.prompt
+    )
+    expect(
+      screen.getByRole('button', { name: 'Model: seedance-2.5' })
+    ).toBeInTheDocument()
+    expect(screen.getByText('@图片1')).toBeInTheDocument()
+    expect(screen.getByText('@音频1')).toBeInTheDocument()
+    await user.click(screen.getByRole('button', { name: 'Generate video' }))
+
+    await waitFor(() => expect(createMock).toHaveBeenCalledOnce())
+    expect(createMock).toHaveBeenCalledWith(past)
+  })
+
+  it('loads a past first-and-last-frame request back into frames mode', async () => {
+    const past: VideoTaskRequest = {
+      model: 'seedance-2.0',
+      prompt: 'the sun sets',
+      seconds: 5,
+      resolution: '720p',
+      first_image_url: 'https://site.example/video-assets/day.png',
+      last_image_url: 'https://site.example/video-assets/night.png',
+    }
+    const user = userEvent.setup()
+    render(
+      <Composer
+        onSubmitted={vi.fn()}
+        initialDraft={draftFromVideoRequest(past)}
+      />
+    )
+
+    await user.click(screen.getByRole('button', { name: 'Generate video' }))
+
+    await waitFor(() => expect(createMock).toHaveBeenCalledOnce())
+    expect(createMock).toHaveBeenCalledWith(past)
+  })
+
   it('preselects the model it was opened with', () => {
     render(<Composer onSubmitted={vi.fn()} initialModel='seedance2.0-720p-P' />)
     expect(
@@ -236,7 +301,8 @@ describe('Composer', () => {
       {
         name: 'seedance-2.5-g4-m1-官转',
         resolutions: ['720p'],
-        duration: [4, 15], ratios: STUDIO_RATIOS 
+        duration: [4, 15],
+        ratios: STUDIO_RATIOS,
       },
     ]
     const user = userEvent.setup()

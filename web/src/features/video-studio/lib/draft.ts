@@ -177,6 +177,66 @@ export function fitDraftToModel(
   }
 }
 
+let nextRestoredId = 0
+
+/**
+ * Already uploaded files as ready assets, so a past request can go back on
+ * the canvas. They show the public URL; once it expires the submission
+ * fails and the user uploads the file again.
+ */
+export function restoredAssets(
+  kind: AssetKind,
+  urls: readonly string[]
+): StudioAsset[] {
+  return urls.map((url) => {
+    nextRestoredId += 1
+    const fileName = decodeURIComponent(
+      url.split(/[?#]/)[0].split('/').pop() || url
+    )
+    return {
+      id: `restored-${nextRestoredId}`,
+      kind,
+      fileName,
+      previewUrl: url,
+      status: 'ready',
+      progress: 100,
+      url,
+    }
+  })
+}
+
+/** The draft a submitted video request came from, to edit it again. */
+export function draftFromVideoRequest(
+  request: VideoTaskRequest
+): Partial<StudioDraft> {
+  const ratio = STUDIO_RATIOS.find((value) => value === request.ratio) ?? 'auto'
+  const draft: Partial<StudioDraft> = {
+    model: request.model,
+    prompt: request.prompt,
+    ratio,
+    resolution: request.resolution,
+    seconds: request.seconds,
+    count: 1,
+  }
+  if (request.first_image_url) {
+    const [firstFrame] = restoredAssets('image', [request.first_image_url])
+    const [lastFrame] = restoredAssets(
+      'image',
+      request.last_image_url ? [request.last_image_url] : []
+    )
+    return { ...draft, mode: 'frames', firstFrame, lastFrame, references: [] }
+  }
+  return {
+    ...draft,
+    mode: 'reference',
+    references: [
+      ...restoredAssets('image', request.images ?? []),
+      ...restoredAssets('video', request.videos ?? []),
+      ...restoredAssets('audio', request.audios ?? []),
+    ],
+  }
+}
+
 export function countReferences(
   references: StudioAsset[]
 ): Record<AssetKind, number> {

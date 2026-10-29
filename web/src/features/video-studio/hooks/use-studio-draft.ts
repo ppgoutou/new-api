@@ -28,12 +28,14 @@ type FrameSlot = 'first' | 'last'
  * Draft state of the composer, as the user picked it; readers fit it to the
  * available models. Upload callbacks keep reporting progress after a file is
  * removed, so removed assets are remembered and their late updates ignored.
- * An initial model, when given, replaces the default one.
+ * Initial fields, such as a model picked on entry or a past request being
+ * edited again, replace the defaults.
  */
-export function useStudioDraft(initialModel?: string) {
-  const [draft, setDraft] = useState<StudioDraft>(() =>
-    initialModel ? { ...DEFAULT_DRAFT, model: initialModel } : DEFAULT_DRAFT
-  )
+export function useStudioDraft(initial?: Partial<StudioDraft>) {
+  const [draft, setDraft] = useState<StudioDraft>(() => ({
+    ...DEFAULT_DRAFT,
+    ...initial,
+  }))
   const removedIds = useRef(new Set<string>())
 
   const update = (patch: Partial<StudioDraft>) =>
