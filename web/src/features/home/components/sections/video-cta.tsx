@@ -34,7 +34,7 @@ export function VideoCta(props: VideoCtaProps) {
   }
 
   return (
-    <section className='relative z-10 px-6 pb-24 md:pb-32'>
+    <section className='relative z-10 px-6 pb-16 md:pb-20'>
       <AnimateInView
         animation='scale-in'
         className='mx-auto flex max-w-5xl flex-col items-center gap-4 rounded-3xl border-brand/30 bg-brand-soft border px-8 py-14 text-center'

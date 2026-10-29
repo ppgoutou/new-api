@@ -93,7 +93,7 @@ export function Showcase(props: ShowcaseProps) {
   return (
     <section
       id='showcase'
-      className='relative z-10 scroll-mt-20 px-6 py-20 md:py-28'
+      className='relative z-10 scroll-mt-20 px-6 py-14 md:py-20'
     >
       <div className='mx-auto max-w-6xl'>
         <div className='flex flex-wrap items-end justify-between gap-6'>

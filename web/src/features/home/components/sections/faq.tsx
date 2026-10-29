@@ -110,7 +110,7 @@ export function Faq() {
   ]
 
   return (
-    <section className='relative z-10 px-6 py-20 md:py-28'>
+    <section className='relative z-10 px-6 py-14 md:py-20'>
       <div className='mx-auto max-w-3xl'>
         <h2 className='mb-8 text-center text-3xl font-bold tracking-tight md:text-4xl'>
           {t('FAQ')}
