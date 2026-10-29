@@ -102,6 +102,8 @@ export type PricingModel = {
   billing_usage_schema?: BillingUsageSchema
   /** Display-only labeled usage vectors for pricing examples. */
   billing_usage_examples?: BillingUsageExample[]
+  /** What the serving task plugin says the model can generate. */
+  model_limits?: ModelLimits
   /** Pricing version returned by backend, useful for cache busting */
   pricing_version?: string
   /**
@@ -116,6 +118,17 @@ export type PricingModel = {
   input_modalities?: Modality[]
   output_modalities?: Modality[]
   capabilities?: ModelCapability[]
+}
+
+/**
+ * Generation limits a task plugin declares for a model: whole-second duration
+ * range, optionally the only lengths inside it, and W:H aspect ratios.
+ */
+export type ModelLimits = {
+  minDuration?: number
+  maxDuration?: number
+  durations?: number[]
+  ratios?: string[]
 }
 
 /** Input/output modalities supported by a model. */

@@ -25,11 +25,15 @@ export interface StudioModel {
   resolutions: readonly string[]
   /** Shortest and longest output, in seconds. */
   duration: readonly [number, number]
+  /** The only lengths inside the range the model takes, when it is picky. */
+  durations?: readonly number[]
+  /** Selectable aspect ratios, 'auto' first. */
+  ratios: readonly StudioRatio[]
 }
 
 /**
- * Duration range of a video model that has no entry in VIDEO_DURATION_RANGES,
- * the same as seedance-2.0.
+ * Duration range of a video model whose plugin declares none, the same as
+ * seedance-2.0.
  */
 export const DEFAULT_STUDIO_DURATION: readonly [number, number] = [4, 15]
 

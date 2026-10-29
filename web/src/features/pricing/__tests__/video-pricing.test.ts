@@ -48,6 +48,7 @@ function videoModel(
     billing_mode: 'tiered_expr',
     billing_expr: billingExpr,
     billing_usage_schema: VIDEO_SCHEMA,
+    model_limits: { minDuration: 4, maxDuration: 30 },
     ...overrides,
   }
 }
@@ -85,9 +86,12 @@ describe('video pricing', () => {
     expect(pricing?.durationRange).toEqual([4, 30])
   })
 
-  test('omits the duration range for models without a known range', () => {
+  test('omits the duration range for models whose plugin declares none', () => {
     const pricing = getVideoPricing(
-      videoModel(SEEDANCE_25_EXPR, { model_name: 'unknown-video' })
+      videoModel(SEEDANCE_25_EXPR, {
+        model_name: 'unknown-video',
+        model_limits: { ratios: ['16:9'] },
+      })
     )
 
     expect(pricing?.durationRange).toBeUndefined()
@@ -138,9 +142,9 @@ describe('video pricing', () => {
 
   test('bills a short reference video as 2/3 of the output, rounded up', () => {
     const pricing = getVideoPricing(videoModel(SEEDANCE_25_EXPR))
-    expect(pricing).not.toBeNull()
+    if (!pricing) throw new Error('expected video pricing')
 
-    const example = getReferenceOrderExample(pricing!, 5, 15, '720p')
+    const example = getReferenceOrderExample(pricing, 5, 15, '720p')
 
     expect(example).toMatchObject({
       option: '720p',
@@ -153,8 +157,9 @@ describe('video pricing', () => {
 
   test('bills a long reference video by its own length', () => {
     const pricing = getVideoPricing(videoModel(SEEDANCE_25_EXPR))
+    if (!pricing) throw new Error('expected video pricing')
 
-    const example = getReferenceOrderExample(pricing!, 12, 15, '720p')
+    const example = getReferenceOrderExample(pricing, 12, 15, '720p')
 
     expect(example?.billedReferenceSeconds).toBe(12)
     expect(example?.tokens).toBe(27 * 21600)

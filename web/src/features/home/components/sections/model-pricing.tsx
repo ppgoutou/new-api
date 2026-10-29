@@ -24,7 +24,6 @@ import {
   type StaticDataTableColumn,
 } from '@/components/data-table'
 import { Badge } from '@/components/ui/badge'
-import { VIDEO_DURATION_RANGES } from '@/features/pricing/lib/video-pricing'
 
 import {
   useSeedancePricing,
@@ -62,7 +61,7 @@ export function ModelPricing() {
         <div className='mt-8 grid gap-5 md:grid-cols-2'>
           {HOME_VIDEO_MODELS.map((model) => {
             const pricing = byModel.get(model.name)
-            const range = VIDEO_DURATION_RANGES[model.name]
+            const range = pricing?.durationRange
             const columns: StaticDataTableColumn<SeedancePriceRow>[] = [
               {
                 id: 'option',

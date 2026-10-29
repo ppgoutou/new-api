@@ -1209,6 +1209,47 @@ usageProfiles: [{models:["image"], schema:{tokens:{type:"number", unit:"token"}}
 	require.ErrorContains(t, ValidateV1Meta(plugin.Meta), "schema must be an object")
 }
 
+func TestRegistryModelLimits(t *testing.T) {
+	plugin, err := CompilePlugin(routingTestPluginSource("model-limits", 0, `["short", "long"]`, `
+modelLimits: {
+  short: {minDuration: 4, maxDuration: 15, ratios: ["16:9", "9:16", "1:1"]},
+  long: {minDuration: 4, maxDuration: 30, durations: [4, 15, 20, 30]}
+},`, ""), Options{})
+	require.NoError(t, err)
+
+	limits, declared := plugin.Meta.LimitsForModel("SHORT")
+	require.True(t, declared)
+	assert.Equal(t, ModelLimits{MinDuration: 4, MaxDuration: 15, Ratios: []string{"16:9", "9:16", "1:1"}}, limits)
+	// A channel mapping may send a declared model to an undeclared endpoint ID.
+	limits, declared = plugin.Meta.LimitsForModel("ep-endpoint", "long")
+	require.True(t, declared)
+	assert.Equal(t, []int{4, 15, 20, 30}, limits.Durations)
+	_, declared = plugin.Meta.LimitsForModel("unknown")
+	assert.False(t, declared)
+
+	for _, tc := range []struct {
+		name, limits, errorText string
+	}{
+		{"not an object", `[]`, "modelLimits must be an object"},
+		{"unknown model", `{other: {ratios: ["1:1"]}}`, "not declared"},
+		{"unknown field", `{short: {fps: 24}}`, "unknown field"},
+		{"empty", `{short: {}}`, "durations or ratios"},
+		{"half range", `{short: {maxDuration: 15}}`, "declared together"},
+		{"inverted range", `{short: {minDuration: 15, maxDuration: 4}}`, "duration range"},
+		{"over host cap", `{short: {minDuration: 1, maxDuration: 3601}}`, "duration range"},
+		{"fractional duration", `{short: {durations: [4.5]}}`, "must be an integer"},
+		{"duration outside range", `{short: {minDuration: 4, maxDuration: 15, durations: [20]}}`, "between 4 and 15"},
+		{"unsorted durations", `{short: {durations: [10, 5]}}`, "strictly increasing"},
+		{"bad ratio", `{short: {ratios: ["auto"]}}`, "must look like"},
+		{"duplicate ratio", `{short: {ratios: ["1:1", "1:1"]}}`, "listed twice"},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			_, err := CompilePlugin(routingTestPluginSource("invalid-limits", 0, `["short"]`, `modelLimits: `+tc.limits+`,`, ""), Options{})
+			require.ErrorContains(t, err, tc.errorText)
+		})
+	}
+}
+
 func TestUpstreamsManifestContract(t *testing.T) {
 	for _, tc := range []struct {
 		name, metadata string

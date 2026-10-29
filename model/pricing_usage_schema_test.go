@@ -35,7 +35,7 @@ func TestPricingCarriesTaskUsageSchemaAndRefreshesWithPluginGeneration(t *testin
 	initialSource := pricingUsagePluginSource("1.0.0", `{
   seconds: {type: "number", unit: "second", description: "Estimated duration."},
   action: {enum:["video"],enumLabels:{video:{en:"Generate video",zh:"生成视频"}}}
-}`)
+}, modelLimits: {"pricing-usage-model": {minDuration: 4, maxDuration: 30, ratios: ["16:9", "9:16"]}}`)
 	_, err := jsplugin.DefaultRegistry.Register(initialSource, jsplugin.Options{})
 	require.NoError(t, err)
 	t.Cleanup(func() { jsplugin.DefaultRegistry.Unregister(pluginKey) })
@@ -51,6 +51,8 @@ func TestPricingCarriesTaskUsageSchemaAndRefreshesWithPluginGeneration(t *testin
 	assert.Equal(t, "Estimated duration.", initialPricing["pricing-usage-model"].BillingUsageSchema["seconds"].Description["en"])
 	assert.Equal(t, "生成视频", initialPricing["pricing-usage-model"].BillingUsageSchema["action"].EnumLabels["video"]["zh"])
 	assert.Nil(t, initialPricing["ordinary-model"].BillingUsageSchema)
+	assert.Equal(t, &jsplugin.ModelLimits{MinDuration: 4, MaxDuration: 30, Ratios: []string{"16:9", "9:16"}}, initialPricing["pricing-usage-model"].ModelLimits)
+	assert.Nil(t, initialPricing["ordinary-model"].ModelLimits)
 
 	updatedSource := pricingUsagePluginSource("1.1.0", `{
   seconds: {type: "number", unit: "second", description: "Measured duration."},
@@ -63,6 +65,7 @@ func TestPricingCarriesTaskUsageSchemaAndRefreshesWithPluginGeneration(t *testin
 	require.Len(t, refreshedPricing["pricing-usage-model"].BillingUsageSchema, 2)
 	assert.Equal(t, "Measured duration.", refreshedPricing["pricing-usage-model"].BillingUsageSchema["seconds"].Description["en"])
 	assert.Equal(t, "count", refreshedPricing["pricing-usage-model"].BillingUsageSchema["clips"].Unit)
+	assert.Nil(t, refreshedPricing["pricing-usage-model"].ModelLimits, "limits dropped by a plugin update must disappear")
 }
 
 // Task plugins load in the background at startup. Pricing requested before

@@ -20,7 +20,7 @@ import { describe, expect, it } from 'vitest'
 
 import type { PricingModel } from '@/features/pricing/types'
 
-import { DEFAULT_DRAFT, type StudioModel } from '../constants'
+import { DEFAULT_DRAFT, STUDIO_RATIOS, type StudioModel } from '../constants'
 import {
   buildVideoRequest,
   estimateDraftCostUSD,
@@ -98,7 +98,11 @@ function pricingModel(
 }
 
 /** Per-second video price by resolution, as the pricing API returns it. */
-function videoModel(name: string, resolutions: string[]): PricingModel {
+function videoModel(
+  name: string,
+  resolutions: string[],
+  patch: Partial<PricingModel> = {}
+): PricingModel {
   const tiers = resolutions.map(
     (resolution) => `tier("${resolution}", u("seconds") * 0.1)`
   )
@@ -113,22 +117,27 @@ function videoModel(name: string, resolutions: string[]): PricingModel {
       resolution: { enum: resolutions },
       seconds: { type: 'number', unit: 'second' },
     },
+    ...patch,
   })
 }
 
 describe('studioModelsFromPricing', () => {
   it('offers every per-second video model in pricing order with its resolutions', () => {
     const models = studioModelsFromPricing([
-      videoModel('seedance-2.5', ['480p', '720p', '1080p']),
-      videoModel('seedance2.0-720p-P', ['720p']),
+      videoModel('seedance-2.5', ['480p', '720p', '1080p'], {
+        model_limits: { minDuration: 4, maxDuration: 30 },
+      }),
+      videoModel('seedance2.0-720p-P', ['720p'], {
+        model_limits: { minDuration: 5, maxDuration: 15 },
+      }),
     ])
     expect(models).toEqual([
       {
         name: 'seedance-2.5',
         resolutions: ['480p', '720p', '1080p'],
-        duration: [4, 30],
+        duration: [4, 30], ratios: STUDIO_RATIOS 
       },
-      { name: 'seedance2.0-720p-P', resolutions: ['720p'], duration: [5, 15] },
+      { name: 'seedance2.0-720p-P', resolutions: ['720p'], duration: [5, 15], ratios: STUDIO_RATIOS  },
     ])
   })
 
@@ -141,10 +150,11 @@ describe('studioModelsFromPricing', () => {
           resolution: { enum: ['720p'] },
           videos: { type: 'number', unit: 'count' },
         },
+        model_limits: { minDuration: 4, maxDuration: 30 },
       }),
     ])
     expect(models).toEqual([
-      { name: 'seedance-2.5-G2-V', resolutions: ['720p'], duration: [4, 30] },
+      { name: 'seedance-2.5-G2-V', resolutions: ['720p'], duration: [4, 30], ratios: STUDIO_RATIOS  },
     ])
   })
 
@@ -168,16 +178,34 @@ describe('studioModelsFromPricing', () => {
       {
         name: 'seedance-2-0-pro-NSFW',
         resolutions: ['720p', '1080p'],
-        duration: [4, 15],
+        duration: [4, 15], ratios: STUDIO_RATIOS 
       },
     ])
   })
 
-  it('uses 4 to 15 seconds for a video model without a known duration range', () => {
+  it('takes allowed lengths and ratios from the limits its plugin declares', () => {
+    const [model] = studioModelsFromPricing([
+      videoModel('F-seedance-2.5-30s', ['480p'], {
+        model_limits: {
+          minDuration: 4,
+          maxDuration: 30,
+          durations: [4, 15, 20, 30],
+          ratios: ['9:16', '16:9', '5:4'],
+        },
+      }),
+    ])
+    expect(model.duration).toEqual([4, 30])
+    expect(model.durations).toEqual([4, 15, 20, 30])
+    expect(model.ratios).toEqual(['auto', '16:9', '9:16'])
+  })
+
+  it('uses 4 to 15 seconds and every ratio for a video model without declared limits', () => {
     const [model] = studioModelsFromPricing([
       videoModel('seedance-2-0-fast-NSFW', ['480p', '720p']),
     ])
     expect(model.duration).toEqual([4, 15])
+    expect(model.durations).toBeUndefined()
+    expect(model.ratios).toEqual(STUDIO_RATIOS)
   })
 
   it('leaves out text, image and non-resolution priced models', () => {
@@ -205,12 +233,12 @@ describe('fitDraftToModel', () => {
     {
       name: 'seedance-2.0',
       resolutions: ['480p', '720p', '1080p', '4k'],
-      duration: [4, 15],
+      duration: [4, 15], ratios: STUDIO_RATIOS 
     },
     {
       name: 'seedance-2.5',
       resolutions: ['480p', '720p', '1080p'],
-      duration: [4, 30],
+      duration: [4, 30], ratios: STUDIO_RATIOS 
     },
   ]
 
@@ -226,6 +254,33 @@ describe('fitDraftToModel', () => {
   it('caps seedance-2.0 at 15 seconds and raises short durations to 4', () => {
     expect(fitDraftToModel(draft({ seconds: 20 }), models).seconds).toBe(15)
     expect(fitDraftToModel(draft({ seconds: 1 }), models).seconds).toBe(4)
+  })
+
+  it('moves a length between allowed values to the nearest one the model takes', () => {
+    const picky: StudioModel = {
+      name: 'F-seedance-2.5-30s',
+      resolutions: ['480p'],
+      duration: [4, 30],
+      durations: [4, 15, 20, 30],
+      ratios: STUDIO_RATIOS,
+    }
+    const fit = (seconds: number) =>
+      fitDraftToModel(draft({ model: picky.name, seconds }), [picky]).seconds
+    expect(fit(16)).toBe(15)
+    expect(fit(18)).toBe(20)
+    expect(fit(40)).toBe(30)
+  })
+
+  it('falls back to auto when the model does not offer the chosen ratio', () => {
+    const square: StudioModel = { ...models[1], ratios: ['auto', '1:1'] }
+    expect(
+      fitDraftToModel(draft({ model: square.name, ratio: '21:9' }), [square])
+        .ratio
+    ).toBe('auto')
+    expect(
+      fitDraftToModel(draft({ model: square.name, ratio: '1:1' }), [square])
+        .ratio
+    ).toBe('1:1')
   })
 
   it('switches to the first model when the chosen one is no longer offered', () => {
