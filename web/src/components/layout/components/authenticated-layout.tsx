@@ -37,7 +37,12 @@ export function AuthenticatedLayout(props: AuthenticatedLayoutProps) {
   return (
     <LayoutProvider>
       <SearchProvider>
-        <SidebarProvider defaultOpen={defaultOpen} className='flex-col'>
+        <SidebarProvider
+          defaultOpen={defaultOpen}
+          // The inset layout paints its frame in the sidebar color; drop it so
+          // the site backdrop (AuroraBackground) shows around the content.
+          className='flex-col has-data-[variant=inset]:bg-transparent'
+        >
           <SkipToMain />
           <AppHeader />
           <div className='flex min-h-0 w-full flex-1'>
