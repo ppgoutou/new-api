@@ -18,6 +18,7 @@ For commercial licensing, please contact support@quantumnous.com
 */
 import { render, screen, waitFor, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
+import type { ReactNode } from 'react'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
 import { createVideoTask, uploadVideoAsset } from '../api'
@@ -27,6 +28,17 @@ import { draftFromVideoRequest } from '../lib/draft'
 import type { VideoTaskRequest } from '../types'
 
 const studioModels = vi.hoisted(() => ({ current: [] as StudioModel[] }))
+const studioBalance = vi.hoisted(() => ({
+  shortfallUSD: null as number | null,
+}))
+
+vi.mock('@tanstack/react-router', () => ({
+  Link: (props: { to: string; className?: string; children: ReactNode }) => (
+    <a href={props.to} className={props.className}>
+      {props.children}
+    </a>
+  ),
+}))
 
 vi.mock('../api', () => ({
   uploadVideoAsset: vi.fn(),
@@ -38,13 +50,21 @@ vi.mock('../hooks/use-studio-models', () => ({
 }))
 
 vi.mock('../hooks/use-studio-price', () => ({
-  useStudioPrice: () => '¥0.75',
+  useStudioPrice: () => ({ label: '¥0.75', costUSD: 0.11 }),
+}))
+
+vi.mock('../hooks/use-studio-balance', () => ({
+  useStudioBalance: () => ({
+    shortfallUSD: studioBalance.shortfallUSD,
+    refresh: vi.fn(),
+  }),
 }))
 
 const uploadMock = vi.mocked(uploadVideoAsset)
 const createMock = vi.mocked(createVideoTask)
 
 beforeEach(() => {
+  studioBalance.shortfallUSD = null
   studioModels.current = [
     {
       name: 'seedance-2.0',
@@ -336,5 +356,37 @@ describe('Composer', () => {
       screen.getByRole('button', { name: 'Generate video' })
     ).toHaveAttribute('title', 'No video model is available')
     expect(createMock).not.toHaveBeenCalled()
+  })
+})
+
+describe('Composer balance check', () => {
+  it('shows the shortfall with a top-up link and blocks submission when the wallet falls short', async () => {
+    studioBalance.shortfallUSD = 0.5
+    const user = userEvent.setup()
+    render(<Composer onSubmitted={vi.fn()} />)
+    await user.type(
+      screen.getByRole('textbox', { name: 'Video prompt' }),
+      'a cat runs'
+    )
+
+    const alert = screen.getByRole('alert')
+    expect(alert).toHaveTextContent('Insufficient balance')
+    expect(
+      within(alert).getByRole('link', { name: 'Go to top up' })
+    ).toHaveAttribute('href', '/wallet')
+    const button = screen.getByRole('button', { name: 'Generate video' })
+    expect(button).toBeDisabled()
+    await user.type(
+      screen.getByRole('textbox', { name: 'Video prompt' }),
+      '{Enter}'
+    )
+    expect(createMock).not.toHaveBeenCalled()
+  })
+
+  it('keeps the generate button enabled without a shortfall notice when the balance covers the cost', () => {
+    render(<Composer onSubmitted={vi.fn()} />)
+
+    expect(screen.queryByRole('alert')).not.toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Generate video' })).toBeEnabled()
   })
 })

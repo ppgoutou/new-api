@@ -7675,6 +7675,8 @@
     "Delete this video?": "Удалить это видео?",
     "The video is removed from your works in this browser. Its usage record is kept.": "Видео будет удалено из ваших работ в этом браузере. Запись об использовании сохранится.",
     "Delete this image?": "Удалить это изображение?",
-    "The image is removed from this browser. Download it first if you want to keep it.": "Изображение будет удалено из этого браузера. Сначала скачайте его, если хотите сохранить."
+    "The image is removed from this browser. Download it first if you want to keep it.": "Изображение будет удалено из этого браузера. Сначала скачайте его, если хотите сохранить.",
+    "Insufficient balance, {{amount}} short.": "Недостаточно средств, не хватает {{amount}}.",
+    "Go to top up": "Пополнить"
   }
 }

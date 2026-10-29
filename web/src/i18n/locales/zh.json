@@ -7675,6 +7675,8 @@
     "Delete this video?": "删除这个视频？",
     "The video is removed from your works in this browser. Its usage record is kept.": "该视频将从本浏览器的作品列表中移除，使用记录会保留。",
     "Delete this image?": "删除这张图片？",
-    "The image is removed from this browser. Download it first if you want to keep it.": "该图片将从本浏览器中移除。如需保留，请先下载。"
+    "The image is removed from this browser. Download it first if you want to keep it.": "该图片将从本浏览器中移除。如需保留，请先下载。",
+    "Insufficient balance, {{amount}} short.": "余额不足，还差 {{amount}}。",
+    "Go to top up": "去充值"
   }
 }

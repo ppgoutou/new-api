@@ -18,6 +18,7 @@ For commercial licensing, please contact support@quantumnous.com
 */
 import { render, screen, waitFor, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
+import type { ReactNode } from 'react'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
 import { useStudioImageWorks } from '@/stores/studio-image-works-store'
@@ -26,6 +27,10 @@ import { generateImages } from '../api'
 import { ImageComposer } from '../components/image-composer'
 import { ImageWorksList } from '../components/image-works-list'
 import { STUDIO_IMAGE_WORKS_KEY } from '../constants'
+
+const studioBalance = vi.hoisted(() => ({
+  shortfallUSD: null as number | null,
+}))
 
 vi.mock('../api', () => ({
   uploadVideoAsset: vi.fn(),
@@ -40,12 +45,28 @@ vi.mock('../hooks/use-studio-models', () => ({
 }))
 
 vi.mock('../hooks/use-studio-price', () => ({
-  useStudioImagePrice: () => '¥0.19',
+  useStudioImagePrice: () => ({ label: '¥0.19', costUSD: 0.03 }),
+}))
+
+vi.mock('../hooks/use-studio-balance', () => ({
+  useStudioBalance: () => ({
+    shortfallUSD: studioBalance.shortfallUSD,
+    refresh: vi.fn(),
+  }),
+}))
+
+vi.mock('@tanstack/react-router', () => ({
+  Link: (props: { to: string; className?: string; children: ReactNode }) => (
+    <a href={props.to} className={props.className}>
+      {props.children}
+    </a>
+  ),
 }))
 
 const generateMock = vi.mocked(generateImages)
 
 beforeEach(() => {
+  studioBalance.shortfallUSD = null
   window.localStorage.clear()
   useStudioImageWorks.setState({ works: [] })
   generateMock.mockResolvedValue([
@@ -101,6 +122,26 @@ describe('ImageComposer', () => {
     expect(
       screen.getByRole('button', { name: 'Model: seedream-5-0-flash' })
     ).toBeInTheDocument()
+  })
+
+  it('blocks generation and links to top-up when the wallet falls short', async () => {
+    studioBalance.shortfallUSD = 0.2
+    const user = userEvent.setup()
+    render(<ImageComposer />)
+    await user.type(
+      screen.getByRole('textbox', { name: 'Image prompt' }),
+      'a red fox{Enter}'
+    )
+
+    expect(screen.getByRole('alert')).toHaveTextContent('Insufficient balance')
+    expect(screen.getByRole('link', { name: 'Go to top up' })).toHaveAttribute(
+      'href',
+      '/wallet'
+    )
+    expect(
+      screen.getByRole('button', { name: 'Generate image' })
+    ).toBeDisabled()
+    expect(generateMock).not.toHaveBeenCalled()
   })
 })
 

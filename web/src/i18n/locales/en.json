@@ -7675,6 +7675,8 @@
     "Delete this video?": "Delete this video?",
     "The video is removed from your works in this browser. Its usage record is kept.": "The video is removed from your works in this browser. Its usage record is kept.",
     "Delete this image?": "Delete this image?",
-    "The image is removed from this browser. Download it first if you want to keep it.": "The image is removed from this browser. Download it first if you want to keep it."
+    "The image is removed from this browser. Download it first if you want to keep it.": "The image is removed from this browser. Download it first if you want to keep it.",
+    "Insufficient balance, {{amount}} short.": "Insufficient balance, {{amount}} short.",
+    "Go to top up": "Go to top up"
   }
 }

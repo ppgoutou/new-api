@@ -28,6 +28,7 @@ import { getServerErrorMessage } from '@/lib/server-error-message'
 import { createVideoTask } from '../api'
 import { ASSET_RETENTION_DAYS } from '../constants'
 import { assetKindOf, useAssetUploader } from '../hooks/use-asset-uploader'
+import { useStudioBalance } from '../hooks/use-studio-balance'
 import { useStudioDraft } from '../hooks/use-studio-draft'
 import { useStudioModels } from '../hooks/use-studio-models'
 import { useStudioPrice } from '../hooks/use-studio-price'
@@ -44,6 +45,7 @@ import { ChoiceMenu } from './choice-menu'
 import { ParamsPopover } from './params-popover'
 import { PromptInput } from './prompt-input'
 import { FramePanel, ReferencePanel } from './reference-panel'
+import { StudioCost } from './studio-cost'
 
 interface ComposerProps {
   /** Called after tasks are created, so the works list can refresh. */
@@ -66,6 +68,8 @@ export function Composer(props: ComposerProps) {
   const model = findStudioModel(models, draft.model)
   const upload = useAssetUploader()
   const price = useStudioPrice(draft)
+  const balance = useStudioBalance(price?.costUSD ?? null)
+  const insufficient = balance.shortfallUSD !== null
   const [submitting, setSubmitting] = useState(false)
   const problem = model ? validateDraft(draft) : 'No video model is available'
 
@@ -89,6 +93,7 @@ export function Composer(props: ComposerProps) {
       toast.error(t(problem))
       return
     }
+    if (insufficient) return
     setSubmitting(true)
     const body = buildVideoRequest(draft)
     const spec = `${body.model} · ${body.resolution} · ${t('{{seconds}}s', { seconds: body.seconds })}`
@@ -106,6 +111,7 @@ export function Composer(props: ComposerProps) {
       toast.error(getServerErrorMessage(error, t('Task submission failed')))
     } finally {
       setSubmitting(false)
+      balance.refresh()
       if (created > 0) props.onSubmitted()
     }
   }
@@ -194,18 +200,13 @@ export function Composer(props: ComposerProps) {
           </>
         )}
         <div className='ml-auto flex items-center gap-3'>
-          {price && (
-            <span className='text-muted-foreground text-xs'>
-              {t('Estimated cost')}{' '}
-              <span className='text-foreground font-semibold'>{price}</span>
-            </span>
-          )}
+          <StudioCost price={price} shortfallUSD={balance.shortfallUSD} />
           <Button
             type='button'
             size='icon'
             className='size-9 rounded-full'
             onClick={submit}
-            disabled={submitting}
+            disabled={submitting || insufficient}
             aria-label={t('Generate video')}
             title={problem ? t(problem) : t('Generate video')}
           >
