@@ -142,15 +142,16 @@ func TestUpstreamModelPricing(t *testing.T) {
 	}
 }
 
-func TestUpstreamPriceCheckPricesNewModelsAndApplyOverwrites(t *testing.T) {
+func TestUpstreamPriceCheckPricesNewModelsAndTracksSupplierChanges(t *testing.T) {
 	modelManagementDB(t, "sqlite", "")
 	service.InitHttpClient()
 	expr := "tier(\"base\", p * 2 + c * 8)"
+	supplierPrice := "0.3"
 	upstream := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		assert.Equal(t, "Bearer supplier-token", r.Header.Get("Authorization"))
 		_, _ = w.Write([]byte(`{"success":true,"group_ratio":{"default":1},"data":[
 			{"model_name":"new-model","quota_type":0,"model_ratio":1,"billing_mode":"tiered_expr","billing_expr":"tier(\"base\", p * 2 + c * 8)"},
-			{"model_name":"priced-model","quota_type":1,"model_price":0.3},
+			{"model_name":"priced-model","quota_type":1,"model_price":` + supplierPrice + `},
 			{"model_name":"unserved-model","quota_type":1,"model_price":0.9}
 		]}`))
 	}))
@@ -196,10 +197,24 @@ func TestUpstreamPriceCheckPricesNewModelsAndApplyOverwrites(t *testing.T) {
 	assert.Equal(t, model.PricingValues{"ModelPrice": 0.2}, pricing("priced-model"))
 	assert.NotContains(t, models, "unserved-model")
 	assert.Equal(t, true, models["new-model"].(map[string]any)["in_sync"])
+	assert.Equal(t, true, models["priced-model"].(map[string]any)["in_sync"],
+		"a local price that differs from the supplier's text is not a supplier change")
+
+	supplierPrice = "0.4"
+	models = call(CheckOnboardingUpstreamPrices, "")
+
+	assert.Equal(t, model.PricingValues{"ModelPrice": 0.2}, pricing("priced-model"), "a supplier change never rewrites a charged price")
 	assert.Equal(t, false, models["priced-model"].(map[string]any)["in_sync"])
 
+	models = call(AcknowledgeOnboardingUpstreamPrices, `{"model_names":["priced-model"]}`)
+
+	assert.Equal(t, model.PricingValues{"ModelPrice": 0.2}, pricing("priced-model"))
+	assert.Equal(t, true, models["priced-model"].(map[string]any)["in_sync"], "handled on every channel")
+
+	supplierPrice = "0.5"
+	call(CheckOnboardingUpstreamPrices, "")
 	models = call(ApplyOnboardingUpstreamPrice, `{"model_name":"priced-model"}`)
 
-	assert.Equal(t, model.PricingValues{"ModelPrice": 0.3}, pricing("priced-model"))
+	assert.Equal(t, model.PricingValues{"ModelPrice": 0.5}, pricing("priced-model"))
 	assert.Equal(t, true, models["priced-model"].(map[string]any)["in_sync"])
 }

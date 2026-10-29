@@ -378,6 +378,10 @@ export function OnboardingSection() {
             onApplyUpstreamPrice={() =>
               applyPrice.mutate(current.item.model_name)
             }
+            acknowledgingUpstreamPrice={acknowledge.isPending}
+            onAcknowledgeUpstreamPrice={() =>
+              acknowledge.mutate({ model_names: [current.item.model_name] })
+            }
           />
         ) : (
           <EmptyState

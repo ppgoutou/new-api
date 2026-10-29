@@ -36,8 +36,9 @@ import type {
   UpstreamPriceReport,
 } from '../../types'
 
+/** Without a channel, the named models are handled on every channel. */
 export type AcknowledgeRequest = {
-  channel_id: number
+  channel_id?: number
   model_names?: string[]
   group_ratio?: boolean
 }

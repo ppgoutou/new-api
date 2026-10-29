@@ -36,14 +36,18 @@ import { hasEffectivePricing } from '../../lib/onboarding'
 import type { UpstreamModelPrice } from '../../types'
 
 /**
- * Read-only price of an onboarding model. Prices follow the supplier; the
- * only action copies the latest upstream price over a different one.
+ * Read-only price of an onboarding model. Prices follow the supplier. Local
+ * prices may rewrite the supplier's expression, so they are never compared
+ * with it: once the supplier changes its price, the admin either copies the
+ * new upstream price or marks it handled after updating the local one.
  */
 export function OnboardingPriceCard(props: {
   modelName: string
   upstream: UpstreamModelPrice | undefined
   applying: boolean
   onApply: () => void
+  acknowledging: boolean
+  onAcknowledge: () => void
 }) {
   const { t } = useTranslation()
   const canEdit = useCanEditModelPricing()
@@ -75,6 +79,8 @@ export function OnboardingPriceCard(props: {
           priced={hasEffectivePricing(entry)}
           applying={props.applying}
           onApply={props.onApply}
+          acknowledging={props.acknowledging}
+          onAcknowledge={props.onAcknowledge}
         />
         {hasEffectivePricing(entry) && (
           <div className='space-y-2'>
@@ -115,6 +121,8 @@ function UpstreamPriceStatus(props: {
   priced: boolean
   applying: boolean
   onApply: () => void
+  acknowledging: boolean
+  onAcknowledge: () => void
 }) {
   const { t } = useTranslation()
   if (!props.upstream) {
@@ -138,12 +146,13 @@ function UpstreamPriceStatus(props: {
       <StatusBadge
         size='sm'
         variant='success'
-        label={t('Matches the upstream price of {{name}}', {
+        label={t('Upstream price of {{name}} unchanged', {
           name: props.upstream.channel_name,
         })}
       />
     )
   }
+  const busy = props.applying || props.acknowledging
   return (
     <div className='flex flex-wrap items-center justify-between gap-2'>
       <StatusBadge
@@ -151,15 +160,27 @@ function UpstreamPriceStatus(props: {
         variant='warning'
         label={
           props.priced
-            ? t('Differs from the upstream price of {{name}}', {
+            ? t('Upstream price of {{name}} changed', {
                 name: props.upstream.channel_name,
               })
             : t('No price yet')
         }
       />
-      <Button size='sm' disabled={props.applying} onClick={props.onApply}>
-        {props.applying ? t('Saving...') : t('Use upstream price')}
-      </Button>
+      <div className='flex flex-wrap gap-2'>
+        {props.priced && (
+          <Button
+            size='sm'
+            variant='outline'
+            disabled={busy}
+            onClick={props.onAcknowledge}
+          >
+            {t('Mark handled')}
+          </Button>
+        )}
+        <Button size='sm' disabled={busy} onClick={props.onApply}>
+          {props.applying ? t('Saving...') : t('Use upstream price')}
+        </Button>
+      </div>
     </div>
   )
 }

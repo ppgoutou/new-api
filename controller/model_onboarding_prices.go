@@ -421,6 +421,15 @@ func upstreamPriceReport(rows []upstreamPriceChannel) (gin.H, error) {
 	for _, row := range rows {
 		changes = append(changes, snapshotChanges(row, snapshots[strconv.Itoa(row.ID)])...)
 	}
+	// A local price is often a rewritten form of the supplier's expression, so
+	// it is never compared with the supplier's text. A priced model is in sync
+	// while the supplier's price is still the one last handled.
+	changed := make(map[string]bool)
+	for _, change := range changes {
+		if change.Kind != "group_ratio" {
+			changed[change.ModelName] = true
+		}
+	}
 	prices := upstreamModelPrices(rows, snapshots)
 	if len(prices) > 0 {
 		local, err := model.GetModelPricingSnapshot(slices.Collect(maps.Keys(prices)))
@@ -429,10 +438,7 @@ func upstreamPriceReport(rows []upstreamPriceChannel) (gin.H, error) {
 		}
 		for _, entry := range local.Entries {
 			price := prices[entry.ModelName]
-			if price.Pricing == nil {
-				continue
-			}
-			price.InSync = model.ModelPricingVersion(chargedModelPricing(entry.Configured)) == model.ModelPricingVersion(price.Pricing)
+			price.InSync = len(chargedModelPricing(entry.Configured)) > 0 && !changed[entry.ModelName]
 			prices[entry.ModelName] = price
 		}
 	}
@@ -634,42 +640,47 @@ func ApplyOnboardingUpstreamPrice(c *gin.Context) {
 
 // AcknowledgeOnboardingUpstreamPrices moves the latest upstream values into
 // the baseline for the given models (all models when none are given), so
-// handled changes stop showing.
+// handled changes stop showing. Channel 0 takes the given models on every
+// channel.
 func AcknowledgeOnboardingUpstreamPrices(c *gin.Context) {
 	var request struct {
 		ChannelID  int      `json:"channel_id"`
 		ModelNames []string `json:"model_names"`
 		GroupRatio bool     `json:"group_ratio"`
 	}
-	if err := common.DecodeJson(c.Request.Body, &request); err != nil || request.ChannelID <= 0 {
+	if err := common.DecodeJson(c.Request.Body, &request); err != nil || request.ChannelID < 0 || (request.ChannelID == 0 && len(request.ModelNames) == 0) {
 		common.ApiErrorStatus(c, http.StatusBadRequest, common.NewMessage("Invalid request parameter format"))
 		return
 	}
 	snapshots := readOnboardingOption[map[string]upstreamPriceSnapshot](onboardingPriceSnapshotOption)
-	key := strconv.Itoa(request.ChannelID)
-	snapshot, ok := snapshots[key]
-	if !ok || snapshot.LatestTime == 0 {
-		common.ApiErrorStatus(c, http.StatusBadRequest, common.NewMessage("Invalid request parameter format"))
-		return
-	}
-	if len(request.ModelNames) == 0 && !request.GroupRatio {
-		snapshot.Baseline, snapshot.BaselineGroup = snapshot.Latest, snapshot.LatestGroup
+	if request.ChannelID == 0 {
+		acceptUpstreamBaseline(snapshots, request.ModelNames)
 	} else {
-		if snapshot.Baseline == nil {
-			snapshot.Baseline = map[string]map[string]any{}
+		key := strconv.Itoa(request.ChannelID)
+		snapshot, ok := snapshots[key]
+		if !ok || snapshot.LatestTime == 0 {
+			common.ApiErrorStatus(c, http.StatusBadRequest, common.NewMessage("Invalid request parameter format"))
+			return
 		}
-		for _, name := range request.ModelNames {
-			if latest, exists := snapshot.Latest[name]; exists {
-				snapshot.Baseline[name] = latest
-			} else {
-				delete(snapshot.Baseline, name)
+		if len(request.ModelNames) == 0 && !request.GroupRatio {
+			snapshot.Baseline, snapshot.BaselineGroup = snapshot.Latest, snapshot.LatestGroup
+		} else {
+			if snapshot.Baseline == nil {
+				snapshot.Baseline = map[string]map[string]any{}
+			}
+			for _, name := range request.ModelNames {
+				if latest, exists := snapshot.Latest[name]; exists {
+					snapshot.Baseline[name] = latest
+				} else {
+					delete(snapshot.Baseline, name)
+				}
+			}
+			if request.GroupRatio {
+				snapshot.BaselineGroup = snapshot.LatestGroup
 			}
 		}
-		if request.GroupRatio {
-			snapshot.BaselineGroup = snapshot.LatestGroup
-		}
+		snapshots[key] = snapshot
 	}
-	snapshots[key] = snapshot
 	if err := writeOnboardingOption(onboardingPriceSnapshotOption, snapshots); err != nil {
 		common.ApiError(c, err)
 		return

@@ -283,7 +283,7 @@ export async function checkUpstreamPrices(): Promise<UpstreamPriceReportResponse
  * Accept the latest upstream prices as the new baseline
  */
 export async function acknowledgeUpstreamPrices(request: {
-  channel_id: number
+  channel_id?: number
   model_names?: string[]
   group_ratio?: boolean
 }): Promise<UpstreamPriceReportResponse> {

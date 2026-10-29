@@ -318,7 +318,7 @@ describe('model onboarding workbench', () => {
     )
     await user.click(screen.getByRole('button', { name: /gpt-done/ }))
     expect(
-      await screen.findByText('Differs from the upstream price of alpha')
+      await screen.findByText('Upstream price of alpha changed')
     ).toBeVisible()
     await user.click(screen.getByRole('button', { name: 'Use upstream price' }))
 
@@ -327,6 +327,40 @@ describe('model onboarding workbench', () => {
         '/api/models/onboarding/upstream_prices/apply',
         { model_name: 'gpt-done' }
       )
+    )
+  })
+
+  it('marks a supplier price change handled on every channel without copying it', async () => {
+    signInAsRoot()
+    const user = userEvent.setup()
+    const { post } = mockApi()
+    post.mockResolvedValue({
+      data: { success: true, data: { ...upstreamReport, changes: [] } },
+    })
+    renderSection()
+
+    await user.click(
+      await screen.findByRole('tab', { name: /Upstream repriced \(1\)/ })
+    )
+    await user.click(screen.getByRole('button', { name: /gpt-done/ }))
+    const pricing = (
+      await screen.findByText('Upstream price of alpha changed')
+    ).closest('section, div') as HTMLElement
+    await user.click(
+      within(pricing.parentElement as HTMLElement).getByRole('button', {
+        name: 'Mark handled',
+      })
+    )
+
+    await waitFor(() =>
+      expect(post).toHaveBeenCalledWith(
+        '/api/models/onboarding/upstream_prices/acknowledge',
+        { model_names: ['gpt-done'] }
+      )
+    )
+    expect(post).not.toHaveBeenCalledWith(
+      '/api/models/onboarding/upstream_prices/apply',
+      expect.anything()
     )
   })
 
@@ -345,10 +379,14 @@ describe('model onboarding workbench', () => {
     await user.click(screen.getByRole('button', { name: /gpt-done/ }))
 
     expect(
-      await screen.findByText('Matches the upstream price of alpha')
+      await screen.findByText('Upstream price of alpha unchanged')
     ).toBeVisible()
-    expect(screen.queryByRole('button', { name: 'Use upstream price' })).toBeNull()
-    expect(screen.queryByRole('button', { name: 'Save model prices' })).toBeNull()
+    expect(
+      screen.queryByRole('button', { name: 'Use upstream price' })
+    ).toBeNull()
+    expect(
+      screen.queryByRole('button', { name: 'Save model prices' })
+    ).toBeNull()
     expect(screen.queryByText('Channels and groups')).toBeNull()
   })
 
