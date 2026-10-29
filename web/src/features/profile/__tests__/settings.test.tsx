@@ -187,8 +187,45 @@ describe('user settings saves across profile and security', () => {
     await waitFor(() => expect(onUpdate).toHaveBeenCalled())
     expect(put).toHaveBeenCalledWith('/api/user/setting', {
       ...settings,
+      notify_type: 'email',
       quota_warning_threshold: 2700,
       record_ip_log: false,
     })
+  })
+
+  it('a regular user sees only email notification fields and no preference switches', () => {
+    render(
+      <NotificationTab
+        profile={{ ...profile, setting: JSON.stringify(settings) }}
+        onUpdate={vi.fn()}
+      />
+    )
+    expect(
+      screen.getByRole('textbox', { name: 'Notification Email' })
+    ).toBeInTheDocument()
+    expect(
+      screen.queryByRole('group', { name: 'Notification Method' })
+    ).not.toBeInTheDocument()
+    expect(
+      screen.queryByRole('textbox', { name: 'Webhook URL' })
+    ).not.toBeInTheDocument()
+    expect(screen.queryByRole('switch')).not.toBeInTheDocument()
+  })
+
+  it('an admin sees the upstream model update switch but not the unpriced models switch', () => {
+    render(
+      <NotificationTab
+        profile={{ ...profile, role: 10, setting: JSON.stringify(settings) }}
+        onUpdate={vi.fn()}
+      />
+    )
+    expect(
+      screen.getByRole('switch', {
+        name: 'Receive Upstream Model Update Notifications',
+      })
+    ).toBeInTheDocument()
+    expect(
+      screen.queryByRole('switch', { name: 'Accept Unpriced Models' })
+    ).not.toBeInTheDocument()
   })
 })
