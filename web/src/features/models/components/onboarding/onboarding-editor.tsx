@@ -66,6 +66,8 @@ export function OnboardingEditor(props: {
   upstreamPrice: UpstreamModelPrice | undefined
   applyingUpstreamPrice: boolean
   onApplyUpstreamPrice: () => void
+  acknowledgingUpstreamPrice: boolean
+  onAcknowledgeUpstreamPrice: () => void
 }) {
   const { t } = useTranslation()
   const channelWork =
@@ -105,6 +107,8 @@ export function OnboardingEditor(props: {
         upstream={props.upstreamPrice}
         applying={props.applyingUpstreamPrice}
         onApply={props.onApplyUpstreamPrice}
+        acknowledging={props.acknowledgingUpstreamPrice}
+        onAcknowledge={props.onAcknowledgeUpstreamPrice}
       />
     </div>
   )
