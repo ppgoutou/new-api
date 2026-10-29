@@ -71,12 +71,12 @@ export function Docs() {
     }
     // Keep header cells and inline code on one line; narrow screens scroll
     // the table sideways instead of breaking words. The page sits on the
-    // site backdrop, so tables get a solid surface and inline code a tint
-    // rather than a near-white chip.
+    // site backdrop, so tables get a solid surface and inline code is set
+    // apart by the brand color rather than a background chip.
     return (
       <Markdown
         key={key}
-        className='[&_code]:bg-foreground/[0.06] [&_table]:bg-card [&_table]:w-fit [&_table]:max-w-full [&_td_code]:whitespace-nowrap [&_th]:whitespace-nowrap'
+        className='[&_code]:text-brand dark:[&_code]:text-brand-on-dark [&_table]:bg-card [&_code]:bg-transparent [&_code]:px-0 [&_table]:w-fit [&_table]:max-w-full [&_td_code]:whitespace-nowrap [&_th]:whitespace-nowrap'
       >
         {fill(block.text)}
       </Markdown>
