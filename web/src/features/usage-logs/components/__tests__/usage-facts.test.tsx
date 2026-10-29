@@ -231,4 +231,29 @@ describe('usage facts billing details', () => {
     expect(screen.queryByText('seconds')).toBeNull()
     expect(screen.getByText('Total Cost')).toBeInTheDocument()
   })
+
+  test('shows the matched tier and total cost without prices when the log carries none', () => {
+    queryClients.push(
+      renderDetails({
+        is_task: true,
+        billing_mode: 'tiered_expr',
+        matched_tier: '720p',
+        usage_facts: { resolution: '720p', seconds: 5 },
+      })
+    )
+
+    expect(rowValue('Billing Mode')).toBe('Dynamic Pricing')
+    expect(rowValue('Matched Tier')).toBe('720p')
+    expect(screen.queryByText('Group Ratio')).toBeNull()
+    expect(screen.getAllByText('Dynamic Pricing')).toHaveLength(1)
+    expect(screen.getByText('Total Cost')).toBeInTheDocument()
+  })
+
+  test('omits the billing mode row for a token log that carries no prices', () => {
+    queryClients.push(renderDetails({ cache_tokens: 0 }))
+
+    expect(screen.queryByText('Billing Mode')).toBeNull()
+    expect(screen.queryByText('Per-token')).toBeNull()
+    expect(screen.getByText('Total Cost')).toBeInTheDocument()
+  })
 })
