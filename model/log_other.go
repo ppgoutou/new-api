@@ -25,6 +25,38 @@ var legacySensitiveLogOtherKeys = []string{
 	"reject_reason",
 }
 
+// supplierCostLogOtherKeys are public billing fields that reveal the supply
+// cost (base prices before the group ratio, the billing expression), the
+// markup ratio, or the upstream model and channel setup. Admin views keep
+// them; log owners only see what they were charged.
+var supplierCostLogOtherKeys = []string{
+	"model_ratio",
+	"model_price",
+	"completion_ratio",
+	"cache_ratio",
+	"cache_creation_ratio",
+	"cache_creation_ratio_5m",
+	"cache_creation_ratio_1h",
+	"audio_ratio",
+	"audio_completion_ratio",
+	"audio_input_price",
+	"image_ratio",
+	"group_ratio",
+	"user_group_ratio",
+	"expr_b64",
+	"fixed_price",
+	"request_rules",
+	"tool_surcharges",
+	"web_search_price",
+	"file_search_price",
+	"image_generation_call_price",
+	"is_model_mapped",
+	"upstream_model_name",
+	"response_model",
+	"request_conversion",
+	"po",
+}
+
 type logOtherVisibility int
 
 const (
@@ -250,7 +282,7 @@ func formatLogOtherJSON(value string, visibility logOtherVisibility) string {
 				changed = true
 			}
 		}
-		for _, key := range legacySensitiveLogOtherKeys {
+		for _, key := range slices.Concat(legacySensitiveLogOtherKeys, supplierCostLogOtherKeys) {
 			if _, exists := values[key]; exists {
 				delete(values, key)
 				changed = true

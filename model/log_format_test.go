@@ -31,8 +31,50 @@ func TestFormatUserLogsStripsQuotaSaturation(t *testing.T) {
 	require.NoError(t, err)
 	_, hasAdminInfo := parsed["admin_info"]
 	require.False(t, hasAdminInfo, "admin_info (and nested quota_saturation) must be stripped for non-admin views")
-	// Non-admin billing fields remain visible.
-	require.Contains(t, parsed, "model_price")
+	// The base price is supply cost and stays hidden from log owners.
+	require.NotContains(t, parsed, "model_price")
+}
+
+// TestFormatUserLogsHidesSupplierCost verifies log owners never receive base
+// prices, the markup ratio, or upstream identifiers, while admins still do.
+func TestFormatUserLogsHidesSupplierCost(t *testing.T) {
+	other := common.MapToJsonStr(map[string]any{
+		"model_price":         0.5936,
+		"model_ratio":         1.5,
+		"completion_ratio":    4,
+		"group_ratio":         1.05,
+		"user_group_ratio":    -1,
+		"billing_mode":        "tiered_expr",
+		"expr_b64":            "cGFyYW0oInNlY29uZHMiKSAqIDAuNQ==",
+		"fixed_price":         7.0,
+		"matched_tier":        "720p",
+		"usage_facts":         map[string]any{"seconds": 5},
+		"is_model_mapped":     true,
+		"upstream_model_name": "vendor-model",
+		"po":                  []string{"set temperature"},
+	})
+	newLog := func() *Log {
+		return &Log{ChannelId: 3, UpstreamRequestId: "upstream-req", Other: other}
+	}
+
+	userLog := newLog()
+	formatUserLogs([]*Log{userLog}, 0)
+	assert.Zero(t, userLog.ChannelId)
+	assert.Empty(t, userLog.UpstreamRequestId)
+	parsed, err := common.StrToMap(userLog.Other)
+	require.NoError(t, err)
+	for _, key := range []string{"model_price", "model_ratio", "completion_ratio", "group_ratio", "user_group_ratio", "expr_b64", "fixed_price", "is_model_mapped", "upstream_model_name", "po"} {
+		assert.NotContains(t, parsed, key)
+	}
+	assert.Equal(t, "tiered_expr", parsed["billing_mode"])
+	assert.Equal(t, "720p", parsed["matched_tier"])
+	assert.Contains(t, parsed, "usage_facts")
+
+	adminLog := newLog()
+	FormatAdminLogs([]*Log{adminLog})
+	assert.Equal(t, 3, adminLog.ChannelId)
+	assert.Equal(t, "upstream-req", adminLog.UpstreamRequestId)
+	assert.Equal(t, other, adminLog.Other)
 }
 
 func TestTaskPluginLogVisibilityIsRoleSeparated(t *testing.T) {
@@ -61,7 +103,7 @@ func TestTaskPluginLogVisibilityIsRoleSeparated(t *testing.T) {
 		require.NoError(t, err)
 		assert.NotContains(t, parsed, "admin_info")
 		assert.NotContains(t, parsed, "root_info")
-		assert.Equal(t, 1.25, parsed["model_price"])
+		assert.NotContains(t, parsed, "model_price")
 	})
 
 	t.Run("admin", func(t *testing.T) {
@@ -114,7 +156,7 @@ func TestLegacyLogOtherVisibilityIsRoleSeparated(t *testing.T) {
 		formatUserLogs(logs, 10)
 
 		assert.Equal(t, 11, logs[0].Id)
-		assert.Equal(t, 77, logs[0].ChannelId)
+		assert.Zero(t, logs[0].ChannelId)
 		assert.Empty(t, logs[0].ChannelName)
 		parsed, err := common.StrToMap(logs[0].Other)
 		require.NoError(t, err)
@@ -231,7 +273,7 @@ func TestLogFormattingPreservesLargeIntegerLexemes(t *testing.T) {
 	})
 
 	t.Run("unprivileged", func(t *testing.T) {
-		const unprivileged = `{"public_id":9007199254740993,"model_price":0.004}`
+		const unprivileged = `{"public_id":9007199254740993,"matched_tier":"720p"}`
 
 		userLogs := []*Log{{Other: unprivileged}}
 		formatUserLogs(userLogs, 0)

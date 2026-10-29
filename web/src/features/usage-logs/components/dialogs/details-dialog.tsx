@@ -214,15 +214,15 @@ function BillingBreakdown(props: {
         value: fmtPrice(other.model_price),
       })
     }
-  } else {
+  } else if (other.model_ratio != null) {
+    // Logs served to their owners carry no base prices, so the mode is only
+    // shown when its prices are.
     rows.push({ label: t('Billing Mode'), value: t('Per-token') })
-    if (other.model_ratio != null) {
-      rows.push({
-        label: t('Input'),
-        value: `${fmtPrice(baseInputUSD)}/M`,
-      })
-    }
-    if (other.completion_ratio != null && other.model_ratio != null) {
+    rows.push({
+      label: t('Input'),
+      value: `${fmtPrice(baseInputUSD)}/M`,
+    })
+    if (other.completion_ratio != null) {
       rows.push({
         label: t('Output'),
         value: `${fmtPrice(baseInputUSD * other.completion_ratio)}/M`,

@@ -465,6 +465,20 @@ func tasksToDto(tasks []*model.Task, fillUser bool, viewerRole int) []*dto.TaskD
 				item.FailReason = ""
 			}
 		}
+		if viewerRole < common.RoleAdminUser {
+			// Plugin keys and channel-type platforms name the supplier, and
+			// the raw upstream body carries its task IDs and URLs. Only suno
+			// stays because the console renders its legacy clips by platform.
+			if task.Platform != constant.TaskPlatformSuno {
+				item.Platform = ""
+			}
+			item.ChannelId = 0
+			item.Data = nil
+			item.Properties = model.Properties{
+				Input:           task.Properties.Input,
+				OriginModelName: task.Properties.OriginModelName,
+			}
+		}
 		if viewerRole >= common.RoleAdminUser {
 			adminInfo := &dto.TaskAdminInfo{}
 			if execution := task.PrivateData.Execution; execution != nil {
