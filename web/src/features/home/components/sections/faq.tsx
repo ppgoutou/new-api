@@ -93,7 +93,7 @@ export function Faq() {
                 {t('Refunds follow our refund policy.')}{' '}
                 <Link
                   to='/refund-policy'
-                  className='text-blue-600 hover:underline dark:text-blue-400'
+                  className='text-brand dark:text-brand-on-dark hover:underline'
                 >
                   {t('Refund Policy')}
                 </Link>

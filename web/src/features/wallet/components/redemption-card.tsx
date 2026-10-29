@@ -63,7 +63,7 @@ export function RedemptionCard(props: RedemptionCardProps) {
       title={t('Redemption Code Top-up')}
       description={t('Buy with WeChat Pay or Alipay, delivered automatically')}
       icon={<Gift className='h-4 w-4' />}
-      iconClassName='rounded-full bg-blue-600 text-white'
+      iconClassName='bg-brand rounded-full text-white'
       disableHoverEffect
       className='h-full'
       action={
@@ -90,14 +90,14 @@ export function RedemptionCard(props: RedemptionCardProps) {
       ) : (
         <>
           {props.topupLink && (
-            <div className='flex flex-1 flex-col items-center justify-center gap-4 rounded-lg border border-blue-100 bg-blue-50 px-4 py-6 text-center sm:px-6 dark:border-blue-900/60 dark:bg-blue-950/30'>
+            <div className='flex flex-1 flex-col items-center justify-center gap-4 rounded-lg border-brand/15 bg-brand-soft border px-4 py-6 text-center sm:px-6'>
               <ol className='grid w-full grid-cols-3 gap-2 sm:gap-4'>
                 {purchaseSteps.map((step, index) => (
                   <li
                     key={step.title}
                     className='flex flex-col items-center gap-1'
                   >
-                    <span className='bg-background mb-1 flex size-7 items-center justify-center rounded-full border border-blue-200 text-xs font-semibold text-blue-600 dark:border-blue-800 dark:text-blue-400'>
+                    <span className='bg-background mb-1 flex size-7 items-center justify-center rounded-full border-brand/30 text-brand dark:text-brand-on-dark border text-xs font-semibold'>
                       {index + 1}
                     </span>
                     <span className='text-xs leading-snug font-semibold sm:text-sm'>
@@ -115,7 +115,7 @@ export function RedemptionCard(props: RedemptionCardProps) {
                 rel='noopener noreferrer'
                 className={cn(
                   buttonVariants(),
-                  'h-11 gap-2 bg-blue-600 px-6 text-base text-white hover:bg-blue-700'
+                  'h-11 gap-2 bg-brand hover:bg-brand-hover px-6 text-base text-white'
                 )}
               >
                 <Gift className='h-4 w-4' aria-hidden='true' />
@@ -147,7 +147,7 @@ export function RedemptionCard(props: RedemptionCardProps) {
                 <Button
                   onClick={props.onRedeem}
                   disabled={props.redeeming}
-                  className='h-11 bg-blue-600 px-5 text-white hover:bg-blue-700'
+                  className='h-11 bg-brand hover:bg-brand-hover px-5 text-white'
                 >
                   {props.redeeming && (
                     <Loader2 className='mr-2 h-4 w-4 animate-spin' />
@@ -162,7 +162,7 @@ export function RedemptionCard(props: RedemptionCardProps) {
                     href={props.topupLink}
                     target='_blank'
                     rel='noopener noreferrer'
-                    className='text-blue-600 underline underline-offset-4 dark:text-blue-400'
+                    className='text-brand dark:text-brand-on-dark underline underline-offset-4'
                   >
                     {t('Buy redemption code')}
                   </a>

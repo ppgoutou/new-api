@@ -54,25 +54,25 @@ export function LandingPricing() {
   return (
     <div
       id='pricing'
-      className='rounded-2xl bg-gradient-to-br from-blue-400/55 via-slate-400/10 to-violet-400/45 p-px'
+      className='rounded-2xl bg-gradient-to-br from-brand-on-dark/55 via-white/5 to-violet-400/45 p-px'
     >
-      <div className='h-full rounded-[15px] bg-[#0a0f1c] p-5 md:p-6'>
+      <div className='h-full rounded-[15px] bg-ink-raised p-5 md:p-6'>
         <div className='flex flex-wrap items-baseline justify-between gap-2'>
           <h2 className='text-2xl font-bold text-white'>{t('Pricing')}</h2>
-          <p className='font-mono text-xs text-cyan-400'>
+          <p className='font-mono text-xs text-brand-on-dark'>
             ● {t('Live · per second')}
           </p>
         </div>
 
         {models.length === 0 ? (
-          <p className='mt-6 text-sm text-slate-400'>
+          <p className='mt-6 text-sm text-white/60'>
             {t('Billed by generated seconds')}
           </p>
         ) : (
           <div className='mt-4 overflow-x-auto'>
             <table className='w-full text-left text-sm'>
               <thead>
-                <tr className='border-b border-slate-400/15 text-xs text-slate-500'>
+                <tr className='border-b border-white/10 text-xs text-white/50'>
                   <th scope='col' className='py-2.5 pr-3 font-normal'>
                     {t('Resolution')}
                   </th>
@@ -80,7 +80,7 @@ export function LandingPricing() {
                     <th
                       key={model.name}
                       scope='col'
-                      className='py-2.5 pr-3 font-mono font-normal text-slate-300'
+                      className='py-2.5 pr-3 font-mono font-normal text-white/75'
                     >
                       {model.name}
                       {model.isNew && (
@@ -96,11 +96,11 @@ export function LandingPricing() {
                 {options.map((option) => (
                   <tr
                     key={option}
-                    className='border-b border-slate-400/10 last:border-0'
+                    className='border-b border-white/5 last:border-0'
                   >
                     <th
                       scope='row'
-                      className='py-3 pr-3 font-normal text-slate-400'
+                      className='py-3 pr-3 font-normal text-white/60'
                     >
                       {option.replace(/k$/i, 'K')}
                     </th>
@@ -117,13 +117,13 @@ export function LandingPricing() {
                               </span>
                               {row.officialPrice &&
                                 row.officialPrice !== row.price && (
-                                  <s className='ml-2 font-mono text-xs text-slate-600'>
+                                  <s className='ml-2 font-mono text-xs text-white/40'>
                                     {row.officialPrice}
                                   </s>
                                 )}
                             </>
                           ) : (
-                            <span className='text-slate-600'>—</span>
+                            <span className='text-white/40'>—</span>
                           )}
                         </td>
                       )
@@ -135,7 +135,7 @@ export function LandingPricing() {
           </div>
         )}
 
-        <p className='mt-4 text-xs leading-relaxed text-slate-500'>
+        <p className='mt-4 text-xs leading-relaxed text-white/50'>
           {t(
             'Prices are per generated second; struck-through prices are official prices. Tasks with a reference video are billed by tokens.'
           )}{' '}

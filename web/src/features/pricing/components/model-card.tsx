@@ -63,9 +63,8 @@ import type {
 import { ModelBillingModeBadge } from './model-billing-mode-badge'
 import { ModelPerfBadge, type ModelPerfBadgeData } from './model-perf-badge'
 
-// Highlight color shared by the icon tile, the cheapest tier and the details
-// action; dark text keeps it readable in both themes.
-const CARD_ACCENT_CLASS = 'bg-[#ffd23f] text-neutral-950'
+// Brand color shared by the cheapest tier and the details action.
+const CARD_ACCENT_CLASS = 'bg-brand text-white'
 
 export interface ModelCardProps {
   model: PricingModel
@@ -95,9 +94,9 @@ const FOOTER_LAYOUT_WITH_TRY = {
 }
 
 const MODEL_BADGE_CLASSES: Record<PricingModelBadge, string> = {
-  recommended: 'bg-[#2f6bff] text-white',
-  hot: 'bg-[#ff4d2e] text-white',
-  new: 'bg-[#16c784] text-neutral-950',
+  recommended: 'bg-brand text-white',
+  hot: 'bg-destructive text-destructive-foreground',
+  new: 'bg-success text-success-foreground',
 }
 
 export const ModelCard = memo(function ModelCard(props: ModelCardProps) {
@@ -409,8 +408,7 @@ export const ModelCard = memo(function ModelCard(props: ModelCardProps) {
         <div
           aria-hidden
           className={cn(
-            'border-foreground flex size-11 shrink-0 items-center justify-center rounded-xl border-2',
-            CARD_ACCENT_CLASS
+            'border-foreground bg-brand-soft text-brand-hover dark:text-brand-on-dark flex size-11 shrink-0 items-center justify-center rounded-xl border-2'
           )}
         >
           {modelIcon || <span className='text-sm font-bold'>{initial}</span>}
@@ -575,7 +573,7 @@ export const ModelCard = memo(function ModelCard(props: ModelCardProps) {
               variant='ghost'
               onClick={() => props.onClick(props.model.model_name || '')}
               className={cn(
-                'h-auto min-h-11 flex-1 rounded-none px-5 font-bold hover:bg-[#ffc400] hover:text-neutral-950',
+                'h-auto min-h-11 flex-1 rounded-none px-5 font-bold hover:bg-brand-hover hover:text-white',
                 showTry && 'border-foreground border-l-2',
                 footerLayout.button,
                 CARD_ACCENT_CLASS

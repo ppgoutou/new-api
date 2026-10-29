@@ -61,7 +61,7 @@ export function UseCases() {
       className='relative z-10 scroll-mt-20 px-6 py-20 md:py-28'
     >
       <div className='mx-auto max-w-6xl'>
-        <p className='mb-2 text-sm font-semibold text-blue-600 dark:text-blue-400'>
+        <p className='mb-2 text-sm font-semibold text-brand dark:text-brand-on-dark'>
           {t('Use cases')}
         </p>
         <h2 className='text-3xl font-bold tracking-tight md:text-4xl'>
@@ -78,7 +78,7 @@ export function UseCases() {
                 description={item.desc}
                 icon={
                   <item.icon
-                    className='size-5 text-amber-600 dark:text-amber-400'
+                    className='size-5 text-highlight'
                     aria-hidden
                   />
                 }

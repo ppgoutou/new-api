@@ -57,8 +57,8 @@ export function VideoHero(props: VideoHeroProps) {
   return (
     <section className='relative z-10 px-6 pt-24 pb-16 md:pt-32 md:pb-24'>
       <div className='mx-auto flex max-w-6xl flex-col items-center gap-6 text-center'>
-        <p className='landing-animate-fade-up inline-flex items-center gap-2 rounded-full border border-blue-500/20 bg-blue-500/5 px-3.5 py-1.5 text-xs font-medium text-blue-700 opacity-0 dark:border-blue-400/20 dark:bg-blue-400/5 dark:text-blue-300'>
-          <span className='size-1.5 rounded-full bg-cyan-500' aria-hidden />
+        <p className='landing-animate-fade-up inline-flex items-center gap-2 rounded-full border-brand/20 bg-brand-soft text-brand-hover dark:text-brand-on-dark border px-3.5 py-1.5 text-xs font-medium opacity-0'>
+          <span className='size-1.5 rounded-full bg-brand' aria-hidden />
           {t('Seedance 2.5 is live · up to 30 seconds per clip')}
         </p>
         <h1
@@ -66,7 +66,7 @@ export function VideoHero(props: VideoHeroProps) {
           style={{ animationDelay: '60ms' }}
         >
           {t('Turn one sentence into')}{' '}
-          <span className='text-blue-600 dark:text-blue-400'>
+          <span className='text-brand dark:text-brand-on-dark'>
             {t('cinematic video')}
           </span>
         </h1>
@@ -118,7 +118,7 @@ export function VideoHero(props: VideoHeroProps) {
       </div>
 
       <figure
-        className='landing-animate-fade-up border-border/60 relative mx-auto mt-12 max-w-5xl overflow-hidden rounded-2xl border bg-slate-950 opacity-0 shadow-2xl shadow-blue-950/20'
+        className='landing-animate-fade-up border-border/60 relative mx-auto mt-12 max-w-5xl overflow-hidden rounded-2xl border bg-ink opacity-0 shadow-2xl shadow-ink/20'
         style={{ animationDelay: '240ms' }}
       >
         <div className='relative aspect-video'>
@@ -131,23 +131,23 @@ export function VideoHero(props: VideoHeroProps) {
             soundToggle
           />
           {hero.spec && (
-            <span className='absolute top-3 left-3 rounded-md bg-slate-950/70 px-2.5 py-1 font-mono text-xs text-slate-100'>
+            <span className='absolute top-3 left-3 rounded-md bg-ink/70 px-2.5 py-1 font-mono text-xs text-white/90'>
               {hero.spec}
             </span>
           )}
         </div>
         {/* Below the clip on phones; overlaid on its bottom edge from sm up. */}
         {hero.prompt && (
-          <figcaption className='flex flex-wrap items-center gap-x-3 gap-y-2 px-4 py-3 text-left sm:absolute sm:inset-x-3 sm:bottom-3 sm:rounded-xl sm:bg-slate-950/80 sm:backdrop-blur-sm'>
-            <span className='rounded-md bg-blue-500/20 px-2 py-0.5 text-xs font-semibold text-blue-200'>
+          <figcaption className='flex flex-wrap items-center gap-x-3 gap-y-2 px-4 py-3 text-left sm:absolute sm:inset-x-3 sm:bottom-3 sm:rounded-xl sm:bg-ink/80 sm:backdrop-blur-sm'>
+            <span className='rounded-md bg-brand/25 text-brand-on-dark px-2 py-0.5 text-xs font-semibold'>
               {t('Prompt used')}
             </span>
-            <span className='min-w-0 flex-[1_1_18rem] truncate text-sm text-slate-100'>
+            <span className='min-w-0 flex-[1_1_18rem] truncate text-sm text-white/90'>
               {hero.prompt}
             </span>
             <Link
               to={startTarget}
-              className='text-sm font-semibold text-white hover:text-blue-200'
+              className='text-sm font-semibold hover:text-brand-on-dark text-white'
             >
               {t('Try this prompt')} →
             </Link>

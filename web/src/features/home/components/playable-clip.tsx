@@ -68,9 +68,9 @@ export function PlayableClip(props: PlayableClipProps) {
         />
         <span
           aria-hidden
-          className='absolute inset-0 flex items-center justify-center bg-slate-950/0 opacity-0 transition group-hover:bg-slate-950/35 group-hover:opacity-100 group-focus-visible:bg-slate-950/35 group-focus-visible:opacity-100 [@media(hover:none)]:opacity-100'
+          className='absolute inset-0 flex items-center justify-center bg-ink/0 opacity-0 transition group-hover:bg-ink/35 group-hover:opacity-100 group-focus-visible:bg-ink/35 group-focus-visible:opacity-100 [@media(hover:none)]:opacity-100'
         >
-          <span className='flex items-center gap-2 rounded-full bg-white/90 px-4 py-2 text-sm font-semibold text-slate-900'>
+          <span className='flex items-center gap-2 rounded-full bg-white/90 px-4 py-2 text-ink text-sm font-semibold'>
             <Play className='size-4 fill-current' />
             {t('Play with sound')}
           </span>

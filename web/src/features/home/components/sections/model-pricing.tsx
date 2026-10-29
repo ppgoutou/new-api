@@ -42,7 +42,7 @@ export function ModelPricing() {
       className='relative z-10 scroll-mt-20 px-6 py-20 md:py-28'
     >
       <div className='mx-auto max-w-6xl'>
-        <p className='mb-2 text-sm font-semibold text-blue-600 dark:text-blue-400'>
+        <p className='mb-2 text-sm font-semibold text-brand dark:text-brand-on-dark'>
           {t('Models and pricing')}
         </p>
         <h2 className='text-3xl font-bold tracking-tight md:text-4xl'>
@@ -149,7 +149,7 @@ export function ModelPricing() {
                 ) : (
                   <Link
                     to='/pricing'
-                    className='text-sm font-semibold text-blue-600 hover:underline dark:text-blue-400'
+                    className='text-sm font-semibold text-brand dark:text-brand-on-dark hover:underline'
                   >
                     {t('See prices in the model square')} →
                   </Link>

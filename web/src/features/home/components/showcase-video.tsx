@@ -105,7 +105,7 @@ export function ShowcaseVideo(props: ShowcaseVideoProps) {
         role='img'
         aria-label={t('Video preview: {{label}}', { label: props.label })}
         className={cn(
-          'flex size-full items-center justify-center bg-slate-900 text-slate-400',
+          'flex size-full items-center justify-center bg-ink-raised text-white/60',
           props.className
         )}
       >
@@ -141,7 +141,7 @@ export function ShowcaseVideo(props: ShowcaseVideoProps) {
         preload={preload}
         aria-label={props.label}
         onError={() => setFailed(true)}
-        className={cn('size-full bg-slate-900 object-cover', props.className)}
+        className={cn('bg-ink-raised size-full object-cover', props.className)}
       />
       {props.soundToggle && (
         <Button
@@ -149,7 +149,7 @@ export function ShowcaseVideo(props: ShowcaseVideoProps) {
           size='sm'
           variant='secondary'
           onClick={toggleSound}
-          className='absolute top-3 right-3 gap-1.5 rounded-full bg-slate-950/70 text-slate-100 hover:bg-slate-950/90'
+          className='absolute top-3 right-3 gap-1.5 rounded-full bg-ink/70 hover:bg-ink/90 text-white/90'
         >
           {muted ? (
             <VolumeX data-icon='inline-start' aria-hidden />
