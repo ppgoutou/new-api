@@ -7679,7 +7679,7 @@
     "Insufficient balance, {{amount}} short.": "Solde insuffisant, il manque {{amount}}.",
     "Go to top up": "Recharger",
     "Model distribution": "Répartition des modèles",
-    "Multi-channel groups billed per second, per token or per request, pick what fits; models ending in {{suffix}} are Unrestricted.": "Groupes multicanaux facturés à la seconde, au token ou à la requête, choisissez selon vos besoins ; les modèles finissant par {{suffix}} sont sans restriction.",
+    "Multi-channel groups billed per second, per token or per request, pick what fits; models ending in {{suffix}} offer unrestricted content.": "Groupes multicanaux facturés à la seconde, au token ou à la requête, choisissez selon vos besoins ; les modèles finissant par {{suffix}} proposent du contenu sans restriction.",
     "Billed per second, as low as half the official price": "Facturé à la seconde, jusqu'à moitié prix du tarif officiel",
     "No monthly fee or minimum spend: pay only for what you generate. Each resolution shows the cheapest model in the series.": "Ni abonnement ni minimum : vous ne payez que ce que vous générez. Chaque résolution affiche le modèle le moins cher de la série.",
     "Supports {{models}}": "Prend en charge {{models}}",

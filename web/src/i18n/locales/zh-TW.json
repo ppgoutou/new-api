@@ -7679,7 +7679,7 @@
     "Insufficient balance, {{amount}} short.": "餘額不足，還差 {{amount}}。",
     "Go to top up": "去儲值",
     "Model distribution": "模型分佈",
-    "Multi-channel groups billed per second, per token or per request, pick what fits; models ending in {{suffix}} are Unrestricted.": "多渠道聚合，支援按秒、按 Token、按次計費，按需選擇；模型名帶 {{suffix}} 為無限制內容。",
+    "Multi-channel groups billed per second, per token or per request, pick what fits; models ending in {{suffix}} offer unrestricted content.": "多渠道聚合，支援按秒、按 Token、按次計費，按需選擇；模型名帶 {{suffix}} 為無限制內容。",
     "Billed per second, as low as half the official price": "按生成秒數計費，低至官方 5 折",
     "No monthly fee or minimum spend: pay only for what you generate. Each resolution shows the cheapest model in the series.": "沒有月費和最低消費，用多少付多少。每個解析度展示系列內最便宜的模型價格。",
     "Supports {{models}}": "支援 {{models}}",
