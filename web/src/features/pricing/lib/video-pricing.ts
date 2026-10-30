@@ -32,6 +32,32 @@ export const VIDEO_TOKENS_PER_SECOND: Readonly<Record<string, number>> = {
   '4k': 194400,
 }
 
+/**
+ * Video tokens per output second of one option. A plugin that publishes a
+ * plain-order example for the option (label `… · <n>s`, every other enum fact
+ * `none`) carries its supplier's own conversion; otherwise the reference table
+ * applies.
+ */
+function videoTokensPerSecond(
+  model: Pick<PricingModel, 'billing_usage_examples'>,
+  optionField: string,
+  option: string
+): number | undefined {
+  for (const example of model.billing_usage_examples ?? []) {
+    const facts = example.facts
+    if (facts[optionField] !== option || typeof facts.tokens !== 'number') {
+      continue
+    }
+    const plain = Object.entries(facts).every(
+      ([field, value]) =>
+        field === optionField || typeof value === 'number' || value === 'none'
+    )
+    const seconds = Number(/(\d+)\s*s\b/.exec(example.label)?.[1])
+    if (plain && seconds > 0) return facts.tokens / seconds
+  }
+  return VIDEO_TOKENS_PER_SECOND[option]
+}
+
 /** Video prices are shown rounded to two decimal places. */
 export const VIDEO_PRICE_FRACTION_DIGITS = 2
 
@@ -156,7 +182,7 @@ function videoPricingFromExpr(
       option,
       secondPrice: tier.unitPrices[fields.secondsField] ?? 0,
       referencePricePerMillion,
-      tokensPerSecond: VIDEO_TOKENS_PER_SECOND[option],
+      tokensPerSecond: videoTokensPerSecond(model, fields.optionField, option),
     })
   }
 
@@ -295,7 +321,8 @@ export function getTokenVideoPricing(model: PricingModel): VideoPricing | null {
       tier.conditions.find((condition) => condition.field === optionField)
         ?.value ?? (options.length === 1 ? options[0] : undefined)
     if (option === undefined || rowsByOption.has(option)) return null
-    const tokensPerSecond = VIDEO_TOKENS_PER_SECOND[option]
+    const tokensPerSecond =
+      videoTokensPerSecond(model, optionField, option) ?? 0
     rowsByOption.set(option, {
       option,
       secondPrice:

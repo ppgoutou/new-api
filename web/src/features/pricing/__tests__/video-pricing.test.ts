@@ -262,6 +262,43 @@ describe('per-video pricing', () => {
     expect(pricing?.rows[1].secondPrice).toBeCloseTo(0.3456, 6)
   })
 
+  test('takes tokens per second from the plugin examples when it publishes them', () => {
+    const pricing = getTokenVideoPricing(
+      videoModel(
+        'u("resolution") == "480p" && u("video_input") == "video" ? tier("480p·video", u("tokens") * 9.984 / 1000000) : ' +
+          'u("resolution") == "480p" && u("video_input") == "none" ? tier("480p·none", u("tokens") * 16.692 / 1000000) : ' +
+          'u("resolution") == "720p" && u("video_input") == "video" ? tier("720p·video", u("tokens") * 9.984 / 1000000) : ' +
+          'tier("720p·none", u("tokens") * 16 / 1000000)',
+        {
+          model_name: 'A-seedance-2.5-P',
+          billing_usage_schema: TOKEN_SCHEMA,
+          billing_usage_examples: [
+            {
+              label: '480p · 5s',
+              facts: { tokens: 48038, video_input: 'none', resolution: '480p' },
+            },
+            {
+              label: '480p · 5s · ref video',
+              facts: {
+                tokens: 81664,
+                video_input: 'video',
+                resolution: '480p',
+              },
+            },
+          ],
+        }
+      )
+    )
+
+    expect(
+      pricing?.rows.map((row) => [row.option, row.tokensPerSecond])
+    ).toEqual([
+      ['480p', 9607.6],
+      ['720p', 21600],
+    ])
+    expect(pricing?.rows[0].secondPrice).toBeCloseTo(0.16037, 6)
+  })
+
   test('reads a single-resolution token model and rejects per-second schemas', () => {
     const pricing = getTokenVideoPricing(
       videoModel(
