@@ -4,6 +4,7 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
+	"math/rand/v2"
 	"strconv"
 	"strings"
 
@@ -18,6 +19,13 @@ import (
 )
 
 const UserNameMaxLength = 20
+
+// New users get a random 4-digit id instead of the next sequential one.
+const (
+	randomUserIdMin      = 1000
+	randomUserIdMax      = 9999
+	randomUserIdAttempts = 50
+)
 
 var userSortColumns = map[string]string{
 	"id":            "id",
@@ -626,12 +634,35 @@ func (user *User) prepareForInsert(tx *gorm.DB) error {
 	if err := ensureEmailAvailableWithTx(tx, user.Email, 0); err != nil {
 		return err
 	}
+	if err := assignRandomUserId(tx, user); err != nil {
+		return err
+	}
 	if user.Password == "" {
 		return nil
 	}
 	var err error
 	user.Password, err = common.HashAccountPassword(user.Password)
 	return err
+}
+
+// assignRandomUserId picks an unused id in [randomUserIdMin, randomUserIdMax].
+// If no free id is found it leaves Id at 0 so the database assigns one.
+func assignRandomUserId(tx *gorm.DB, user *User) error {
+	if user.Id != 0 {
+		return nil
+	}
+	for range randomUserIdAttempts {
+		id := randomUserIdMin + rand.IntN(randomUserIdMax-randomUserIdMin+1)
+		var count int64
+		if err := tx.Unscoped().Model(&User{}).Where("id = ?", id).Count(&count).Error; err != nil {
+			return err
+		}
+		if count == 0 {
+			user.Id = id
+			return nil
+		}
+	}
+	return nil
 }
 
 // BindEmailToUser atomically checks email availability and assigns it to the
