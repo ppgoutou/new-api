@@ -7679,6 +7679,6 @@
     "Insufficient balance, {{amount}} short.": "残高不足です。あと {{amount}} 必要です。",
     "Go to top up": "チャージする",
     "Model distribution": "モデル分布",
-    "Multi-channel groups billed per second, per token or per request, pick what fits; models ending in {{suffix}} are Unrestricted.": "複数チャネルを集約し、秒・トークン・回数で課金。用途に合わせて選べます。末尾が {{suffix}} のモデルは Unrestricted（制限なし）です。"
+    "Multi-channel groups billed per second, per token or per request, pick what fits; models ending in {{suffix}} are Unrestricted.": "複数チャネルを集約し、秒・トークン・回数で課金。用途に合わせて選べます。末尾が {{suffix}} のモデルは制限なしです。"
   }
 }
