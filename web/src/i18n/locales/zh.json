@@ -7677,6 +7677,9 @@
     "Delete this image?": "删除这张图片？",
     "The image is removed from this browser. Download it first if you want to keep it.": "该图片将从本浏览器中移除。如需保留，请先下载。",
     "Insufficient balance, {{amount}} short.": "余额不足，还差 {{amount}}。",
-    "Go to top up": "去充值"
+    "Go to top up": "去充值",
+    "Model distribution": "模型分布",
+    "Each model group combines models from multiple channels, billed per second, per token or per request. Choose the model that fits your needs.": "每个模型分组支持多个渠道模型，提供按秒计费、按 Token 计费、按次计费，请根据自身需求选择适合自己的模型。",
+    "Models ending in {{suffix}} are Unrestricted.": "模型末尾带 {{suffix}} 的为 Unrestricted（无限制）模型。"
   }
 }

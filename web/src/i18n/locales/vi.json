@@ -7677,6 +7677,9 @@
     "Delete this image?": "Xóa hình ảnh này?",
     "The image is removed from this browser. Download it first if you want to keep it.": "Hình ảnh sẽ bị xóa khỏi trình duyệt này. Hãy tải xuống trước nếu bạn muốn giữ lại.",
     "Insufficient balance, {{amount}} short.": "Số dư không đủ, còn thiếu {{amount}}.",
-    "Go to top up": "Nạp tiền"
+    "Go to top up": "Nạp tiền",
+    "Model distribution": "Phân bố mô hình",
+    "Each model group combines models from multiple channels, billed per second, per token or per request. Choose the model that fits your needs.": "Mỗi nhóm mô hình gộp mô hình từ nhiều kênh, tính phí theo giây, theo token hoặc theo lượt. Hãy chọn mô hình phù hợp với nhu cầu của bạn.",
+    "Models ending in {{suffix}} are Unrestricted.": "Các mô hình có hậu tố {{suffix}} là Unrestricted (không giới hạn)."
   }
 }

@@ -7677,6 +7677,9 @@
     "Delete this image?": "Supprimer cette image ?",
     "The image is removed from this browser. Download it first if you want to keep it.": "L’image est supprimée de ce navigateur. Téléchargez-la d’abord si vous souhaitez la conserver.",
     "Insufficient balance, {{amount}} short.": "Solde insuffisant, il manque {{amount}}.",
-    "Go to top up": "Recharger"
+    "Go to top up": "Recharger",
+    "Model distribution": "Répartition des modèles",
+    "Each model group combines models from multiple channels, billed per second, per token or per request. Choose the model that fits your needs.": "Chaque groupe de modèles réunit des modèles de plusieurs canaux, facturés à la seconde, au token ou à la requête. Choisissez le modèle adapté à vos besoins.",
+    "Models ending in {{suffix}} are Unrestricted.": "Les modèles se terminant par {{suffix}} sont Unrestricted (sans restriction)."
   }
 }

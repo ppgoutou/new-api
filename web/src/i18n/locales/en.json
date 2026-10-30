@@ -7677,6 +7677,9 @@
     "Delete this image?": "Delete this image?",
     "The image is removed from this browser. Download it first if you want to keep it.": "The image is removed from this browser. Download it first if you want to keep it.",
     "Insufficient balance, {{amount}} short.": "Insufficient balance, {{amount}} short.",
-    "Go to top up": "Go to top up"
+    "Go to top up": "Go to top up",
+    "Model distribution": "Model distribution",
+    "Each model group combines models from multiple channels, billed per second, per token or per request. Choose the model that fits your needs.": "Each model group combines models from multiple channels, billed per second, per token or per request. Choose the model that fits your needs.",
+    "Models ending in {{suffix}} are Unrestricted.": "Models ending in {{suffix}} are Unrestricted."
   }
 }
