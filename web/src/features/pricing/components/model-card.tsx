@@ -387,7 +387,7 @@ export const ModelCard = memo(function ModelCard(props: ModelCardProps) {
   }
 
   return (
-    <Card className='group hover:border-brand/40 h-full min-w-0 gap-3'>
+    <Card className='hover:border-brand/40 h-full min-w-0 gap-3'>
       <CardHeader className='flex flex-row items-center gap-3'>
         <div
           aria-hidden
