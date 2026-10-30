@@ -62,7 +62,9 @@ export function DataTableView<TData>(props: DataTableViewProps<TData>) {
   return (
     <div
       className={cn(
-        'overflow-hidden rounded-lg border',
+        // Solid surface: the console content area is transparent over the
+        // site backdrop, and pinned columns need a matching opaque fill.
+        'bg-card overflow-hidden rounded-lg border',
         props.containerClassName
       )}
       {...props.containerProps}
