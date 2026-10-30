@@ -18,7 +18,7 @@ For commercial licensing, please contact support@quantumnous.com
 */
 import { useQueryClient } from '@tanstack/react-query'
 import type { Row } from '@tanstack/react-table'
-import { Eye, EyeOff, Trash2 } from 'lucide-react'
+import { CirclePause, CirclePlay, Eye, EyeOff, Trash2 } from 'lucide-react'
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 
@@ -30,7 +30,12 @@ import {
 } from '@/components/ui/dropdown-menu'
 import { useCanEditModelPricing } from '@/features/model-pricing/api'
 
-import { handleToggleModelStatus, isModelEnabled } from '../lib'
+import {
+  handleSetModelUnavailable,
+  handleToggleModelStatus,
+  isModelEnabled,
+  isModelUnavailable,
+} from '../lib'
 import type { Model } from '../types'
 import { ModelDeleteDialog } from './dialogs/model-delete-dialog'
 import { useModels } from './models-provider'
@@ -48,6 +53,7 @@ export function DataTableRowActions({ row }: DataTableRowActionsProps) {
   const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false)
 
   const isEnabled = isModelEnabled(model)
+  const isUnavailable = isModelUnavailable(model)
 
   const handleEdit = () => {
     setCurrentRow(model)
@@ -96,6 +102,24 @@ export function DataTableRowActions({ row }: DataTableRowActionsProps) {
               {isEnabled ? <EyeOff size={16} /> : <Eye size={16} />}
             </DropdownMenuShortcut>
           </DropdownMenuItem>
+          {isEnabled && (
+            <DropdownMenuItem
+              onClick={() =>
+                handleSetModelUnavailable(model.id, !isUnavailable, queryClient)
+              }
+            >
+              {isUnavailable
+                ? t('Mark available again')
+                : t('Mark temporarily unavailable')}
+              <DropdownMenuShortcut>
+                {isUnavailable ? (
+                  <CirclePlay size={16} />
+                ) : (
+                  <CirclePause size={16} />
+                )}
+              </DropdownMenuShortcut>
+            </DropdownMenuItem>
+          )}
           <DropdownMenuItem
             onSelect={(e) => {
               e.preventDefault()

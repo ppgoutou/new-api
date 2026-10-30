@@ -211,6 +211,40 @@ describe('model cards', () => {
     expect(onClick).not.toHaveBeenCalled()
   })
 
+  it('marks an unavailable model, shows its reason and blocks trying it but not details', async () => {
+    const user = userEvent.setup()
+    const onClick = vi.fn()
+    const onTry = vi.fn()
+    render(
+      <ModelCard
+        model={pricingModel({
+          model_name: 'D-sd2.5-G3-1',
+          billing_mode: 'tiered_expr',
+          billing_expr: 'tier("720p", u("seconds") * 0.09)',
+          billing_usage_schema: {
+            resolution: { enum: ['720p'] },
+            seconds: { type: 'number', unit: 'second' },
+          },
+          unavailable: true,
+          unavailable_reason: 'Out of stock upstream',
+        })}
+        badges={['hot']}
+        onClick={onClick}
+        onTry={onTry}
+      />
+    )
+
+    expect(screen.getByText('Temporarily unavailable')).toBeVisible()
+    expect(screen.queryByRole('list', { name: 'Highlights' })).toBeNull()
+    expect(screen.getByRole('status')).toHaveTextContent(
+      'Out of stock upstream'
+    )
+    expect(screen.getByRole('button', { name: 'Try' })).toBeDisabled()
+    await user.click(screen.getByRole('button', { name: /Details/ }))
+    expect(onClick).toHaveBeenCalledWith('D-sd2.5-G3-1')
+    expect(onTry).not.toHaveBeenCalled()
+  })
+
   it('keeps the try and details buttons side by side with no space between them', () => {
     render(
       <ModelCard

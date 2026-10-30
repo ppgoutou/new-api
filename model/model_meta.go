@@ -18,6 +18,20 @@ const (
 	NameRuleSuffix
 )
 
+// Catalog status of a model metadata record.
+const (
+	ModelStatusDisabled = 0
+	ModelStatusEnabled  = 1
+	// ModelStatusUnavailable keeps the model listed but refuses new requests,
+	// for a supplier that is out of stock.
+	ModelStatusUnavailable = 2
+)
+
+// ValidModelStatus reports whether status is one of the catalog statuses.
+func ValidModelStatus(status int) bool {
+	return status >= ModelStatusDisabled && status <= ModelStatusUnavailable
+}
+
 type ModelSquareState string
 
 const (
@@ -42,6 +56,7 @@ type Model struct {
 	Endpoints          string         `json:"endpoints,omitempty" gorm:"type:text"`
 	SupportedEndpoints []string       `json:"supported_endpoints,omitempty" gorm:"-"`
 	Status             int            `json:"status" gorm:"default:1"`
+	UnavailableReason  string         `json:"unavailable_reason,omitempty" gorm:"type:varchar(255)"`
 	SyncOfficial       int            `json:"sync_official" gorm:"default:1"`
 	CreatedTime        int64          `json:"created_time" gorm:"bigint"`
 	UpdatedTime        int64          `json:"updated_time" gorm:"bigint"`
@@ -127,7 +142,7 @@ func FillModelSquareStates(rows []*Model, configured map[string][]int, connectio
 	states := make(map[string]ModelSquareState, len(names))
 	for _, name := range names {
 		state := ModelSquareUnavailable
-		if policy := resolved[name]; policy != nil && policy.Status != 1 {
+		if policy := resolved[name]; policy != nil && policy.Status == ModelStatusDisabled {
 			state = ModelSquareHidden
 		} else if available[name] {
 			state = ModelSquareVisible
@@ -158,7 +173,7 @@ func FillModelSquareStates(rows []*Model, configured map[string][]int, connectio
 		row.SquareState = ModelSquareUnavailable
 		switch {
 		case total == 0:
-			if row.Status != 1 {
+			if row.Status == ModelStatusDisabled {
 				row.SquareState = ModelSquareHidden
 			}
 		case hidden == total:
@@ -265,7 +280,7 @@ func (mi *Model) Update() error {
 		}
 		mi.UpdatedTime = common.GetTimestamp()
 		return tx.Model(&Model{}).Where("id = ?", mi.Id).
-			Select("model_name", "description", "icon", "tags", "vendor_id", "endpoints", "status", "sync_official", "name_rule", "updated_time").Updates(mi).Error
+			Select("model_name", "description", "icon", "tags", "vendor_id", "endpoints", "status", "unavailable_reason", "sync_official", "name_rule", "updated_time").Updates(mi).Error
 	})
 }
 
@@ -518,6 +533,8 @@ func parseModelStatusFilter(status string) (value int, ok bool) {
 		return 1, true
 	case "disabled", "0":
 		return 0, true
+	case "unavailable", "2":
+		return ModelStatusUnavailable, true
 	default:
 		n, err := strconv.Atoi(status)
 		if err != nil {

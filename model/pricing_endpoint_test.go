@@ -292,3 +292,34 @@ func TestCacheUpdateChannelSyncsAdvancedCustomConfig(t *testing.T) {
 
 	assert.Nil(t, channel2advancedCustomConfig[401])
 }
+
+func TestPricingListsUnavailableModelAndHidesDisabledModel(t *testing.T) {
+	resetPricingEndpointTestTables(t)
+
+	insertPricingEndpointChannel(t, 120, constant.ChannelTypeOpenAI, dto.ChannelOtherSettings{})
+	for _, name := range []string{"model-live", "model-out-of-stock", "model-disabled"} {
+		insertPricingEndpointAbility(t, 120, name)
+	}
+	require.NoError(t, DB.Create(&Model{ModelName: "model-out-of-stock", Status: ModelStatusUnavailable, UnavailableReason: "supplier out of stock", NameRule: NameRuleExact}).Error)
+	disabled := &Model{ModelName: "model-disabled", Status: ModelStatusEnabled, NameRule: NameRuleExact}
+	require.NoError(t, DB.Create(disabled).Error)
+	require.NoError(t, DB.Model(disabled).Update("status", ModelStatusDisabled).Error)
+	InitChannelCache()
+
+	byModel := make(map[string]Pricing)
+	for _, pricing := range GetPricing() {
+		byModel[pricing.ModelName] = pricing
+	}
+
+	require.Contains(t, byModel, "model-out-of-stock")
+	assert.True(t, byModel["model-out-of-stock"].Unavailable)
+	assert.Equal(t, "supplier out of stock", byModel["model-out-of-stock"].UnavailableReason)
+	assert.False(t, byModel["model-live"].Unavailable)
+	assert.NotContains(t, byModel, "model-disabled")
+
+	reason, unavailable := GetModelUnavailability("model-out-of-stock")
+	assert.True(t, unavailable)
+	assert.Equal(t, "supplier out of stock", reason)
+	_, unavailable = GetModelUnavailability("model-live")
+	assert.False(t, unavailable)
+}

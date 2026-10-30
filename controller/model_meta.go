@@ -5,6 +5,7 @@ import (
 	"sort"
 	"strconv"
 	"strings"
+	"unicode/utf8"
 
 	"github.com/QuantumNous/new-api/common"
 	"github.com/QuantumNous/new-api/model"
@@ -114,6 +115,11 @@ func CreateModelMeta(c *gin.Context) {
 		common.ApiErrorT(c, "Model name cannot be empty")
 		return
 	}
+	m.UnavailableReason = strings.TrimSpace(m.UnavailableReason)
+	if utf8.RuneCountInString(m.UnavailableReason) > 255 {
+		common.ApiErrorMsg(c, "unavailable reason is too long")
+		return
+	}
 	if err := model.ValidateMetadataValues(model.MetadataValues{Endpoints: m.Endpoints, Status: m.Status, NameRule: m.NameRule}); err != nil {
 		common.ApiError(c, err)
 		return
@@ -150,13 +156,18 @@ func UpdateModelMeta(c *gin.Context) {
 		return
 	}
 
+	m.UnavailableReason = strings.TrimSpace(m.UnavailableReason)
+	if utf8.RuneCountInString(m.UnavailableReason) > 255 {
+		common.ApiErrorMsg(c, "unavailable reason is too long")
+		return
+	}
 	if statusOnly {
-		if m.Status != 0 && m.Status != 1 {
+		if !model.ValidModelStatus(m.Status) {
 			common.ApiErrorMsg(c, "invalid catalog visibility")
 			return
 		}
 		// 只更新状态，防止误清空其他字段
-		if err := model.DB.Model(&model.Model{}).Where("id = ?", m.Id).Update("status", m.Status).Error; err != nil {
+		if err := model.DB.Model(&model.Model{}).Where("id = ?", m.Id).Select("status", "unavailable_reason").Updates(&model.Model{Status: m.Status, UnavailableReason: m.UnavailableReason}).Error; err != nil {
 			common.ApiError(c, err)
 			return
 		}

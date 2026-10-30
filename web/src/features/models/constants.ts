@@ -75,15 +75,20 @@ export function getModelStatusOptions(t: TFunction) {
     { label: t('All Status'), value: 'all' },
     { label: t('Shown'), value: 'enabled' },
     { label: t('Not shown'), value: 'disabled' },
+    { label: t('Temporarily unavailable'), value: 'unavailable' },
   ] as const
 }
 
 export function getModelStatusConfig(
   t: TFunction
-): Record<ModelStatus, { label: string; variant: 'success' | 'neutral' }> {
+): Record<
+  ModelStatus,
+  { label: string; variant: 'success' | 'neutral' | 'warning' }
+> {
   return {
     1: { label: t('Shown'), variant: 'success' },
     0: { label: t('Not shown'), variant: 'neutral' },
+    2: { label: t('Temporarily unavailable'), variant: 'warning' },
   }
 }
 

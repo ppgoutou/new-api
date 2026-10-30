@@ -18,7 +18,7 @@ For commercial licensing, please contact support@quantumnous.com
 */
 import { z } from 'zod'
 
-import type { Model } from '../types'
+import { MODEL_STATUS, type Model } from '../types'
 import { parseModelTags as parseTagsFromUtils } from './model-utils'
 
 // ============================================================================
@@ -38,6 +38,12 @@ export const modelFormSchema = z.object({
   endpoints: z.string().default(''),
   name_rule: z.number().min(0).max(3).default(0),
   status: z.boolean().default(true),
+  unavailable: z.boolean().default(false),
+  unavailable_reason: z
+    .string()
+    .trim()
+    .max(255, 'Reason must not exceed 255 characters')
+    .default(''),
   sync_official: z.boolean().default(true),
   enable_groups: z.array(z.string()).default([]),
   quota_types: z.array(z.number()).default([]),
@@ -80,11 +86,18 @@ export function transformModelToFormDefaults(model: Model): ModelFormValues {
     vendor_id: model.vendor_id,
     endpoints: model.endpoints || '',
     name_rule: model.name_rule || 0,
-    status: model.status === 1,
+    status: model.status !== MODEL_STATUS.DISABLED,
+    unavailable: model.status === MODEL_STATUS.UNAVAILABLE,
+    unavailable_reason: model.unavailable_reason || '',
     sync_official: model.sync_official === 1,
     enable_groups: model.enable_groups || [],
     quota_types: model.quota_types || [],
   }
+}
+
+function modelStatusFromForm(formData: ModelFormValues): number {
+  if (!formData.status) return MODEL_STATUS.DISABLED
+  return formData.unavailable ? MODEL_STATUS.UNAVAILABLE : MODEL_STATUS.ENABLED
 }
 
 /**
@@ -102,7 +115,8 @@ export function transformFormDataToModelPayload(
     vendor_id: formData.vendor_id,
     endpoints: formData.endpoints || '',
     name_rule: formData.name_rule,
-    status: formData.status ? 1 : 0,
+    status: modelStatusFromForm(formData),
+    unavailable_reason: formData.unavailable ? formData.unavailable_reason : '',
     sync_official: formData.sync_official ? 1 : 0,
     enable_groups: formData.enable_groups,
     quota_types: formData.quota_types,

@@ -29,13 +29,23 @@ import {
   DropdownMenuRadioItem,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
+import { cn } from '@/lib/utils'
 
 interface ChoiceMenuProps<T extends string> {
   /** Menu heading and accessible name of the trigger. */
   label: string
   value: T
-  /** Consecutive options with the same non-empty group get a heading. */
-  options: { value: T; label: string; icon?: ReactNode; group?: string }[]
+  /**
+   * Consecutive options with the same non-empty group get a heading. An
+   * option with an unavailable label can't be picked and shows the label.
+   */
+  options: {
+    value: T
+    label: string
+    icon?: ReactNode
+    group?: string
+    unavailableLabel?: string
+  }[]
   onChange: (value: T) => void
 }
 
@@ -59,7 +69,10 @@ export function ChoiceMenu<T extends string>(props: ChoiceMenuProps<T>) {
             variant='ghost'
             size='sm'
             aria-label={`${props.label}: ${selected?.label ?? props.value}`}
-            className='h-8 gap-1.5 rounded-full px-2.5 text-xs'
+            className={cn(
+              'h-8 gap-1.5 rounded-full px-2.5 text-xs',
+              selected?.unavailableLabel && 'text-warning hover:text-warning'
+            )}
           />
         }
       >
@@ -86,10 +99,16 @@ export function ChoiceMenu<T extends string>(props: ChoiceMenuProps<T>) {
                 <DropdownMenuRadioItem
                   key={option.value}
                   value={option.value}
+                  disabled={Boolean(option.unavailableLabel)}
                   className='whitespace-nowrap'
                 >
                   {option.icon}
                   {option.label}
+                  {option.unavailableLabel && (
+                    <span className='bg-warning/15 text-warning ml-auto rounded-md px-1.5 py-0.5 text-[10px] leading-4 font-bold'>
+                      {option.unavailableLabel}
+                    </span>
+                  )}
                 </DropdownMenuRadioItem>
               ))}
             </DropdownMenuGroup>

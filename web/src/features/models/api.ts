@@ -103,9 +103,14 @@ export async function updateModel(
  */
 export async function updateModelStatus(
   id: number,
-  status: number
+  status: number,
+  unavailableReason = ''
 ): Promise<{ success: boolean; message?: string }> {
-  const res = await api.put('/api/models/?status_only=true', { id, status })
+  const res = await api.put('/api/models/?status_only=true', {
+    id,
+    status,
+    unavailable_reason: unavailableReason,
+  })
   return res.data
 }
 

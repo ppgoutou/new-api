@@ -21,7 +21,7 @@ import type { TFunction } from 'i18next'
 import { formatTimestampToDate } from '@/lib/format'
 
 import { getNameRuleConfig, getQuotaTypeConfig } from '../constants'
-import type { NameRule, Model } from '../types'
+import { MODEL_STATUS, type NameRule, type Model } from '../types'
 
 // ============================================================================
 // Time Formatting
@@ -183,10 +183,17 @@ export function validateEndpointsJSON(endpoints: string): boolean {
 // ============================================================================
 
 /**
- * Check if model is enabled
+ * Check if model is listed in the model square (available or not)
  */
 export function isModelEnabled(model: Model): boolean {
-  return model.status === 1
+  return model.status !== MODEL_STATUS.DISABLED
+}
+
+/**
+ * Check if model is listed but refusing new requests
+ */
+export function isModelUnavailable(model: Model): boolean {
+  return model.status === MODEL_STATUS.UNAVAILABLE
 }
 
 /**

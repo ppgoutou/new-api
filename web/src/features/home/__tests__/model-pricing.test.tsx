@@ -239,6 +239,21 @@ describe('home model pricing', () => {
     )
   })
 
+  it('leaves an unavailable model out of the series prices', async () => {
+    mockPricingApi(
+      [
+        secondModel('G-seedance-2.5', { '480p': 0.2 }),
+        { ...secondModel('D-sd2.5-G3-1', { '480p': 0.1 }), unavailable: true },
+      ],
+      [{ name: 'Seedance 2.5', models: ['G-seedance-2.5', 'D-sd2.5-G3-1'] }]
+    )
+    renderPricing()
+
+    expect(await seriesRows('Seedance 2.5')).toEqual([
+      ['480p', '$0.1', 'G-seedance-2.5'],
+    ])
+  })
+
   it('links to the model square when no series has a priced model', async () => {
     mockPricingApi(
       [secondModel('other', { '480p': 1 })],

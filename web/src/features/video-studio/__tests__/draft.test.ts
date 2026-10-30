@@ -28,6 +28,7 @@ import {
   inPlazaOrder,
   labelReferences,
   removeReferenceFromPrompt,
+  replacementModel,
   studioModelsFromPricing,
   validateDraft,
 } from '../lib/draft'
@@ -135,9 +136,15 @@ describe('studioModelsFromPricing', () => {
       {
         name: 'seedance-2.5',
         resolutions: ['480p', '720p', '1080p'],
-        duration: [4, 30], ratios: STUDIO_RATIOS 
+        duration: [4, 30],
+        ratios: STUDIO_RATIOS,
       },
-      { name: 'seedance2.0-720p-P', resolutions: ['720p'], duration: [5, 15], ratios: STUDIO_RATIOS  },
+      {
+        name: 'seedance2.0-720p-P',
+        resolutions: ['720p'],
+        duration: [5, 15],
+        ratios: STUDIO_RATIOS,
+      },
     ])
   })
 
@@ -154,7 +161,12 @@ describe('studioModelsFromPricing', () => {
       }),
     ])
     expect(models).toEqual([
-      { name: 'seedance-2.5-G2-V', resolutions: ['720p'], duration: [4, 30], ratios: STUDIO_RATIOS  },
+      {
+        name: 'seedance-2.5-G2-V',
+        resolutions: ['720p'],
+        duration: [4, 30],
+        ratios: STUDIO_RATIOS,
+      },
     ])
   })
 
@@ -178,7 +190,8 @@ describe('studioModelsFromPricing', () => {
       {
         name: 'seedance-2-0-pro-NSFW',
         resolutions: ['720p', '1080p'],
-        duration: [4, 15], ratios: STUDIO_RATIOS 
+        duration: [4, 15],
+        ratios: STUDIO_RATIOS,
       },
     ])
   })
@@ -233,12 +246,14 @@ describe('fitDraftToModel', () => {
     {
       name: 'seedance-2.0',
       resolutions: ['480p', '720p', '1080p', '4k'],
-      duration: [4, 15], ratios: STUDIO_RATIOS 
+      duration: [4, 15],
+      ratios: STUDIO_RATIOS,
     },
     {
       name: 'seedance-2.5',
       resolutions: ['480p', '720p', '1080p'],
-      duration: [4, 30], ratios: STUDIO_RATIOS 
+      duration: [4, 30],
+      ratios: STUDIO_RATIOS,
     },
   ]
 
@@ -293,6 +308,64 @@ describe('fitDraftToModel', () => {
   it('keeps the draft unchanged while no model is available', () => {
     const value = draft({ model: 'seedance-2.0', seconds: 40 })
     expect(fitDraftToModel(value, [])).toBe(value)
+  })
+})
+
+describe('unavailable models', () => {
+  const live: StudioModel = {
+    name: 'seedance-2.5',
+    group: 'Seedance 2.5',
+    resolutions: ['720p'],
+    duration: [4, 30],
+    ratios: STUDIO_RATIOS,
+  }
+  const outOfStock: StudioModel = {
+    ...live,
+    name: 'D-sd2.5-G3-1',
+    unavailable: true,
+    unavailableReason: 'Out of stock',
+  }
+  const otherGroup: StudioModel = {
+    ...live,
+    name: 'seedance-2.0',
+    group: 'Seedance 2.0',
+  }
+
+  it('carries the unavailable flag and reason from pricing', () => {
+    const [model] = studioModelsFromPricing([
+      videoModel('D-sd2.5-G3-1', ['720p'], {
+        unavailable: true,
+        unavailable_reason: ' Out of stock ',
+      }),
+    ])
+    expect(model.unavailable).toBe(true)
+    expect(model.unavailableReason).toBe('Out of stock')
+  })
+
+  it('keeps an unavailable model the user picked so the notice can explain it', () => {
+    const fitted = fitDraftToModel(draft({ model: 'D-sd2.5-G3-1' }), [
+      outOfStock,
+      live,
+    ])
+    expect(fitted.model).toBe('D-sd2.5-G3-1')
+  })
+
+  it('falls back to the first available model when the picked one is gone', () => {
+    const fitted = fitDraftToModel(draft({ model: 'retired-model' }), [
+      outOfStock,
+      live,
+    ])
+    expect(fitted.model).toBe('seedance-2.5')
+  })
+
+  it('offers an available model of the same category as the replacement', () => {
+    expect(
+      replacementModel([otherGroup, outOfStock, live], outOfStock)?.name
+    ).toBe('seedance-2.5')
+    expect(replacementModel([otherGroup, outOfStock], outOfStock)?.name).toBe(
+      'seedance-2.0'
+    )
+    expect(replacementModel([outOfStock], outOfStock)).toBeUndefined()
   })
 })
 

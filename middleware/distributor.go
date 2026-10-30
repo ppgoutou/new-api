@@ -97,6 +97,17 @@ func Distribute() func(c *gin.Context) {
 				}
 			}
 		}
+		if shouldSelectChannel && modelRequest.Model != "" {
+			// Refuse before a channel is picked or quota is reserved.
+			if reason, unavailable := model.GetModelUnavailability(modelRequest.Model); unavailable {
+				message := i18n.T(c, i18n.MsgDistributorModelUnavailable, map[string]any{"Model": modelRequest.Model})
+				if reason = strings.TrimSpace(reason); reason != "" {
+					message = i18n.T(c, i18n.MsgDistributorModelUnavailableReason, map[string]any{"Model": modelRequest.Model, "Reason": reason})
+				}
+				abortWithOpenAiMessage(c, http.StatusServiceUnavailable, message, types.ErrorCode("model_unavailable"))
+				return
+			}
+		}
 		if pinned || shouldSelectChannel {
 			usingGroup := common.GetContextKeyString(c, constant.ContextKeyUsingGroup)
 			var selectErr *service.ChannelSelectError

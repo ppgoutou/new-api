@@ -16,8 +16,10 @@ import (
 	"github.com/QuantumNous/new-api/relaykit/dto"
 	"github.com/QuantumNous/new-api/setting/model_setting"
 	"github.com/gin-gonic/gin"
+	"github.com/glebarez/sqlite"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	"gorm.io/gorm"
 )
 
 func TestChannelMatchesExpectedTaskPluginUsesGenericChannelSetting(t *testing.T) {
@@ -183,6 +185,7 @@ func TestTokenModelLimitAllowsExemptAtNameByFullName(t *testing.T) {
 
 func TestDistributeHidesTaskPluginDetailsButLogsDiagnostics(t *testing.T) {
 	require.NoError(t, i18n.Init())
+	setupDistributorCatalogDB(t)
 	previousCacheEnabled := common.MemoryCacheEnabled
 	common.MemoryCacheEnabled = true
 	t.Cleanup(func() { common.MemoryCacheEnabled = previousCacheEnabled })
@@ -340,4 +343,60 @@ func TestSharedEndpointRebindsToBoundNewAPIExtension(t *testing.T) {
 	require.Nil(t, SetupContextForSelectedChannel(c, channel, "task-model"))
 	assert.Equal(t, "alpha", c.GetString("task_plugin_key"), "the first bound candidate executes regardless of the earlier pin")
 	assert.Equal(t, "alpha", c.MustGet(jsplugin.ContextKeyPinnedEndpoint).(jsplugin.PinnedEndpoint).Plugin.Meta.Key)
+}
+
+func TestDistributeRefusesUnavailableModelBeforeRelay(t *testing.T) {
+	require.NoError(t, i18n.Init())
+	db := setupDistributorCatalogDB(t)
+	require.NoError(t, db.Create(&model.Channel{Id: 1, Type: constant.ChannelTypeOpenAI, Key: "key", Status: common.ChannelStatusEnabled, Name: "c"}).Error)
+	for _, name := range []string{"model-out-of-stock", "model-out-of-stock-reason"} {
+		require.NoError(t, db.Create(&model.Ability{Group: "default", Model: name, ChannelId: 1, Enabled: true}).Error)
+	}
+	require.NoError(t, db.Create(&model.Model{ModelName: "model-out-of-stock", Status: model.ModelStatusUnavailable, NameRule: model.NameRuleExact}).Error)
+	require.NoError(t, db.Create(&model.Model{ModelName: "model-out-of-stock-reason", Status: model.ModelStatusUnavailable, UnavailableReason: "上游缺货", NameRule: model.NameRuleExact}).Error)
+	model.InitChannelCache()
+	model.InvalidatePricingCache()
+
+	for _, tc := range []struct{ model, message string }{
+		{"model-out-of-stock", "模型 model-out-of-stock 暂不可用，请换一个模型"},
+		{"model-out-of-stock-reason", "模型 model-out-of-stock-reason 暂不可用：上游缺货。请换一个模型"},
+	} {
+		t.Run(tc.model, func(t *testing.T) {
+			router := gin.New()
+			router.POST("/v1/chat/completions", func(c *gin.Context) {
+				common.SetContextKey(c, constant.ContextKeyUsingGroup, "default")
+			}, Distribute(), func(c *gin.Context) {
+				t.Error("unavailable models must stop before the relay handler")
+			})
+			request := httptest.NewRequest(http.MethodPost, "/v1/chat/completions", strings.NewReader(`{"model":"`+tc.model+`"}`))
+			request.Header.Set("Content-Type", "application/json")
+			request.Header.Set("Accept-Language", "zh-CN")
+			recorder := httptest.NewRecorder()
+			router.ServeHTTP(recorder, request)
+
+			require.Equal(t, http.StatusServiceUnavailable, recorder.Code)
+			assert.Contains(t, recorder.Body.String(), tc.message)
+			assert.Contains(t, recorder.Body.String(), `"code":"model_unavailable"`)
+		})
+	}
+}
+
+// setupDistributorCatalogDB gives Distribute an empty routing catalog, which
+// it reads to refuse unavailable models.
+func setupDistributorCatalogDB(t *testing.T) *gorm.DB {
+	t.Helper()
+	previousDB := model.DB
+	previousCacheEnabled := common.MemoryCacheEnabled
+	db, err := gorm.Open(sqlite.Open(":memory:"), &gorm.Config{})
+	require.NoError(t, err)
+	require.NoError(t, db.AutoMigrate(&model.Channel{}, &model.Ability{}, &model.Model{}, &model.Vendor{}))
+	model.DB = db
+	common.MemoryCacheEnabled = true
+	model.InvalidatePricingCache()
+	t.Cleanup(func() {
+		model.DB = previousDB
+		common.MemoryCacheEnabled = previousCacheEnabled
+		model.InvalidatePricingCache()
+	})
+	return db
 }

@@ -21,6 +21,7 @@ import type { PricingModel } from '@/features/pricing/types'
 
 import { REFERENCE_LIMITS, type StudioImageModel } from '../constants'
 import type { ImageGenerationRequest, StudioAsset } from '../types'
+import { studioModelAvailability } from './draft'
 
 /** Image output tokens per pixel, as image models report them. */
 const PIXELS_PER_IMAGE_TOKEN = 256
@@ -39,7 +40,7 @@ export function studioImageModelsFromPricing(
 ): StudioImageModel[] {
   return models.flatMap((model) =>
     model.supported_endpoint_types?.includes('image-generation')
-      ? [{ name: model.model_name }]
+      ? [{ name: model.model_name, ...studioModelAvailability(model) }]
       : []
   )
 }

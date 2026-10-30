@@ -50,6 +50,8 @@ export interface Model {
   endpoints?: string
   supported_endpoints?: string[]
   status: number
+  /** Shown to users while status is MODEL_STATUS.UNAVAILABLE. */
+  unavailable_reason?: string
   sync_official: number
   created_time: number
   updated_time: number
@@ -411,7 +413,14 @@ export type NameRule = 0 | 1 | 2 | 3 // exact, prefix, contains, suffix
 /**
  * Model status type
  */
-export type ModelStatus = 0 | 1 // disabled, enabled
+export const MODEL_STATUS = {
+  DISABLED: 0,
+  ENABLED: 1,
+  /** Listed but refusing new requests, such as when the supplier is out of stock. */
+  UNAVAILABLE: 2,
+} as const
+
+export type ModelStatus = (typeof MODEL_STATUS)[keyof typeof MODEL_STATUS]
 
 /**
  * Quota type

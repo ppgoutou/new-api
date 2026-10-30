@@ -567,3 +567,45 @@ describe('metadata editing', () => {
     client.clear()
   })
 })
+
+describe('temporary unavailability', () => {
+  it('marks a listed model temporarily unavailable from the row menu', async () => {
+    const user = userEvent.setup()
+    vi.spyOn(api, 'get').mockResolvedValue({
+      data: { success: true, data: { items: [] } },
+    })
+    const put = vi
+      .spyOn(api, 'put')
+      .mockResolvedValue({ data: { success: true } })
+    renderModelActions()
+
+    await user.click(screen.getByRole('button', { name: 'Open menu' }))
+    await user.click(
+      await screen.findByRole('menuitem', {
+        name: 'Mark temporarily unavailable',
+      })
+    )
+
+    await waitFor(() =>
+      expect(put).toHaveBeenCalledWith('/api/models/?status_only=true', {
+        id: 7,
+        status: 2,
+        unavailable_reason: '',
+      })
+    )
+  })
+
+  it('offers to make an unavailable model available again', async () => {
+    const user = userEvent.setup()
+    renderModelActions({ ...model, status: 2 })
+
+    await user.click(screen.getByRole('button', { name: 'Open menu' }))
+
+    expect(
+      await screen.findByRole('menuitem', { name: 'Mark available again' })
+    ).toBeVisible()
+    expect(
+      screen.getByRole('menuitem', { name: 'Hide from model square' })
+    ).toBeVisible()
+  })
+})

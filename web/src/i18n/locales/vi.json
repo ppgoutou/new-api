@@ -7686,6 +7686,22 @@
     "{{count}} ratios": "{{count}} tỷ lệ",
     "Per video": "Theo video",
     "{{price}} / video": "{{price}} / video",
-    "Lowest per second": "Giá từ mỗi giây"
+    "Lowest per second": "Giá từ mỗi giây",
+    "Temporarily unavailable": "Tạm thời không khả dụng",
+    "Temporarily unavailable. Try another model for now.": "Tạm thời không khả dụng. Hãy dùng mô hình khác trong lúc này.",
+    "Keep the model listed but refuse new requests, such as when the supplier is out of stock.": "Mô hình vẫn hiển thị nhưng từ chối yêu cầu mới, ví dụ khi nhà cung cấp hết hàng.",
+    "Reason shown to users": "Lý do hiển thị cho người dùng",
+    "Out of stock upstream. Back online once restocked.": "Nhà cung cấp hết hàng. Sẽ hoạt động lại khi có hàng.",
+    "Optional. Users see it on the model card and in error messages.": "Không bắt buộc. Người dùng thấy trên thẻ mô hình và trong thông báo lỗi.",
+    "Reason must not exceed 255 characters": "Lý do không được vượt quá 255 ký tự",
+    "Mark available again": "Đánh dấu khả dụng lại",
+    "Mark temporarily unavailable": "Đánh dấu tạm thời không khả dụng",
+    "Failed to mark model unavailable": "Không thể đánh dấu mô hình không khả dụng",
+    "Failed to mark model available": "Không thể đánh dấu mô hình khả dụng",
+    "Model marked temporarily unavailable": "Đã đánh dấu mô hình tạm thời không khả dụng",
+    "Model available again": "Mô hình đã khả dụng lại",
+    "This model is temporarily unavailable: {{reason}}": "Mô hình này tạm thời không khả dụng: {{reason}}",
+    "This model is temporarily unavailable. Pick another model.": "Mô hình này tạm thời không khả dụng. Hãy chọn mô hình khác.",
+    "Switch to {{model}}": "Chuyển sang {{model}}"
   }
 }

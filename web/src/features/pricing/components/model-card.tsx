@@ -16,7 +16,7 @@ along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 For commercial licensing, please contact support@quantumnous.com
 */
-import { ChevronRight, Play, ThumbsUp } from 'lucide-react'
+import { ChevronRight, CirclePause, Play, ThumbsUp } from 'lucide-react'
 import { memo, useMemo, type ReactNode } from 'react'
 import { useTranslation } from 'react-i18next'
 
@@ -145,6 +145,10 @@ export const ModelCard = memo(function ModelCard(props: ModelCardProps) {
     return null
   }, [props.model])
   const showTry = tryKind !== null && props.onTry !== undefined
+  const unavailable = props.model.unavailable === true
+  const unavailableNote =
+    props.model.unavailable_reason?.trim() ||
+    t('Temporarily unavailable. Try another model for now.')
   let priceSummary: ReactNode
   if (videoPricing) {
     const optionDefinition =
@@ -392,14 +396,18 @@ export const ModelCard = memo(function ModelCard(props: ModelCardProps) {
         <div
           aria-hidden
           className={cn(
-            'bg-brand-soft text-brand-hover dark:text-brand-on-dark flex size-11 shrink-0 items-center justify-center rounded-lg'
+            'bg-brand-soft text-brand-hover dark:text-brand-on-dark flex size-11 shrink-0 items-center justify-center rounded-lg',
+            unavailable && 'opacity-50 grayscale'
           )}
         >
           {modelIcon || <span className='text-sm font-bold'>{initial}</span>}
         </div>
         <div className='min-w-0 flex-1'>
           <h3
-            className='line-clamp-2 font-mono text-lg leading-snug font-bold [overflow-wrap:anywhere]'
+            className={cn(
+              'line-clamp-2 font-mono text-lg leading-snug font-bold [overflow-wrap:anywhere]',
+              unavailable && 'text-muted-foreground'
+            )}
             title={props.model.model_name}
           >
             {props.model.model_name}
@@ -413,7 +421,13 @@ export const ModelCard = memo(function ModelCard(props: ModelCardProps) {
             </p>
           )}
         </div>
-        {props.badges && props.badges.length > 0 && (
+        {unavailable && (
+          <span className='bg-warning/15 text-warning flex shrink-0 items-center gap-1 self-start rounded-md px-1.5 py-0.5 text-[11px] leading-4 font-bold'>
+            <CirclePause aria-hidden className='size-3' />
+            {t('Temporarily unavailable')}
+          </span>
+        )}
+        {!unavailable && props.badges && props.badges.length > 0 && (
           <ul
             aria-label={t('Highlights')}
             className='flex shrink-0 flex-wrap justify-end gap-1 self-start'
@@ -477,7 +491,10 @@ export const ModelCard = memo(function ModelCard(props: ModelCardProps) {
         <div
           role='group'
           aria-label={t('Pricing')}
-          className='flex min-w-0 flex-col gap-1.5'
+          className={cn(
+            'flex min-w-0 flex-col gap-1.5',
+            unavailable && 'opacity-50'
+          )}
         >
           <ModelBillingModeBadge model={props.model} appearance='caption' />
           {dynamicSummary?.providerCount && (
@@ -493,6 +510,14 @@ export const ModelCard = memo(function ModelCard(props: ModelCardProps) {
             {priceSummary}
           </div>
         </div>
+        {unavailable && (
+          <p
+            role='status'
+            className='bg-warning/10 text-warning rounded-md px-2.5 py-1.5 text-xs leading-5 break-words'
+          >
+            {unavailableNote}
+          </p>
+        )}
         {(groups.length > 0 || endpoints.length > 0) && (
           <dl
             className={cn(
@@ -552,6 +577,8 @@ export const ModelCard = memo(function ModelCard(props: ModelCardProps) {
           {showTry && (
             <Button
               variant='ghost'
+              disabled={unavailable}
+              title={unavailable ? unavailableNote : undefined}
               onClick={() =>
                 tryKind && props.onTry?.(props.model.model_name || '', tryKind)
               }

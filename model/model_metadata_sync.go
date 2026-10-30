@@ -96,7 +96,7 @@ func ValidateMetadataValues(values MetadataValues) error {
 	if values.NameRule < NameRuleExact || values.NameRule > NameRuleSuffix {
 		return errors.New("invalid metadata matching rule")
 	}
-	if values.Status != 0 && values.Status != 1 {
+	if !ValidModelStatus(values.Status) {
 		return errors.New("invalid catalog visibility")
 	}
 	return ValidateModelEndpoints(values.Endpoints)

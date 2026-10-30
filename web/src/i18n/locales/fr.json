@@ -7686,6 +7686,22 @@
     "{{count}} ratios": "{{count}} formats",
     "Per video": "Par vidéo",
     "{{price}} / video": "{{price}} / vidéo",
-    "Lowest per second": "Dès (par seconde)"
+    "Lowest per second": "Dès (par seconde)",
+    "Temporarily unavailable": "Temporairement indisponible",
+    "Temporarily unavailable. Try another model for now.": "Temporairement indisponible. Essayez un autre modèle pour l’instant.",
+    "Keep the model listed but refuse new requests, such as when the supplier is out of stock.": "Le modèle reste listé mais refuse les nouvelles requêtes, par exemple en cas de rupture chez le fournisseur.",
+    "Reason shown to users": "Raison affichée aux utilisateurs",
+    "Out of stock upstream. Back online once restocked.": "Rupture chez le fournisseur. De retour dès le réapprovisionnement.",
+    "Optional. Users see it on the model card and in error messages.": "Facultatif. Visible sur la fiche du modèle et dans les messages d’erreur.",
+    "Reason must not exceed 255 characters": "La raison ne doit pas dépasser 255 caractères",
+    "Mark available again": "Rendre de nouveau disponible",
+    "Mark temporarily unavailable": "Marquer temporairement indisponible",
+    "Failed to mark model unavailable": "Impossible de marquer le modèle indisponible",
+    "Failed to mark model available": "Impossible de rendre le modèle disponible",
+    "Model marked temporarily unavailable": "Modèle marqué temporairement indisponible",
+    "Model available again": "Modèle de nouveau disponible",
+    "This model is temporarily unavailable: {{reason}}": "Ce modèle est temporairement indisponible : {{reason}}",
+    "This model is temporarily unavailable. Pick another model.": "Ce modèle est temporairement indisponible. Choisissez-en un autre.",
+    "Switch to {{model}}": "Passer à {{model}}"
   }
 }

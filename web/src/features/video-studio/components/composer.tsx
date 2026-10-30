@@ -37,6 +37,7 @@ import {
   findStudioModel,
   fitDraftToModel,
   labelReferences,
+  replacementModel,
   validateDraft,
 } from '../lib/draft'
 import { rememberTaskPrompt } from '../lib/prompt-history'
@@ -46,6 +47,7 @@ import { ParamsPopover } from './params-popover'
 import { PromptInput } from './prompt-input'
 import { FramePanel, ReferencePanel } from './reference-panel'
 import { StudioCost } from './studio-cost'
+import { UnavailableModelNotice } from './unavailable-model-notice'
 
 interface ComposerProps {
   /** Called after tasks are created, so the works list can refresh. */
@@ -71,7 +73,11 @@ export function Composer(props: ComposerProps) {
   const balance = useStudioBalance(price?.costUSD ?? null)
   const insufficient = balance.shortfallUSD !== null
   const [submitting, setSubmitting] = useState(false)
-  const problem = model ? validateDraft(draft) : 'No video model is available'
+  const unavailable = model?.unavailable === true
+  let problem = model ? validateDraft(draft) : 'No video model is available'
+  if (unavailable) {
+    problem = 'This model is temporarily unavailable. Pick another model.'
+  }
 
   const addReferences = (files: File[]) => {
     const rejected = files.filter((file) => !assetKindOf(file))
@@ -189,6 +195,9 @@ export function Composer(props: ComposerProps) {
                 label: option.name,
                 group: option.group,
                 icon: <Film className='size-3.5' aria-hidden />,
+                unavailableLabel: option.unavailable
+                  ? t('Temporarily unavailable')
+                  : undefined,
               }))}
               onChange={(name) => studio.update({ model: name })}
             />
@@ -206,7 +215,7 @@ export function Composer(props: ComposerProps) {
             size='icon'
             className='size-9 rounded-full'
             onClick={submit}
-            disabled={submitting || insufficient}
+            disabled={submitting || insufficient || unavailable}
             aria-label={t('Generate video')}
             title={problem ? t(problem) : t('Generate video')}
           >
@@ -218,6 +227,13 @@ export function Composer(props: ComposerProps) {
           </Button>
         </div>
       </div>
+      {model && unavailable && (
+        <UnavailableModelNotice
+          reason={model.unavailableReason}
+          replacement={replacementModel(models, model)?.name}
+          onSwitch={(name) => studio.update({ model: name })}
+        />
+      )}
       <p className='text-muted-foreground mt-2 px-1 text-[11px]'>
         {t(
           'Reference files are kept for {{days}} days and then deleted automatically. Uploading requires a positive balance.',

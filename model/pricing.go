@@ -25,12 +25,15 @@ type PricingPluginVariant struct {
 }
 
 type Pricing struct {
-	BillingPluginVariants  []PricingPluginVariant               `json:"billing_plugin_variants,omitempty"`
-	ModelName              string                               `json:"model_name"`
-	Description            string                               `json:"description,omitempty"`
-	Icon                   string                               `json:"icon,omitempty"`
-	Tags                   string                               `json:"tags,omitempty"`
-	VendorID               int                                  `json:"vendor_id,omitempty"`
+	BillingPluginVariants []PricingPluginVariant `json:"billing_plugin_variants,omitempty"`
+	ModelName             string                 `json:"model_name"`
+	Description           string                 `json:"description,omitempty"`
+	Icon                  string                 `json:"icon,omitempty"`
+	Tags                  string                 `json:"tags,omitempty"`
+	VendorID              int                    `json:"vendor_id,omitempty"`
+	// Unavailable marks a listed model that refuses new requests for now.
+	Unavailable            bool                                 `json:"unavailable,omitempty"`
+	UnavailableReason      string                               `json:"unavailable_reason,omitempty"`
 	QuotaType              int                                  `json:"quota_type"`
 	ModelRatio             float64                              `json:"model_ratio"`
 	ModelPrice             float64                              `json:"model_price"`
@@ -72,6 +75,7 @@ var (
 	// 缓存映射：模型名 -> 启用分组 / 计费类型
 	modelEnableGroups     = make(map[string][]string)
 	modelQuotaTypeMap     = make(map[string]int)
+	modelUnavailable      = make(map[string]string)
 	modelEnableGroupsLock = sync.RWMutex{}
 )
 
@@ -350,9 +354,13 @@ func updatePricing() {
 
 		// 补充模型元数据（描述、标签、供应商、状态）
 		if meta, ok := metaMap[model]; ok {
-			// 若模型被禁用(status!=1)，则直接跳过，不返回给前端
-			if meta.Status != 1 {
+			// 若模型被禁用，则直接跳过，不返回给前端
+			if meta.Status == ModelStatusDisabled {
 				continue
+			}
+			if meta.Status == ModelStatusUnavailable {
+				pricing.Unavailable = true
+				pricing.UnavailableReason = meta.UnavailableReason
 			}
 			pricing.Description = meta.Description
 			pricing.Icon = meta.Icon
@@ -459,9 +467,13 @@ func updatePricing() {
 	modelEnableGroupsLock.Lock()
 	modelEnableGroups = make(map[string][]string)
 	modelQuotaTypeMap = make(map[string]int)
+	modelUnavailable = make(map[string]string)
 	for _, p := range pricingMap {
 		modelEnableGroups[p.ModelName] = p.EnableGroup
 		modelQuotaTypeMap[p.ModelName] = p.QuotaType
+		if p.Unavailable {
+			modelUnavailable[p.ModelName] = p.UnavailableReason
+		}
 	}
 	modelEnableGroupsLock.Unlock()
 

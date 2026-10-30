@@ -481,6 +481,64 @@ export function ModelMutateDrawer(props: {
                         )}
                       />
 
+                      {form.watch('status') && (
+                        <FormField
+                          control={form.control}
+                          name='unavailable'
+                          render={({ field }) => (
+                            <FormItem
+                              className={sideDrawerSwitchItemClassName()}
+                            >
+                              <div className='flex flex-col gap-0.5'>
+                                <FormLabel className='text-base'>
+                                  {t('Temporarily unavailable')}
+                                </FormLabel>
+                                <FormDescription>
+                                  {t(
+                                    'Keep the model listed but refuse new requests, such as when the supplier is out of stock.'
+                                  )}
+                                </FormDescription>
+                              </div>
+                              <FormControl>
+                                <Switch
+                                  checked={field.value}
+                                  onCheckedChange={field.onChange}
+                                />
+                              </FormControl>
+                            </FormItem>
+                          )}
+                        />
+                      )}
+
+                      {form.watch('status') && form.watch('unavailable') && (
+                        <FormField
+                          control={form.control}
+                          name='unavailable_reason'
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>
+                                {t('Reason shown to users')}
+                              </FormLabel>
+                              <FormControl>
+                                <Input
+                                  {...field}
+                                  maxLength={255}
+                                  placeholder={t(
+                                    'Out of stock upstream. Back online once restocked.'
+                                  )}
+                                />
+                              </FormControl>
+                              <FormDescription>
+                                {t(
+                                  'Optional. Users see it on the model card and in error messages.'
+                                )}
+                              </FormDescription>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                      )}
+
                       <FormField
                         control={form.control}
                         name='sync_official'
