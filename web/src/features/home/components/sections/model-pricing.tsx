@@ -26,14 +26,36 @@ import {
 import { Badge } from '@/components/ui/badge'
 
 import {
-  useSeedancePricing,
-  type SeedancePriceRow,
-} from '../../hooks/use-seedance-pricing'
-import { HOME_VIDEO_MODELS } from '../../lib/video-home'
+  useVideoSeriesPricing,
+  type SeriesPriceRow,
+} from '../../hooks/use-video-series-pricing'
 
 export function ModelPricing() {
   const { t } = useTranslation()
-  const { byModel, bestDiscount } = useSeedancePricing()
+  const seriesList = useVideoSeriesPricing()
+
+  const formatResolution = (option: string) => option.replace(/k$/i, 'K')
+  const columns: StaticDataTableColumn<SeriesPriceRow>[] = [
+    {
+      id: 'option',
+      header: t('Resolution'),
+      className: 'w-[20%]',
+      cell: (row) => formatResolution(row.option),
+    },
+    {
+      id: 'price',
+      header: t('Lowest per second'),
+      className: 'w-[28%]',
+      cellClassName: 'font-mono font-semibold whitespace-nowrap tabular-nums',
+      cell: (row) => (row.approximate ? `≈${row.price}` : row.price),
+    },
+    {
+      id: 'model',
+      header: t('Model'),
+      cellClassName: 'text-muted-foreground text-[11px]!',
+      cell: (row) => row.modelName,
+    },
+  ]
 
   return (
     <section
@@ -41,120 +63,124 @@ export function ModelPricing() {
       className='relative z-10 scroll-mt-20 px-6 py-14 md:py-20'
     >
       <div className='mx-auto max-w-6xl'>
-        <p className='mb-2 text-sm font-semibold text-brand dark:text-brand-on-dark'>
+        <p className='text-brand dark:text-brand-on-dark mb-2 text-sm font-semibold'>
           {t('Models and pricing')}
         </p>
         <h2 className='text-3xl font-bold tracking-tight md:text-4xl'>
-          {bestDiscount
-            ? t(
-                'Billed per second, {{percentOff}}% off official prices',
-                bestDiscount
-              )
-            : t('Billed per generated second')}
+          {t('Billed per second, as low as half the official price')}
         </h2>
         <p className='text-muted-foreground mt-3 max-w-2xl'>
           {t(
-            'No monthly fee or minimum spend: pay only for what you generate. Tasks with a reference video are billed by tokens; see the model square for details.'
+            'No monthly fee or minimum spend: pay only for what you generate. Each resolution shows the cheapest model in the series.'
           )}
         </p>
 
-        <div className='mt-8 grid gap-5 md:grid-cols-2'>
-          {HOME_VIDEO_MODELS.map((model) => {
-            const pricing = byModel.get(model.name)
-            const range = pricing?.durationRange ?? model.durationRange
-            const columns: StaticDataTableColumn<SeedancePriceRow>[] = [
-              {
-                id: 'option',
-                header: t('Resolution'),
-                cell: (row) => row.option.replace(/k$/i, 'K'),
-              },
-            ]
-            if (pricing?.discount) {
-              columns.push({
-                id: 'official',
-                header: t('Official price'),
-                cellClassName:
-                  'text-muted-foreground font-mono tabular-nums line-through',
-                cell: (row) =>
-                  row.officialPrice
-                    ? t('{{price}} / s', { price: row.officialPrice })
-                    : '-',
-              })
-            }
-            columns.push({
-              id: 'price',
-              header: t('Our price'),
-              cellClassName: 'font-mono font-semibold tabular-nums',
-              cell: (row) => t('{{price}} / s', { price: row.price }),
-            })
+        {seriesList.length === 0 ? (
+          <Link
+            to='/pricing'
+            className='text-brand dark:text-brand-on-dark mt-8 inline-block text-sm font-semibold hover:underline'
+          >
+            {t('See prices in the model square')} →
+          </Link>
+        ) : (
+          <div className='mt-8 grid gap-5 md:grid-cols-2 lg:grid-cols-3'>
+            {seriesList.map((series) => {
+              const first = series.rows[0]
+              const last = series.rows.at(-1)
 
-            return (
-              <article
-                key={model.name}
-                className='bg-card border-border/60 flex flex-col gap-5 rounded-2xl border p-6'
-              >
-                <div className='flex flex-wrap items-start justify-between gap-4'>
-                  <div>
-                    <div className='flex items-center gap-2'>
-                      <h3 className='font-mono text-xl font-medium'>
-                        {model.name}
-                      </h3>
-                      {model.isNew && <Badge>{t('New')}</Badge>}
+              return (
+                <article
+                  key={series.name}
+                  className='bg-card border-border/60 flex flex-col gap-4 rounded-2xl border p-5'
+                >
+                  <div className='flex items-start justify-between gap-3'>
+                    <div className='min-w-0'>
+                      <div className='flex flex-wrap items-center gap-2'>
+                        <h3 className='font-mono text-lg font-medium whitespace-nowrap sm:text-xl'>
+                          {series.name}
+                        </h3>
+                        {series.isNew && <Badge>{t('New')}</Badge>}
+                      </div>
+                      <p className='text-muted-foreground mt-1 text-sm'>
+                        {t('Supports {{models}}', {
+                          models: series.variants.join(' / '),
+                        })}
+                      </p>
                     </div>
-                    <p className='text-muted-foreground mt-1 text-sm'>
-                      {t(model.tagline)}
-                    </p>
+                    {series.lowest && (
+                      <p className='shrink-0 text-right'>
+                        <span className='text-muted-foreground block text-xs'>
+                          {t('From')}
+                        </span>
+                        <span className='text-xl font-bold whitespace-nowrap tabular-nums sm:text-2xl'>
+                          {t('{{price}} / s', {
+                            price: series.lowest.approximate
+                              ? `≈${series.lowest.price}`
+                              : series.lowest.price,
+                          })}
+                        </span>
+                      </p>
+                    )}
                   </div>
-                  {pricing && (
-                    <p className='text-right'>
-                      <span className='text-muted-foreground block text-xs'>
-                        {t('From')}
-                      </span>
-                      <span className='text-2xl font-bold tabular-nums'>
-                        {t('{{price}} / s', { price: pricing.lowestPrice })}
-                      </span>
-                    </p>
-                  )}
-                </div>
-                <dl className='grid grid-cols-2 gap-3 text-sm'>
-                  <div className='bg-muted/50 rounded-lg px-3.5 py-2.5'>
-                    <dt className='text-muted-foreground text-xs'>
-                      {t('Resolution')}
-                    </dt>
-                    <dd className='mt-0.5 font-medium'>
-                      {model.resolutions.join(' / ')}
-                    </dd>
-                  </div>
-                  <div className='bg-muted/50 rounded-lg px-3.5 py-2.5'>
-                    <dt className='text-muted-foreground text-xs'>
-                      {t('Duration per clip')}
-                    </dt>
-                    <dd className='mt-0.5 font-medium'>
-                      {t('{{min}}–{{max}} seconds', {
-                        min: range[0],
-                        max: range[1],
-                      })}
-                    </dd>
-                  </div>
-                </dl>
-                {pricing ? (
+                  <dl className='grid grid-cols-3 gap-2 text-xs sm:text-sm'>
+                    <div className='bg-muted/50 rounded-lg px-2.5 py-2'>
+                      <dt className='text-muted-foreground text-xs'>
+                        {t('Resolution')}
+                      </dt>
+                      <dd className='mt-0.5 font-medium whitespace-nowrap'>
+                        {first && last && first !== last
+                          ? `${formatResolution(first.option)}–${formatResolution(last.option)}`
+                          : formatResolution(first?.option ?? '-')}
+                      </dd>
+                    </div>
+                    <div className='bg-muted/50 rounded-lg px-2.5 py-2'>
+                      <dt className='text-muted-foreground text-xs'>
+                        {t('Duration per clip')}
+                      </dt>
+                      <dd className='mt-0.5 font-medium whitespace-nowrap'>
+                        {series.durationRange
+                          ? t('{{min}}–{{max}} seconds', {
+                              min: series.durationRange[0],
+                              max: series.durationRange[1],
+                            })
+                          : '-'}
+                      </dd>
+                    </div>
+                    <div className='bg-muted/50 rounded-lg px-2.5 py-2'>
+                      <dt className='text-muted-foreground text-xs'>
+                        {t('Aspect ratio')}
+                      </dt>
+                      <dd className='mt-0.5 font-medium whitespace-nowrap'>
+                        {series.aspectRatioCount > 0
+                          ? t('{{count}} ratios', {
+                              count: series.aspectRatioCount,
+                            })
+                          : '-'}
+                      </dd>
+                    </div>
+                  </dl>
                   <StaticDataTable
+                    tableClassName='table-fixed'
                     columns={columns}
-                    data={pricing.rows}
+                    data={series.rows}
                     getRowKey={(row) => row.option}
                   />
-                ) : (
-                  <Link
-                    to='/pricing'
-                    className='text-sm font-semibold text-brand dark:text-brand-on-dark hover:underline'
-                  >
-                    {t('See prices in the model square')} →
-                  </Link>
-                )}
-              </article>
-            )
-          })}
-        </div>
+                  {series.perVideo && (
+                    <p className='text-muted-foreground text-xs'>
+                      {t('Per video')}{' '}
+                      <span className='text-foreground font-mono font-semibold'>
+                        {t('{{price}} / video', {
+                          price: series.perVideo.price,
+                        })}
+                      </span>{' '}
+                      · {series.perVideo.modelName}
+                    </p>
+                  )}
+                </article>
+              )
+            })}
+          </div>
+        )}
       </div>
     </section>
   )

@@ -7679,6 +7679,13 @@
     "Insufficient balance, {{amount}} short.": "残高不足です。あと {{amount}} 必要です。",
     "Go to top up": "チャージする",
     "Model distribution": "モデル分布",
-    "Multi-channel groups billed per second, per token or per request, pick what fits; models ending in {{suffix}} are Unrestricted.": "複数チャネルを集約し、秒・トークン・回数で課金。用途に合わせて選べます。末尾が {{suffix}} のモデルは制限なしです。"
+    "Multi-channel groups billed per second, per token or per request, pick what fits; models ending in {{suffix}} are Unrestricted.": "複数チャネルを集約し、秒・トークン・回数で課金。用途に合わせて選べます。末尾が {{suffix}} のモデルは制限なしです。",
+    "Billed per second, as low as half the official price": "秒単位課金、公式価格の最大 50% オフ",
+    "No monthly fee or minimum spend: pay only for what you generate. Each resolution shows the cheapest model in the series.": "月額料金・最低利用額なし、使った分だけお支払い。各解像度にシリーズ内で最も安いモデルの価格を表示しています。",
+    "Supports {{models}}": "対応：{{models}}",
+    "{{count}} ratios": "{{count}} 種類",
+    "Per video": "1 本ごと",
+    "{{price}} / video": "{{price}} / 本",
+    "Lowest per second": "1 秒あたり最安"
   }
 }
