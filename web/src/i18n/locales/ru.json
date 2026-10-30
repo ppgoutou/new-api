@@ -7677,6 +7677,9 @@
     "Delete this image?": "Удалить это изображение?",
     "The image is removed from this browser. Download it first if you want to keep it.": "Изображение будет удалено из этого браузера. Сначала скачайте его, если хотите сохранить.",
     "Insufficient balance, {{amount}} short.": "Недостаточно средств, не хватает {{amount}}.",
-    "Go to top up": "Пополнить"
+    "Go to top up": "Пополнить",
+    "Model distribution": "Распределение моделей",
+    "Each model group combines models from multiple channels, billed per second, per token or per request. Choose the model that fits your needs.": "Каждая группа моделей объединяет модели из нескольких каналов с оплатой за секунду, за токен или за запрос. Выберите модель под свои задачи.",
+    "Models ending in {{suffix}} are Unrestricted.": "Модели с окончанием {{suffix}} — Unrestricted (без ограничений)."
   }
 }

@@ -32,6 +32,7 @@ import {
   PricingSidebar,
   PricingToolbar,
   ModelCardGrid,
+  ModelDistribution,
 } from './components'
 import { EXCLUDED_GROUPS, VIEW_MODES } from './constants'
 import { useFilters } from './hooks/use-filters'
@@ -140,6 +141,10 @@ export function Pricing() {
     [filteredModels, categories]
   )
   const modelBadges = useMemo(() => modelBadgesByName(categories), [categories])
+  const distributionSections = useMemo(
+    () => groupModelsByCategory(models || [], categories),
+    [models, categories]
+  )
 
   const renderModels = (sectionModels: PricingModel[]) => {
     if (viewMode === VIEW_MODES.CARD) {
@@ -261,10 +266,16 @@ export function Pricing() {
                 count: models?.length || 0,
               })}
             </p>
-            <p className='text-muted-foreground/60 mx-auto mt-2 max-w-2xl text-xs leading-relaxed sm:text-sm'>
+            <ModelDistribution sections={distributionSections} />
+            <p className='text-muted-foreground/60 mx-auto mt-3 max-w-2xl text-xs leading-relaxed sm:text-sm'>
               {t(
-                'Discover curated AI models, compare pricing and capabilities, and choose the right model for every scenario.'
+                'Each model group combines models from multiple channels, billed per second, per token or per request. Choose the model that fits your needs.'
               )}
+            </p>
+            <p className='text-muted-foreground/60 mx-auto mt-1 max-w-2xl text-xs leading-relaxed sm:text-sm'>
+              {t('Models ending in {{suffix}} are Unrestricted.', {
+                suffix: '-P',
+              })}
             </p>
             <SearchBar
               value={searchInput}

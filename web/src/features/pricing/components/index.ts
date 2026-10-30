@@ -23,6 +23,7 @@ export { ModelCardGrid } from './model-card-grid'
 export { LoadingSkeleton } from './loading-skeleton'
 export { EmptyState } from './empty-state'
 export { SearchBar } from './search-bar'
+export { ModelDistribution } from './model-distribution'
 // model-details is not re-exported: it pulls in VChart, and the pricing page
 // lazy-loads it so the chart library stays out of the list's first load.
 export { PricingTable } from './pricing-table'
