@@ -7679,6 +7679,13 @@
     "Insufficient balance, {{amount}} short.": "Недостаточно средств, не хватает {{amount}}.",
     "Go to top up": "Пополнить",
     "Model distribution": "Распределение моделей",
-    "Multi-channel groups billed per second, per token or per request, pick what fits; models ending in {{suffix}} are Unrestricted.": "Многоканальные группы с оплатой за секунду, токен или запрос, выбирайте по задаче; модели с окончанием {{suffix}} — Unrestricted (без ограничений)."
+    "Multi-channel groups billed per second, per token or per request, pick what fits; models ending in {{suffix}} are Unrestricted.": "Многоканальные группы с оплатой за секунду, токен или запрос, выбирайте по задаче; модели с окончанием {{suffix}} — Unrestricted (без ограничений).",
+    "Billed per second, as low as half the official price": "Посекундная оплата — до 50% дешевле официальной цены",
+    "No monthly fee or minimum spend: pay only for what you generate. Each resolution shows the cheapest model in the series.": "Без абонентской платы и минимального платежа: платите только за то, что создаёте. Для каждого разрешения указана самая дешёвая модель серии.",
+    "Supports {{models}}": "Поддерживает {{models}}",
+    "{{count}} ratios": "{{count}} форматов",
+    "Per video": "За видео",
+    "{{price}} / video": "{{price}} / видео",
+    "Lowest per second": "От (за секунду)"
   }
 }

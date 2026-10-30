@@ -7679,6 +7679,13 @@
     "Insufficient balance, {{amount}} short.": "Insufficient balance, {{amount}} short.",
     "Go to top up": "Go to top up",
     "Model distribution": "Model distribution",
-    "Multi-channel groups billed per second, per token or per request, pick what fits; models ending in {{suffix}} are Unrestricted.": "Multi-channel groups billed per second, per token or per request, pick what fits; models ending in {{suffix}} are Unrestricted."
+    "Multi-channel groups billed per second, per token or per request, pick what fits; models ending in {{suffix}} are Unrestricted.": "Multi-channel groups billed per second, per token or per request, pick what fits; models ending in {{suffix}} are Unrestricted.",
+    "Billed per second, as low as half the official price": "Billed per second, as low as half the official price",
+    "No monthly fee or minimum spend: pay only for what you generate. Each resolution shows the cheapest model in the series.": "No monthly fee or minimum spend: pay only for what you generate. Each resolution shows the cheapest model in the series.",
+    "Supports {{models}}": "Supports {{models}}",
+    "{{count}} ratios": "{{count}} ratios",
+    "Per video": "Per video",
+    "{{price}} / video": "{{price}} / video",
+    "Lowest per second": "Lowest per second"
   }
 }
