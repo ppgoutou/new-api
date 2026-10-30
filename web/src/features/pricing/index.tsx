@@ -267,15 +267,11 @@ export function Pricing() {
               })}
             </p>
             <ModelDistribution sections={distributionSections} />
-            <p className='text-muted-foreground/60 mx-auto mt-3 max-w-2xl text-xs leading-relaxed sm:text-sm'>
+            <p className='text-muted-foreground/60 mx-auto mt-3 max-w-3xl text-xs leading-relaxed sm:text-sm'>
               {t(
-                'Each model group combines models from multiple channels, billed per second, per token or per request. Choose the model that fits your needs.'
+                'Multi-channel groups billed per second, per token or per request, pick what fits; models ending in {{suffix}} are Unrestricted.',
+                { suffix: '-P' }
               )}
-            </p>
-            <p className='text-muted-foreground/60 mx-auto mt-1 max-w-2xl text-xs leading-relaxed sm:text-sm'>
-              {t('Models ending in {{suffix}} are Unrestricted.', {
-                suffix: '-P',
-              })}
             </p>
             <SearchBar
               value={searchInput}

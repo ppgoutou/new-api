@@ -30,7 +30,7 @@ type ModelDistributionProps = {
   sections: PricingCategorySection[]
 }
 
-/** Hero line listing how many enabled models each category holds. */
+/** Hero line naming every category that holds an enabled model. */
 export function ModelDistribution(props: ModelDistributionProps) {
   const { t } = useTranslation()
   if (props.sections.length === 0) return null
@@ -46,9 +46,6 @@ export function ModelDistribution(props: ModelDistributionProps) {
             {section.id === UNCATEGORIZED_CATEGORY
               ? t('Other models')
               : section.name}
-            <span className='text-muted-foreground tabular-nums'>
-              {section.models.length}
-            </span>
           </Badge>
         </li>
       ))}
