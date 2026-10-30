@@ -17,13 +17,7 @@ along with this program. If not, see <https://www.gnu.org/licenses/>.
 For commercial licensing, please contact support@quantumnous.com
 */
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
-import {
-  act,
-  fireEvent,
-  render,
-  screen,
-  within,
-} from '@testing-library/react'
+import { act, fireEvent, render, screen, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { createJSONStorage } from 'zustand/middleware'
@@ -96,11 +90,25 @@ describe('model cards', () => {
       />
     )
     const highlights = screen.getByRole('list', { name: 'Highlights' })
+    const items = within(highlights).getAllByRole('listitem')
     expect(
-      within(highlights)
-        .getAllByRole('listitem')
-        .map((item) => item.textContent)
+      items.map((item) => item.getAttribute('aria-label') ?? item.textContent)
     ).toEqual(['Recommended', 'HOT'])
+  })
+
+  it('shows the recommended badge as an icon with its label for screen readers', () => {
+    render(
+      <ModelCard
+        model={pricingModel({})}
+        badges={['recommended']}
+        onClick={vi.fn()}
+      />
+    )
+    const badge = within(
+      screen.getByRole('list', { name: 'Highlights' })
+    ).getByRole('listitem', { name: 'Recommended' })
+    expect(badge.textContent).toBe('')
+    expect(badge.querySelector('svg')).not.toBeNull()
   })
 
   it('shows no badge list when the model has no badges', () => {
@@ -717,5 +725,4 @@ describe('model cards', () => {
     expect(grid).not.toHaveClass('2xl:grid-cols-3')
     expect(grid).not.toHaveClass('min-[1440px]:grid-cols-3')
   })
-
 })

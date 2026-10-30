@@ -16,7 +16,7 @@ along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 For commercial licensing, please contact support@quantumnous.com
 */
-import { ChevronRight, Play } from 'lucide-react'
+import { ChevronRight, Play, ThumbsUp } from 'lucide-react'
 import { memo, useMemo, type ReactNode } from 'react'
 import { useTranslation } from 'react-i18next'
 
@@ -387,7 +387,7 @@ export const ModelCard = memo(function ModelCard(props: ModelCardProps) {
   }
 
   return (
-    <Card className='hover:border-brand/40 h-full min-w-0 gap-3'>
+    <Card className='group hover:border-brand/40 h-full min-w-0 gap-3'>
       <CardHeader className='flex flex-row items-center gap-3'>
         <div
           aria-hidden
@@ -418,17 +418,36 @@ export const ModelCard = memo(function ModelCard(props: ModelCardProps) {
             aria-label={t('Highlights')}
             className='flex shrink-0 flex-wrap justify-end gap-1 self-start'
           >
-            {props.badges.map((badge) => (
-              <li
-                key={badge}
-                className={cn(
-                  'rounded-md px-1.5 py-0.5 text-[11px] leading-4 font-bold tracking-wide',
-                  MODEL_BADGE_CLASSES[badge]
-                )}
-              >
-                {modelBadgeLabel(badge, t)}
-              </li>
-            ))}
+            {props.badges.map((badge) =>
+              badge === 'recommended' ? (
+                // An icon reads the same in every language; the label stays
+                // available to screen readers and as a tooltip.
+                <li
+                  key={badge}
+                  aria-label={modelBadgeLabel(badge, t)}
+                  title={modelBadgeLabel(badge, t)}
+                  className={cn(
+                    'flex size-5 items-center justify-center rounded-md',
+                    MODEL_BADGE_CLASSES[badge]
+                  )}
+                >
+                  <ThumbsUp
+                    aria-hidden='true'
+                    className='recommended-badge-pop size-3.5 fill-current'
+                  />
+                </li>
+              ) : (
+                <li
+                  key={badge}
+                  className={cn(
+                    'rounded-md px-1.5 py-0.5 text-[11px] leading-4 font-bold tracking-wide',
+                    MODEL_BADGE_CLASSES[badge]
+                  )}
+                >
+                  {modelBadgeLabel(badge, t)}
+                </li>
+              )
+            )}
           </ul>
         )}
       </CardHeader>
