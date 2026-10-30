@@ -85,7 +85,8 @@ function isBetterPrice(
 /**
  * Live lowest prices of the home page model series, read from the public
  * pricing API. Each resolution shows the cheapest model across every category
- * of the series; series with no priced model the viewer can see are left out.
+ * of the series; series with no priced model the viewer can see or buy are
+ * left out.
  */
 export function useVideoSeriesPricing(): VideoSeriesPricing[] {
   const pricing = usePricingData()
@@ -108,8 +109,9 @@ export function useVideoSeriesPricing(): VideoSeriesPricing[] {
         .filter((category) => category.name.toLowerCase().startsWith(prefix))
         .flatMap((category) => category.models)
     )
-    const models = pricing.models.filter((model) =>
-      modelNames.has(model.model_name)
+    // An unavailable model can't be bought, so it never sets a series price.
+    const models = pricing.models.filter(
+      (model) => modelNames.has(model.model_name) && !model.unavailable
     )
 
     const bestByOption = new Map<string, PriceCandidate>()

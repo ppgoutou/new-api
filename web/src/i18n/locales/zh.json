@@ -7686,6 +7686,22 @@
     "{{count}} ratios": "{{count}} 种",
     "Per video": "按条计费",
     "{{price}} / video": "{{price}} / 条",
-    "Lowest per second": "每秒低至"
+    "Lowest per second": "每秒低至",
+    "Temporarily unavailable": "暂不可用",
+    "Temporarily unavailable. Try another model for now.": "暂不可用，请先换用其他模型。",
+    "Keep the model listed but refuse new requests, such as when the supplier is out of stock.": "模型继续展示，但拒绝新的请求，例如上游缺货时。",
+    "Reason shown to users": "对用户显示的说明",
+    "Out of stock upstream. Back online once restocked.": "上游缺货，恢复后自动上线",
+    "Optional. Users see it on the model card and in error messages.": "选填。用户会在模型卡片和报错信息中看到。",
+    "Reason must not exceed 255 characters": "说明不能超过 255 个字符",
+    "Mark available again": "恢复可用",
+    "Mark temporarily unavailable": "标记暂不可用",
+    "Failed to mark model unavailable": "标记暂不可用失败",
+    "Failed to mark model available": "恢复可用失败",
+    "Model marked temporarily unavailable": "已标记为暂不可用",
+    "Model available again": "已恢复可用",
+    "This model is temporarily unavailable: {{reason}}": "该模型暂不可用：{{reason}}",
+    "This model is temporarily unavailable. Pick another model.": "该模型暂不可用，请换一个模型。",
+    "Switch to {{model}}": "切换到 {{model}}"
   }
 }

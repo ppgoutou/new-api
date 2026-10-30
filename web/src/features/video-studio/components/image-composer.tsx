@@ -39,13 +39,18 @@ import { useStudioBalance } from '../hooks/use-studio-balance'
 import { useStudioDraft } from '../hooks/use-studio-draft'
 import { useStudioImageModels } from '../hooks/use-studio-models'
 import { useStudioImagePrice } from '../hooks/use-studio-price'
-import { labelReferences } from '../lib/draft'
+import {
+  findStudioModel,
+  labelReferences,
+  replacementModel,
+} from '../lib/draft'
 import { buildImageRequest, validateImageDraft } from '../lib/image-draft'
 import type { StudioDraft } from '../types'
 import { ChoiceMenu } from './choice-menu'
 import { PromptInput } from './prompt-input'
 import { ReferencePanel } from './reference-panel'
 import { StudioCost } from './studio-cost'
+import { UnavailableModelNotice } from './unavailable-model-notice'
 
 interface ImageComposerProps {
   /** Model picked on entry, such as from a pricing card's try button. */
@@ -70,8 +75,8 @@ export function ImageComposer(props: ImageComposerProps) {
       ?.value ?? DEFAULT_IMAGE_SIZE
   )
   const [submitting, setSubmitting] = useState(false)
-  const model =
-    models.find((option) => option.name === studio.draft.model) ?? models[0]
+  const model = findStudioModel(models, studio.draft.model)
+  const unavailable = model?.unavailable === true
   const draft = {
     model: model?.name ?? '',
     prompt: studio.draft.prompt,
@@ -82,9 +87,12 @@ export function ImageComposer(props: ImageComposerProps) {
   const price = useStudioImagePrice(draft.model, draft.size, draft.count)
   const balance = useStudioBalance(price?.costUSD ?? null)
   const insufficient = balance.shortfallUSD !== null
-  const problem = model
+  let problem = model
     ? validateImageDraft(draft)
     : 'No image model is available'
+  if (unavailable) {
+    problem = 'This model is temporarily unavailable. Pick another model.'
+  }
 
   const addReferences = (files: File[]) => {
     const images = files.filter((file) => assetKindOf(file) === 'image')
@@ -158,6 +166,9 @@ export function ImageComposer(props: ImageComposerProps) {
               label: option.name,
               group: option.group,
               icon: <ImageIcon className='size-3.5' aria-hidden />,
+              unavailableLabel: option.unavailable
+                ? t('Temporarily unavailable')
+                : undefined,
             }))}
             onChange={(name) => studio.update({ model: name })}
           />
@@ -192,7 +203,7 @@ export function ImageComposer(props: ImageComposerProps) {
             size='icon'
             className='size-9 rounded-full'
             onClick={submit}
-            disabled={submitting || insufficient}
+            disabled={submitting || insufficient || unavailable}
             aria-label={t('Generate image')}
             title={problem ? t(problem) : t('Generate image')}
           >
@@ -204,6 +215,13 @@ export function ImageComposer(props: ImageComposerProps) {
           </Button>
         </div>
       </div>
+      {model && unavailable && (
+        <UnavailableModelNotice
+          reason={model.unavailableReason}
+          replacement={replacementModel(models, model)?.name}
+          onSwitch={(name) => studio.update({ model: name })}
+        />
+      )}
       <p className='text-muted-foreground mt-2 px-1 text-[11px]'>
         {t(
           'Reference files are kept for {{days}} days and then deleted automatically. Uploading requires a positive balance.',

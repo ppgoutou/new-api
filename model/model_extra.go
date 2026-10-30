@@ -29,3 +29,14 @@ func GetModelQuotaTypes(modelName string) []int {
 	}
 	return []int{quota}
 }
+
+// GetModelUnavailability reports whether a listed model refuses new requests,
+// and the reason the administrator gave (来自缓存).
+func GetModelUnavailability(modelName string) (reason string, unavailable bool) {
+	GetPricing()
+
+	modelEnableGroupsLock.RLock()
+	reason, unavailable = modelUnavailable[modelName]
+	modelEnableGroupsLock.RUnlock()
+	return reason, unavailable
+}

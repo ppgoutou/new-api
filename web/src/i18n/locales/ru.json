@@ -7686,6 +7686,22 @@
     "{{count}} ratios": "{{count}} форматов",
     "Per video": "За видео",
     "{{price}} / video": "{{price}} / видео",
-    "Lowest per second": "От (за секунду)"
+    "Lowest per second": "От (за секунду)",
+    "Temporarily unavailable": "Временно недоступна",
+    "Temporarily unavailable. Try another model for now.": "Временно недоступна. Пока выберите другую модель.",
+    "Keep the model listed but refuse new requests, such as when the supplier is out of stock.": "Модель остаётся в списке, но новые запросы отклоняются, например когда у поставщика нет мощностей.",
+    "Reason shown to users": "Причина для пользователей",
+    "Out of stock upstream. Back online once restocked.": "Нет у поставщика. Вернётся после пополнения.",
+    "Optional. Users see it on the model card and in error messages.": "Необязательно. Видна в карточке модели и в сообщениях об ошибке.",
+    "Reason must not exceed 255 characters": "Причина не должна превышать 255 символов",
+    "Mark available again": "Снова сделать доступной",
+    "Mark temporarily unavailable": "Отметить как временно недоступную",
+    "Failed to mark model unavailable": "Не удалось отметить модель недоступной",
+    "Failed to mark model available": "Не удалось сделать модель доступной",
+    "Model marked temporarily unavailable": "Модель отмечена как временно недоступная",
+    "Model available again": "Модель снова доступна",
+    "This model is temporarily unavailable: {{reason}}": "Модель временно недоступна: {{reason}}",
+    "This model is temporarily unavailable. Pick another model.": "Модель временно недоступна. Выберите другую.",
+    "Switch to {{model}}": "Переключиться на {{model}}"
   }
 }

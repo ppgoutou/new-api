@@ -104,6 +104,10 @@ export type PricingModel = {
   billing_usage_examples?: BillingUsageExample[]
   /** What the serving task plugin says the model can generate. */
   model_limits?: ModelLimits
+  /** Listed but refusing new requests, such as when the supplier is out of stock. */
+  unavailable?: boolean
+  /** Administrator note shown while the model is unavailable. */
+  unavailable_reason?: string
   /** Pricing version returned by backend, useful for cache busting */
   pricing_version?: string
   /**

@@ -7686,6 +7686,22 @@
     "{{count}} ratios": "{{count}} 種類",
     "Per video": "1 本ごと",
     "{{price}} / video": "{{price}} / 本",
-    "Lowest per second": "1 秒あたり最安"
+    "Lowest per second": "1 秒あたり最安",
+    "Temporarily unavailable": "一時的に利用不可",
+    "Temporarily unavailable. Try another model for now.": "一時的に利用できません。しばらくは別のモデルをお使いください。",
+    "Keep the model listed but refuse new requests, such as when the supplier is out of stock.": "モデルは表示したまま新しいリクエストを拒否します（仕入れ先の在庫切れなど）。",
+    "Reason shown to users": "ユーザーに表示する理由",
+    "Out of stock upstream. Back online once restocked.": "仕入れ先で在庫切れ。入荷後に再開します。",
+    "Optional. Users see it on the model card and in error messages.": "任意。モデルカードとエラーメッセージに表示されます。",
+    "Reason must not exceed 255 characters": "理由は255文字以内で入力してください",
+    "Mark available again": "利用可能に戻す",
+    "Mark temporarily unavailable": "一時的に利用不可にする",
+    "Failed to mark model unavailable": "利用不可への変更に失敗しました",
+    "Failed to mark model available": "利用可能への変更に失敗しました",
+    "Model marked temporarily unavailable": "一時的に利用不可にしました",
+    "Model available again": "利用可能に戻しました",
+    "This model is temporarily unavailable: {{reason}}": "このモデルは一時的に利用できません：{{reason}}",
+    "This model is temporarily unavailable. Pick another model.": "このモデルは一時的に利用できません。別のモデルを選んでください。",
+    "Switch to {{model}}": "{{model}} に切り替える"
   }
 }

@@ -27,6 +27,7 @@ import {
 import { GroupBadge } from '@/components/group-badge'
 import { StatusBadge } from '@/components/status-badge'
 import { getLobeIcon } from '@/lib/lobe-icon'
+import { cn } from '@/lib/utils'
 
 import { parseTags } from '../lib/filters'
 import type { PricingModel } from '../types'
@@ -61,9 +62,22 @@ export function usePricingColumns(
         return (
           <div className='flex max-w-full min-w-0 items-center gap-2'>
             {modelIcon}
-            <span className='truncate font-mono text-sm font-medium'>
+            <span
+              className={cn(
+                'truncate font-mono text-sm font-medium',
+                model.unavailable && 'text-muted-foreground'
+              )}
+            >
               {model.model_name}
             </span>
+            {model.unavailable && (
+              <span
+                title={model.unavailable_reason || undefined}
+                className='bg-warning/15 text-warning shrink-0 rounded-md px-1.5 py-0.5 text-[11px] leading-4 font-bold'
+              >
+                {t('Temporarily unavailable')}
+              </span>
+            )}
           </div>
         )
       },

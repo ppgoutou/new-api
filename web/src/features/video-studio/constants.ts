@@ -18,7 +18,14 @@ For commercial licensing, please contact support@quantumnous.com
 */
 import type { AssetKind, StudioDraft, StudioRatio } from './types'
 
-export interface StudioModel {
+/** A model listed on the canvas that refuses new requests for now. */
+export interface StudioModelAvailability {
+  unavailable?: boolean
+  /** Administrator note shown while the model is unavailable. */
+  unavailableReason?: string
+}
+
+export interface StudioModel extends StudioModelAvailability {
   name: string
   /** Category name from the model plaza; empty for uncategorized models. */
   group?: string
@@ -94,7 +101,7 @@ export const DEFAULT_DRAFT: StudioDraft = {
   references: [],
 }
 
-export interface StudioImageModel {
+export interface StudioImageModel extends StudioModelAvailability {
   name: string
   /** Category name from the model plaza; empty for uncategorized models. */
   group?: string

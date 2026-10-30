@@ -7686,6 +7686,22 @@
     "{{count}} ratios": "{{count}} ratios",
     "Per video": "Per video",
     "{{price}} / video": "{{price}} / video",
-    "Lowest per second": "Lowest per second"
+    "Lowest per second": "Lowest per second",
+    "Temporarily unavailable": "Temporarily unavailable",
+    "Temporarily unavailable. Try another model for now.": "Temporarily unavailable. Try another model for now.",
+    "Keep the model listed but refuse new requests, such as when the supplier is out of stock.": "Keep the model listed but refuse new requests, such as when the supplier is out of stock.",
+    "Reason shown to users": "Reason shown to users",
+    "Out of stock upstream. Back online once restocked.": "Out of stock upstream. Back online once restocked.",
+    "Optional. Users see it on the model card and in error messages.": "Optional. Users see it on the model card and in error messages.",
+    "Reason must not exceed 255 characters": "Reason must not exceed 255 characters",
+    "Mark available again": "Mark available again",
+    "Mark temporarily unavailable": "Mark temporarily unavailable",
+    "Failed to mark model unavailable": "Failed to mark model unavailable",
+    "Failed to mark model available": "Failed to mark model available",
+    "Model marked temporarily unavailable": "Model marked temporarily unavailable",
+    "Model available again": "Model available again",
+    "This model is temporarily unavailable: {{reason}}": "This model is temporarily unavailable: {{reason}}",
+    "This model is temporarily unavailable. Pick another model.": "This model is temporarily unavailable. Pick another model.",
+    "Switch to {{model}}": "Switch to {{model}}"
   }
 }

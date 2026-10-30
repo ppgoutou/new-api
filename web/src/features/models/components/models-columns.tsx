@@ -46,7 +46,7 @@ import { getLobeIcon } from '@/lib/lobe-icon'
 import { getNameRuleConfig } from '../constants'
 import { parseModelTags, formatEndpointsDisplay } from '../lib'
 import { getModelChannelState } from '../lib/model-utils'
-import type { Model, Vendor } from '../types'
+import { MODEL_STATUS, type Model, type Vendor } from '../types'
 import { DataTableRowActions } from './data-table-row-actions'
 import { DescriptionCell } from './description-cell'
 import { ModelSquareStatus } from './model-square-status'
@@ -296,8 +296,21 @@ export function useModelsColumns(
         header: t('Display policy'),
         enableHiding: false,
         enableSorting: false,
-        cell: ({ row }) =>
-          row.original.status === 1 ? t('Allowed') : t('Not listed'),
+        cell: ({ row }) => {
+          if (row.original.status === MODEL_STATUS.UNAVAILABLE) {
+            return (
+              <StatusBadge
+                variant='warning'
+                label={t('Temporarily unavailable')}
+                title={row.original.unavailable_reason || undefined}
+                copyable={false}
+              />
+            )
+          }
+          return row.original.status === MODEL_STATUS.ENABLED
+            ? t('Allowed')
+            : t('Not listed')
+        },
       },
       {
         accessorKey: 'id',

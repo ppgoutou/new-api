@@ -23,6 +23,7 @@ import { toast } from 'sonner'
 import { handleServerError } from '@/lib/handle-server-error'
 
 import { updateModelStatus } from '../api'
+import { MODEL_STATUS } from '../types'
 import { invalidateVendorData } from '../vendor-api'
 
 // ============================================================================
@@ -83,6 +84,39 @@ export async function handleDisableModel(
 }
 
 /**
+ * Mark a listed model temporarily unavailable, or available again
+ */
+export async function handleSetModelUnavailable(
+  id: number,
+  unavailable: boolean,
+  queryClient?: QueryClient,
+  onSuccess?: () => void
+): Promise<void> {
+  const failure = unavailable
+    ? i18next.t('Failed to mark model unavailable')
+    : i18next.t('Failed to mark model available')
+  try {
+    const response = await updateModelStatus(
+      id,
+      unavailable ? MODEL_STATUS.UNAVAILABLE : MODEL_STATUS.ENABLED
+    )
+    if (!response.success) {
+      handleServerError(response, failure)
+      return
+    }
+    toast.success(
+      unavailable
+        ? i18next.t('Model marked temporarily unavailable')
+        : i18next.t('Model available again')
+    )
+    if (queryClient) await invalidateVendorData(queryClient)
+    onSuccess?.()
+  } catch (error: unknown) {
+    handleServerError(error, failure)
+  }
+}
+
+/**
  * Toggle model status
  */
 export async function handleToggleModelStatus(
@@ -91,7 +125,7 @@ export async function handleToggleModelStatus(
   queryClient?: QueryClient,
   onSuccess?: () => void
 ): Promise<void> {
-  if (currentStatus === 1) {
+  if (currentStatus !== MODEL_STATUS.DISABLED) {
     await handleDisableModel(id, queryClient, onSuccess)
   } else {
     await handleEnableModel(id, queryClient, onSuccess)

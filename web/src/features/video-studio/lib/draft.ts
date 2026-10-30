@@ -30,6 +30,7 @@ import {
   REFERENCE_TOKEN_NAMES,
   STUDIO_RATIOS,
   type StudioModel,
+  type StudioModelAvailability,
 } from '../constants'
 import type {
   AssetKind,
@@ -58,6 +59,7 @@ export function studioModelsFromPricing(
     return [
       {
         name: model.model_name,
+        ...studioModelAvailability(model),
         resolutions: pricing.rows.map((row) => row.option),
         duration: pricing.durationRange ?? DEFAULT_STUDIO_DURATION,
         ...(durations?.length ? { durations } : {}),
@@ -69,6 +71,30 @@ export function studioModelsFromPricing(
       },
     ]
   })
+}
+
+/** Whether a pricing model is listed but refusing new requests. */
+export function studioModelAvailability(
+  model: PricingModel
+): StudioModelAvailability {
+  if (!model.unavailable) return {}
+  return {
+    unavailable: true,
+    unavailableReason: model.unavailable_reason?.trim() || undefined,
+  }
+}
+
+/**
+ * Model to offer in place of an unavailable one: the first available model
+ * of the same category, else the first available model.
+ */
+export function replacementModel<
+  T extends StudioModelAvailability & { name: string; group?: string },
+>(models: readonly T[], current: T): T | undefined {
+  const available = models.filter((model) => !model.unavailable)
+  return (
+    available.find((model) => model.group === current.group) ?? available[0]
+  )
 }
 
 /**
@@ -95,12 +121,18 @@ export function inPlazaOrder<T extends { name: string; group?: string }>(
   )
 }
 
-/** The named model, else the first one; undefined when there are none. */
-export function findStudioModel(
-  models: readonly StudioModel[],
-  name: string
-): StudioModel | undefined {
-  return models.find((model) => model.name === name) ?? models[0]
+/**
+ * The named model, else the first available one, else the first one;
+ * undefined when there are none.
+ */
+export function findStudioModel<
+  T extends StudioModelAvailability & { name: string },
+>(models: readonly T[], name: string): T | undefined {
+  return (
+    models.find((model) => model.name === name) ??
+    models.find((model) => !model.unavailable) ??
+    models[0]
+  )
 }
 
 /** Prompt token of a reference, such as "图片2" for the second image. */
