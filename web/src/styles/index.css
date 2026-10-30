@@ -688,6 +688,47 @@ For commercial licensing, please contact support@quantumnous.com
   }
 }
 
+/* ── Recommended badge thumbs-up ── */
+/* Pops once when the card appears and again whenever the card is hovered;
+ * the hover rule switches to an identical keyframe set to restart it. */
+@keyframes recommended-badge-pop {
+  0%,
+  100% {
+    transform: scale(1) rotate(0);
+  }
+  40% {
+    transform: scale(1.25) rotate(-14deg);
+  }
+  70% {
+    transform: scale(0.95) rotate(4deg);
+  }
+}
+@keyframes recommended-badge-pop-hover {
+  0%,
+  100% {
+    transform: scale(1) rotate(0);
+  }
+  40% {
+    transform: scale(1.25) rotate(-14deg);
+  }
+  70% {
+    transform: scale(0.95) rotate(4deg);
+  }
+}
+.recommended-badge-pop {
+  transform-origin: 40% 70%;
+  animation: recommended-badge-pop 0.7s ease-in-out 0.2s;
+}
+.group:hover .recommended-badge-pop {
+  animation-name: recommended-badge-pop-hover;
+  animation-delay: 0s;
+}
+@media (prefers-reduced-motion: reduce) {
+  .recommended-badge-pop {
+    animation: none !important;
+  }
+}
+
 /* ── Auto group flowing border ── */
 @property --auto-group-flow-angle {
   syntax: '<angle>';
