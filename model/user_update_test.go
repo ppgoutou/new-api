@@ -623,3 +623,21 @@ func TestValidateAuthSessionWithTxChecksAccessTokenIdentity(t *testing.T) {
 		})
 	}
 }
+
+func TestUserInsertAssignsRandomFourDigitId(t *testing.T) {
+	setupUserUpdateTestState(t)
+
+	first := User{Username: "random-id-a", Password: "password-a1", Status: common.UserStatusEnabled}
+	require.NoError(t, first.Insert(0))
+	second := User{Username: "random-id-b", Password: "password-b1", Status: common.UserStatusEnabled}
+	require.NoError(t, second.Insert(0))
+
+	for _, user := range []User{first, second} {
+		assert.GreaterOrEqual(t, user.Id, randomUserIdMin)
+		assert.LessOrEqual(t, user.Id, randomUserIdMax)
+		var stored User
+		require.NoError(t, DB.First(&stored, "username = ?", user.Username).Error)
+		assert.Equal(t, user.Id, stored.Id)
+	}
+	assert.NotEqual(t, first.Id, second.Id)
+}
