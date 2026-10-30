@@ -256,7 +256,9 @@ export function DataTableToolbar<TData>(props: DataTableToolbarProps<TData>) {
       onChange={handleSearchChange}
       onCompositionStart={handleSearchCompositionStart}
       onCompositionEnd={handleSearchCompositionEnd}
-      className='w-full sm:w-[200px] lg:w-[240px]'
+      // Same fill as the outline filter buttons beside it, so the search box
+      // doesn't read as a hole in the toolbar over the site backdrop.
+      className='bg-background w-full sm:w-[200px] lg:w-[240px]'
     />
   )
 
