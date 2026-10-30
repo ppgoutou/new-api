@@ -7679,6 +7679,6 @@
     "Insufficient balance, {{amount}} short.": "餘額不足，還差 {{amount}}。",
     "Go to top up": "去儲值",
     "Model distribution": "模型分佈",
-    "Multi-channel groups billed per second, per token or per request, pick what fits; models ending in {{suffix}} are Unrestricted.": "多渠道聚合，支援按秒、按 Token、按次計費，按需選擇；模型名帶 {{suffix}} 為無限制（Unrestricted）版。"
+    "Multi-channel groups billed per second, per token or per request, pick what fits; models ending in {{suffix}} are Unrestricted.": "多渠道聚合，支援按秒、按 Token、按次計費，按需選擇；模型名帶 {{suffix}} 為無限制版。"
   }
 }
