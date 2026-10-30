@@ -35,7 +35,7 @@ function model(name: string): PricingModel {
 }
 
 describe('model distribution', () => {
-  it('lists each category with its model count when sections exist', () => {
+  it('lists each category name without a count when sections exist', () => {
     render(
       <ModelDistribution
         sections={[
@@ -57,8 +57,8 @@ describe('model distribution', () => {
       screen.getByRole('list', { name: 'Model distribution' })
     ).getAllByRole('listitem')
     expect(items.map((item) => item.textContent)).toEqual([
-      'Seedance 2.02',
-      'Other models1',
+      'Seedance 2.0',
+      'Other models',
     ])
   })
 
