@@ -5049,7 +5049,7 @@
     "Price: High to Low": "Price: High to Low",
     "Price: Low to High": "Price: Low to High",
     "Prices are in {{currency}}, with units shown below. Use USD when editing expressions directly.": "Prices are in {{currency}}, with units shown below. Use USD when editing expressions directly.",
-    "Prices are per generated second; struck-through prices are official prices. Tasks with a reference video are billed by tokens.": "Prices are per generated second; struck-through prices are official prices. Tasks with a reference video are billed by tokens.",
+    "Each price is the lowest live price per generated second in the series; ≈ marks prices estimated from video tokens.": "Each price is the lowest live price per generated second in the series; ≈ marks prices estimated from video tokens.",
     "Prices changed while preparing the conversion. Try again.": "Prices changed while preparing the conversion. Try again.",
     "Prices follow the upstream. Your markup comes from the group ratio.": "Prices follow the upstream. Your markup comes from the group ratio.",
     "Prices for each set of conditions": "Prices for each set of conditions",

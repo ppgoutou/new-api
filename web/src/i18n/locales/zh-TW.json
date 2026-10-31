@@ -5049,7 +5049,7 @@
     "Price: High to Low": "價格：從高到低",
     "Price: Low to High": "價格：從低到高",
     "Prices are in {{currency}}, with units shown below. Use USD when editing expressions directly.": "價格以 {{currency}} 計，單位見下方標示。手動編輯運算式時請使用美元。",
-    "Prices are per generated second; struck-through prices are official prices. Tasks with a reference video are billed by tokens.": "價格按每生成一秒計算，劃線價為官方價。帶參考影片的任務按 token 計費。",
+    "Each price is the lowest live price per generated second in the series; ≈ marks prices estimated from video tokens.": "每格為該系列即時最低的每秒價格；帶 ≈ 的價格依影片 token 估算。",
     "Prices changed while preparing the conversion. Try again.": "準備轉換時價格已變更，請重試。",
     "Prices follow the upstream. Your markup comes from the group ratio.": "價格跟隨上游，加價由分組倍率決定。",
     "Prices for each set of conditions": "不同條件對應的價格",

@@ -29,35 +29,70 @@ import {
 
 import { LandingPricing } from '../components/landing-pricing'
 
-const SEEDANCE_20: PricingModel = {
-  id: 1,
-  model_name: 'seedance-2.0',
+function secondModel(
+  name: string,
+  prices: Record<string, number>
+): PricingModel {
+  const options = Object.keys(prices)
+  const expr = options
+    .map((option, index) =>
+      index === options.length - 1
+        ? `tier("${option}", u("seconds") * ${prices[option]})`
+        : `u("resolution") == "${option}" ? tier("${option}", u("seconds") * ${prices[option]}) : `
+    )
+    .join('')
+  return {
+    id: 1,
+    model_name: name,
+    quota_type: 0,
+    model_ratio: 1,
+    completion_ratio: 1,
+    enable_groups: ['half'],
+    billing_mode: 'tiered_expr',
+    billing_expr: expr,
+    billing_usage_schema: {
+      seconds: { type: 'number', unit: 'second' },
+      resolution: { enum: options },
+    },
+    model_limits: { minDuration: 4, maxDuration: 15 },
+  }
+}
+
+const TOKEN_25: PricingModel = {
+  id: 2,
+  model_name: 'A-seedance-2.5-P',
   quota_type: 0,
   model_ratio: 1,
   completion_ratio: 1,
-  enable_groups: ['75'],
+  enable_groups: ['half'],
   billing_mode: 'tiered_expr',
-  billing_expr:
-    'u("resolution") == "480p" ? tier("480p", u("seconds") * 0.56) : ' +
-    'tier("720p", u("seconds") * 1)',
+  // 480p is 10044 tokens per second: $0.10 per second before the group ratio.
+  billing_expr: 'tier("480p", u("tokens") * 9.95619275189 / 1000000)',
   billing_usage_schema: {
-    seconds: { type: 'number', unit: 'second' },
-    resolution: { enum: ['480p', '720p'] },
-  },
-}
-
-const SEEDANCE_25: PricingModel = {
-  ...SEEDANCE_20,
-  id: 2,
-  model_name: 'seedance-2.5',
-  billing_expr: 'tier("480p", u("seconds") * 2)',
-  billing_usage_schema: {
-    seconds: { type: 'number', unit: 'second' },
+    tokens: { type: 'number', unit: 'token' },
     resolution: { enum: ['480p'] },
   },
 }
 
-function renderPricing(models: PricingModel[]) {
+const PER_VIDEO_25: PricingModel = {
+  id: 3,
+  model_name: 'D-sd2.5',
+  quota_type: 0,
+  model_ratio: 1,
+  completion_ratio: 1,
+  enable_groups: ['half'],
+  billing_mode: 'tiered_expr',
+  billing_expr: 'tier("720p", u("videos") * 3)',
+  billing_usage_schema: {
+    videos: { type: 'number', unit: 'count' },
+    resolution: { enum: ['720p'] },
+  },
+}
+
+function renderPricing(
+  models: PricingModel[],
+  categories: { name: string; models: string[] }[]
+) {
   vi.spyOn(api, 'get').mockImplementation(async (url: string) => {
     if (url === '/api/pricing') {
       return {
@@ -65,7 +100,11 @@ function renderPricing(models: PricingModel[]) {
           success: true,
           data: models,
           vendors: [],
-          group_ratio: { '75': 0.75 },
+          categories: categories.map((category, index) => ({
+            id: `cat-${index}`,
+            ...category,
+          })),
+          group_ratio: { half: 0.5 },
           usable_group: {},
           supported_endpoint: {},
           auto_groups: [],
@@ -105,24 +144,40 @@ afterEach(() => {
 })
 
 describe('LandingPricing', () => {
-  it('puts both models side by side per resolution with official prices struck through', async () => {
-    renderPricing([SEEDANCE_20, SEEDANCE_25])
+  it('shows the cheapest live price of each series per resolution', async () => {
+    renderPricing(
+      [
+        secondModel('E-seedance-2.0', { '480p': 0.2, '720p': 0.4 }),
+        secondModel('G-seedance-2.0-fast', { '480p': 0.1 }),
+        TOKEN_25,
+      ],
+      [
+        { name: 'Seedance 2.0', models: ['E-seedance-2.0'] },
+        { name: 'Seedance 2.0 fast', models: ['G-seedance-2.0-fast'] },
+        { name: 'Seedance 2.5', models: ['A-seedance-2.5-P'] },
+      ]
+    )
 
     expect(await tableRows()).toEqual([
-      ['Resolution', 'seedance-2.0', 'seedance-2.5New'],
-      ['480p', '$0.42$0.56', '$1.5$2'],
-      ['720p', '$0.75$1', '—'],
+      ['Resolution', 'Seedance 2.0', 'Seedance 2.5New'],
+      ['480p', '$0.05', '≈$0.05'],
+      ['720p', '$0.2', '—'],
     ])
   })
 
-  it('leaves out a model the pricing API does not list', async () => {
-    renderPricing([SEEDANCE_20])
+  it('lists clip lengths and per-video prices under the table', async () => {
+    renderPricing(
+      [secondModel('E-seedance-2.5', { '480p': 0.2 }), PER_VIDEO_25],
+      [{ name: 'Seedance 2.5', models: ['E-seedance-2.5', 'D-sd2.5'] }]
+    )
 
-    expect((await tableRows())[0]).toEqual(['Resolution', 'seedance-2.0'])
+    expect(
+      await screen.findByText(/Seedance 2\.5: 4–15s per clip/)
+    ).toHaveTextContent('Seedance 2.5 · $1.5 / video')
   })
 
-  it('shows per-second billing copy instead of a table when no model is listed', async () => {
-    renderPricing([])
+  it('shows per-second billing copy instead of a table when no series is priced', async () => {
+    renderPricing([], [])
 
     expect(
       await screen.findByText('Billed by generated seconds')

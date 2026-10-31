@@ -5049,7 +5049,7 @@
     "Price: High to Low": "Prix : Du plus élevé au plus bas",
     "Price: Low to High": "Prix : Du plus bas au plus élevé",
     "Prices are in {{currency}}, with units shown below. Use USD when editing expressions directly.": "Prix en {{currency}}, selon les unités indiquées ci-dessous. Utilisez les USD pour modifier directement les expressions.",
-    "Prices are per generated second; struck-through prices are official prices. Tasks with a reference video are billed by tokens.": "Prix par seconde générée ; les prix barrés sont les prix officiels. Les tâches avec vidéo de référence sont facturées en tokens.",
+    "Each price is the lowest live price per generated second in the series; ≈ marks prices estimated from video tokens.": "Chaque prix est le prix en direct le plus bas par seconde générée de la série ; ≈ indique un prix estimé à partir des tokens vidéo.",
     "Prices changed while preparing the conversion. Try again.": "Les prix ont changé pendant la préparation. Réessayez.",
     "Prices follow the upstream. Your markup comes from the group ratio.": "Les prix suivent l’amont. Votre marge vient du ratio de groupe.",
     "Prices for each set of conditions": "Prix selon les conditions",
