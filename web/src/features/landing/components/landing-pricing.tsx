@@ -18,48 +18,56 @@ For commercial licensing, please contact support@quantumnous.com
 */
 import { useTranslation } from 'react-i18next'
 
-import { useSeedancePricing } from '@/features/home/hooks/use-seedance-pricing'
-import { HOME_VIDEO_MODELS } from '@/features/home/lib/video-home'
+import { useVideoSeriesPricing } from '@/features/home/hooks/use-video-series-pricing'
 
 /**
- * Resolutions as rows and Seedance models as columns, so both models' prices
- * for one resolution read side by side. A model without that resolution
- * shows a dash.
+ * Resolutions as rows and the home page model series as columns, each cell
+ * the live lowest price per second across the series' models. A series
+ * without that resolution shows a dash.
  */
 export function LandingPricing() {
   const { t } = useTranslation()
-  const { byModel } = useSeedancePricing()
-  const models = HOME_VIDEO_MODELS.filter((model) => byModel.has(model.name))
+  const seriesList = useVideoSeriesPricing()
   const options = [
     ...new Set(
-      models.flatMap((model) =>
-        (byModel.get(model.name)?.rows ?? []).map((row) => row.option)
-      )
+      seriesList.flatMap((series) => series.rows.map((row) => row.option))
     ),
   ]
-  const durations = HOME_VIDEO_MODELS.map((model) => {
-    const range = byModel.get(model.name)?.durationRange ?? model.durationRange
-    return t('{{model}}: {{min}}–{{max}}s per clip', {
-      model: model.name,
-      min: range[0],
-      max: range[1],
-    })
-  })
+  const notes = seriesList.flatMap((series) =>
+    series.durationRange
+      ? [
+          t('{{model}}: {{min}}–{{max}}s per clip', {
+            model: series.name,
+            min: series.durationRange[0],
+            max: series.durationRange[1],
+          }),
+        ]
+      : []
+  )
+  const perVideo = seriesList.flatMap((series) =>
+    series.perVideo
+      ? [
+          `${series.name} · ${t('{{price}} / video', {
+            price: series.perVideo.price,
+          })}`,
+        ]
+      : []
+  )
 
   return (
     <div
       id='pricing'
-      className='rounded-2xl bg-gradient-to-br from-brand-on-dark/55 via-white/5 to-violet-400/45 p-px'
+      className='from-brand-on-dark/55 rounded-2xl bg-gradient-to-br via-white/5 to-violet-400/45 p-px'
     >
-      <div className='h-full rounded-[15px] bg-ink-raised p-5 md:p-6'>
+      <div className='bg-ink-raised h-full rounded-[15px] p-5 md:p-6'>
         <div className='flex flex-wrap items-baseline justify-between gap-2'>
           <h2 className='text-2xl font-bold text-white'>{t('Pricing')}</h2>
-          <p className='font-mono text-xs text-brand-on-dark'>
+          <p className='text-brand-on-dark font-mono text-xs'>
             ● {t('Live · per second')}
           </p>
         </div>
 
-        {models.length === 0 ? (
+        {options.length === 0 ? (
           <p className='mt-6 text-sm text-white/60'>
             {t('Billed by generated seconds')}
           </p>
@@ -71,14 +79,14 @@ export function LandingPricing() {
                   <th scope='col' className='py-2.5 pr-3 font-normal'>
                     {t('Resolution')}
                   </th>
-                  {models.map((model) => (
+                  {seriesList.map((series) => (
                     <th
-                      key={model.name}
+                      key={series.name}
                       scope='col'
-                      className='py-2.5 pr-3 font-mono font-normal text-white/75'
+                      className='py-2.5 pr-3 font-mono font-normal whitespace-nowrap text-white/75'
                     >
-                      {model.name}
-                      {model.isNew && (
+                      {series.name}
+                      {series.isNew && (
                         <span className='ml-2 rounded bg-violet-500/20 px-1.5 py-0.5 font-sans text-[10px] text-violet-300'>
                           {t('New')}
                         </span>
@@ -99,24 +107,16 @@ export function LandingPricing() {
                     >
                       {option.replace(/k$/i, 'K')}
                     </th>
-                    {models.map((model) => {
-                      const row = byModel
-                        .get(model.name)
-                        ?.rows.find((entry) => entry.option === option)
+                    {seriesList.map((series) => {
+                      const row = series.rows.find(
+                        (entry) => entry.option === option
+                      )
                       return (
-                        <td key={model.name} className='py-3 pr-3'>
+                        <td key={series.name} className='py-3 pr-3'>
                           {row ? (
-                            <>
-                              <span className='font-mono font-semibold text-white'>
-                                {row.price}
-                              </span>
-                              {row.officialPrice &&
-                                row.officialPrice !== row.price && (
-                                  <s className='ml-2 font-mono text-xs text-white/40'>
-                                    {row.officialPrice}
-                                  </s>
-                                )}
-                            </>
+                            <span className='font-mono font-semibold whitespace-nowrap text-white tabular-nums'>
+                              {row.approximate ? `≈${row.price}` : row.price}
+                            </span>
                           ) : (
                             <span className='text-white/40'>—</span>
                           )}
@@ -132,9 +132,9 @@ export function LandingPricing() {
 
         <p className='mt-4 text-xs leading-relaxed text-white/50'>
           {t(
-            'Prices are per generated second; struck-through prices are official prices. Tasks with a reference video are billed by tokens.'
+            'Each price is the lowest live price per generated second in the series; ≈ marks prices estimated from video tokens.'
           )}{' '}
-          {durations.join(' · ')}
+          {[...notes, ...perVideo].join(' · ')}
         </p>
       </div>
     </div>
